@@ -462,6 +462,46 @@ class RoleTests(TestCase):
         self.assertEqual(self.client.get(reverse("shop:messenger_edit", args=[self.owner.pk])).status_code, 404)
 
 
+class DemoInstanceTests(TestCase):
+    """On Vercel each server instance builds its own demo; they must agree with each other."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def test_password_hash_is_the_same_on_every_instance(self):
+        from django.contrib.auth.hashers import get_hasher
+
+        from .demo import demo_password
+
+        selam = get_user_model().objects.get(username="selam")
+        self.assertEqual(selam.password, demo_password("selam1234"))
+        self.assertFalse(get_hasher().must_update(selam.password))  # not re-hashed (re-salted) on login
+        self.assertTrue(self.client.login(username="selam", password="selam1234"))
+        selam.refresh_from_db()
+        self.assertEqual(selam.password, demo_password("selam1234"))
+
+    def test_signed_in_session_survives_another_instance(self):
+        from .demo import demo_password
+
+        self.client.login(username="dawit", password="dawit1234")
+        # Another instance builds the account again from scratch: the hash comes out identical.
+        get_user_model().objects.filter(username="dawit").update(password=demo_password("dawit1234"))
+        self.assertEqual(self.client.get(reverse("shop:dashboard")).status_code, 200)
+
+    def test_demo_photos_come_from_the_app_not_storage(self):
+        from .demo import demo_photo
+
+        item = FreeSizeItem.objects.get(code="FS-024")
+        self.assertEqual(item.photo.name, "demo/white-cotton-kemis.jpg")
+        self.client.login(username="dawit", password="dawit1234")
+        response = self.client.get(item.photo.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertIsNone(demo_photo("demo/../settings.py"))
+        self.assertEqual(self.client.get(reverse("media_file", args=["demo/missing.jpg"])).status_code, 404)
+
+
 class MediaTests(TempMediaMixin, TestCase):
     def setUp(self):
         self.use_temp_media()

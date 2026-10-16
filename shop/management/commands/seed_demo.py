@@ -6,22 +6,18 @@
 import random
 from datetime import timedelta
 from decimal import Decimal
-from pathlib import Path
-
 from django.contrib.auth import get_user_model
-from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from shop.demo import DEMO_PREFIX, demo_password, demo_photo
 from shop.models import (
     Activity, Customer, FreeSizeItem, Material, MaterialUsage, Order, Payment,
     Sale, StaffProfile, Stage, StageNote, Style, Tibebe, Worker, WorkerTask,
 )
 
 D = Decimal
-# Photos for the ready-made rack, shipped with the app so every fresh demo has them.
-DEMO_PHOTOS = Path(__file__).resolve().parents[2] / "demo_photos"
 
 # Color, fit and lengths shown in the style page's details grid.
 STYLE_DETAILS = {
@@ -56,11 +52,16 @@ class Command(BaseCommand):
         self.now = timezone.now()
 
         User = get_user_model()
+        # Same password hash on every server instance, so a sign-in stays valid on all of them.
         if not User.objects.filter(username="selam").exists():
-            owner = User.objects.create_superuser("selam", "selam@example.com", "selam1234", first_name="Selam")
+            owner = User.objects.create_superuser("selam", "selam@example.com", None, first_name="Selam")
+            owner.password = demo_password("selam1234")
+            owner.save(update_fields=["password"])
             StaffProfile.objects.create(user=owner, role=StaffProfile.Role.OWNER)
         if not User.objects.filter(username="dawit").exists():
-            messenger = User.objects.create_user("dawit", password="dawit1234", first_name="Dawit")
+            messenger = User.objects.create_user("dawit", first_name="Dawit")
+            messenger.password = demo_password("dawit1234")
+            messenger.save(update_fields=["password"])
             StaffProfile.objects.create(user=messenger, role=StaffProfile.Role.MESSENGER, phone="0918223344")
         self.owner = User.objects.get(username="selam")
         self.messenger = User.objects.get(username="dawit")
@@ -182,16 +183,13 @@ class Command(BaseCommand):
              dict(pattern_type="Gold tibeb trim on collar, placket and pocket", sleeve_length="Long sleeve",
                   length="75 cm", fit="Regular fit", fabric="Cotton", color="White and gold", made=both)),
         ]
-        items = []
-        for code, name, category, price, qty, photo, extra in data:
-            item = FreeSizeItem.objects.create(code=code, name=name, category=category, price=D(price),
-                                               quantity=qty, **extra)
-            path = DEMO_PHOTOS / photo
-            if path.exists():
-                with path.open("rb") as f:
-                    item.photo.save(photo, File(f), save=True)
-            items.append(item)
-        return items
+        # Photos point at files shipped with the app ("demo/…"), nothing is copied into storage.
+        return [
+            FreeSizeItem.objects.create(code=code, name=name, category=category, price=D(price), quantity=qty,
+                                        photo=DEMO_PREFIX + photo if demo_photo(DEMO_PREFIX + photo) else "",
+                                        **extra)
+            for code, name, category, price, qty, photo, extra in data
+        ]
 
     def _order(self, name, phone, style, *, people=1, created_ago=10, due_in=10, stage=Stage.SEWING,
                worker=None, total=8000, deposit=3000, urgent=False, delivered_ago=None):

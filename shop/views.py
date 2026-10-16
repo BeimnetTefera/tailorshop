@@ -19,6 +19,7 @@ from django.utils.translation import gettext_noop, ngettext
 from django.views.decorators.http import require_POST
 
 from . import ethiopian
+from .demo import DEMO_PREFIX, demo_photo
 from .forms import (
     AddStockForm,
     FreeSizeItemForm,
@@ -160,9 +161,16 @@ def _simple_form(request, form_class, *, title, back, submit, success, instance=
 
 def media_file(request, path):
     """Uploaded photos, for signed-in users only (from disk or Supabase Storage)."""
+    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    if path.startswith(DEMO_PREFIX):
+        file = demo_photo(path)
+        if file is None:
+            raise Http404
+        response = FileResponse(file.open("rb"), content_type=content_type)
+        response["Cache-Control"] = "private, max-age=86400"
+        return response
     if not default_storage.exists(path):
         raise Http404
-    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
     response = FileResponse(default_storage.open(path), content_type=content_type)
     response["Cache-Control"] = "private, max-age=86400"
     return response

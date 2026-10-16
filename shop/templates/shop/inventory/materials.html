@@ -1,0 +1,46 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Raw materials{% endblock %}
+{% block content %}
+<a class="crumb" href="{% url 'shop:clothing_list' %}">{% icon "back" 16 %} Inventory library</a>
+<header class="topbar" style="margin-bottom:6px"><h1>Raw materials<div class="sub">Keep your fabrics and supplies easy to find.</div></h1></header>
+
+<form class="search" method="get" role="search">
+  {% icon "search" %}<label class="sr-only" for="mat-q">Search materials</label>
+  <input id="mat-q" type="search" name="q" value="{{ q }}" placeholder="Material name…">
+  {% if kind %}<input type="hidden" name="type" value="{{ kind }}">{% endif %}
+</form>
+{% include "shop/partials/inventory_tabs.html" with current="materials" %}
+
+<nav class="chips-scroll mt" aria-label="Material type">
+  <a class="chip {% if not kind %}active{% endif %}" href="?sort={{ sort }}">All</a>
+  {% for v, l in types %}<a class="chip {% if kind == v %}active{% endif %}" href="?type={{ v }}&sort={{ sort }}">{{ l }}</a>{% endfor %}
+</nav>
+
+<div class="section-head" style="margin-top:16px"><h2>Stock overview</h2></div>
+<div class="stats-3">
+  <div class="stat"><b>{{ total }}</b><span>Materials</span></div>
+  <div class="stat"><b>{{ low }}</b><span>Low stock</span></div>
+  <div class="stat"><b>{{ out }}</b><span>Out of stock</span></div>
+</div>
+
+<div class="row-between mt-lg"><p style="font-size:18px">Your materials</p><button class="btn btn-outline btn-sm" data-open="mat-sort">{% icon "sort" 18 %} Sort</button></div>
+
+<div class="tile-grid">
+  {% for m in materials %}
+    <a class="tile" href="{% url 'shop:material_detail' m.pk %}">
+      {% include "shop/partials/thumb.html" with photo=m.photo alt=m.name code=m.get_material_type_display %}
+      <div class="tile-body"><small>ETB {{ m.price|etb }} / {{ m.get_unit_display|lower|slice:":-1" }}</small><strong>{{ m.name }}</strong><span class="status status-{{ m.status }}">{{ m.availability }}</span></div>
+    </a>
+  {% empty %}
+    <div class="empty" style="grid-column:1/-1"><b>No materials {% if q or kind %}match{% else %}yet{% endif %}</b><p>Add fabric, thread and buttons to keep track of what's left.</p></div>
+  {% endfor %}
+</div>
+<a class="fab" href="{% url 'shop:material_create' %}" aria-label="Add material">{% icon "plus" 26 %}</a>
+
+<dialog class="sheet" id="mat-sort">
+  <div class="sheet-body">
+    <div class="sheet-head"><h2>Sort by</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <ul class="sort-list">{% for v, l in sort_options %}<li><a class="{% if sort == v %}active{% endif %}" href="?sort={{ v }}{% if kind %}&type={{ kind }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ l }}{% if sort == v %} ✓{% endif %}</a></li>{% endfor %}</ul>
+  </div>
+</dialog>
+{% endblock %}

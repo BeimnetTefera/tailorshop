@@ -1,0 +1,55 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}{{ style.name }}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:clothing_list' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1><span class="small muted" style="font-weight:400">{{ position }} of {{ total }}</span></h1>
+  <a class="btn btn-outline btn-sm" href="{% url 'shop:style_edit' style.pk %}">Edit</a>
+</header>
+
+<div class="style-page" data-style-page>
+  <section class="gallery" aria-label="Photos of {{ style.name }}" data-gallery>
+    <div class="gallery-main">
+      {% if gallery %}
+        <img src="{{ gallery.0.url }}" alt="{{ style.name }}, photo 1 of {{ gallery|length }}" data-gallery-main>
+        {% if gallery|length > 1 %}<span class="gallery-count" data-gallery-count>1 / {{ gallery|length }}</span>{% endif %}
+      {% else %}
+        <a class="gallery-empty" href="{% url 'shop:style_edit' style.pk %}">{% icon "camera" 28 %}<span>{{ style.code }}</span><small>Add photos</small></a>
+      {% endif %}
+    </div>
+    {% if gallery|length > 1 %}
+    <div class="gallery-thumbs">
+      {% for img in gallery %}
+        <button type="button" class="gallery-thumb{% if forloop.first %} is-active{% endif %}" data-gallery-thumb="{{ img.url }}" aria-label="Show photo {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}>
+          <img src="{{ img.url }}" alt="" loading="lazy">
+        </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="style-info">
+    <p class="small muted">{{ style.code }}</p>
+    <h1 class="detail-title">{{ style.name }}</h1>
+    <dl class="spec-grid">
+      {% for label, value in details %}
+        <div><dt>{{ label }}</dt><dd>{{ value|default:"—" }}</dd></div>
+      {% endfor %}
+    </dl>
+    {% if style.description %}<p class="mt">{{ style.description }}</p>{% endif %}
+  </div>
+</div>
+
+<nav class="style-pager" aria-label="Browse styles">
+  {% if prev_pk %}<a class="btn btn-outline" href="{% url 'shop:style_detail' prev_pk %}" data-pager="prev" rel="prev">{% icon "chev-left" 20 %} Previous</a>{% else %}<span class="btn btn-outline is-disabled" aria-disabled="true">{% icon "chev-left" 20 %} Previous</span>{% endif %}
+  {% if next_pk %}<a class="btn btn-outline" href="{% url 'shop:style_detail' next_pk %}" data-pager="next" rel="next">Next {% icon "chev-right" 20 %}</a>{% else %}<span class="btn btn-outline is-disabled" aria-disabled="true">Next {% icon "chev-right" 20 %}</span>{% endif %}
+</nav>
+
+{% if materials %}
+<h2 class="mt-lg" style="font-size:18px;font-weight:600">Materials used</h2>
+<div class="tags mt">{% for m in materials %}<a class="tag-box" href="{% url 'shop:material_detail' m.pk %}">{{ m.name }}</a>{% endfor %}</div>
+{% endif %}
+
+<a class="btn btn-primary btn-block mt-lg" style="font-size:20px;padding:18px" href="{% url 'shop:order_create' %}?style={{ style.pk }}">Use this style</a>
+<p class="small muted mt" style="text-align:center">Opens a new order with this style already chosen. Used in {{ order_count }} order{{ order_count|pluralize }} so far.</p>
+{% endblock %}

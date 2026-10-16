@@ -1,0 +1,78 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block content %}
+<header class="home-head">
+  <div>
+    <p>{{ greeting }}</p>
+    <h1>{{ user.first_name|default:user.username }}</h1>
+  </div>
+  <div class="row">
+    {% include "shop/partials/theme_toggle.html" %}
+    <a href="{% url 'shop:team' %}" class="icon-btn" aria-label="Team and account">{% icon "team" %}</a>
+    <a href="{% url 'shop:order_list' %}?due=late" class="icon-btn" aria-label="{{ delayed_count }} delayed orders">{% icon "bell" %}{% if delayed_count %}<span class="dot">{{ delayed_count }}</span>{% endif %}</a>
+  </div>
+</header>
+
+<section class="priority">
+  <p class="label-sm">Today's priority</p>
+  {% if due_today_count %}
+    <h2>{{ due_today_count }} order{{ due_today_count|pluralize }} due today</h2>
+    <p>{{ due_today_text|capfirst }} need{{ due_today_count|pluralize:"s," }} attention.</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}?due=today">View orders {% icon "arrow-right" 18 %}</a>
+  {% elif delayed_count %}
+    <h2>{{ delayed_count }} order{{ delayed_count|pluralize }} running late</h2>
+    <p>Nothing is due today, but these are past their delivery date.</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}?due=late">View late orders {% icon "arrow-right" 18 %}</a>
+  {% else %}
+    <h2>Nothing due today</h2>
+    <p>{% if ready_count %}{{ ready_count }} order{{ ready_count|pluralize }} {{ ready_count|pluralize:"is,are" }} ready for pickup.{% else %}Every order is on schedule.{% endif %}</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}">View orders {% icon "arrow-right" 18 %}</a>
+  {% endif %}
+</section>
+
+<div class="section-head"><h2>Quick actions</h2></div>
+<div class="actions-grid">
+  <a class="action-tile" href="{% url 'shop:order_create' %}">{% icon "plus" %}New order</a>
+  <a class="action-tile" href="{% url 'shop:order_list' %}">{% icon "orders" %}Orders</a>
+  <a class="action-tile" href="{% url 'shop:sale_create' %}">{% icon "clipboard" %}Record sale</a>
+  <a class="action-tile" href="{% url 'shop:clothing_list' %}">{% icon "hanger" %}Inventory</a>
+</div>
+
+<div class="section-head"><h2>Production tracker</h2><a href="{% url 'shop:tracker' %}">View all {% icon "arrow-right" 16 %}</a></div>
+<div class="scroller">
+  {% for value, label, count in tracker %}
+    <a class="stat" href="{% url 'shop:order_list' %}?stage={{ value }}"><b>{{ count }}</b><span>{{ label }}</span></a>
+  {% endfor %}
+</div>
+
+<div class="section-head"><h2>Current work</h2></div>
+{% if current_work %}
+<div class="work-card">
+  {% for o in current_work %}
+  <a class="work-row" href="{% url 'shop:tracker_detail' o.pk %}">
+    <div class="row-between"><b>{{ o.customer.name.split.0 }} · {{ o.ref }}</b><b>With {{ o.current_worker.name }}</b></div>
+    <div class="row-between"><span>{{ o.title }}</span><span>{{ o.get_stage_display }}</span></div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted small">No garment is with a worker right now. Open an order in the production tracker to hand it over.</p>
+{% endif %}
+
+<div class="section-head"><h2>Free size stock</h2><a href="{% url 'shop:freesize_list' %}">View all {% icon "arrow-right" 16 %}</a></div>
+<div class="stack-sm">
+  {% for item in stock %}
+    <a class="stock-pill {% if not item.is_low %}ok{% endif %}" href="{% url 'shop:sale_create' %}?item={{ item.pk }}"><span>{{ item.code }} {{ item.name }}</span><span class="left">{{ item.quantity }} left</span></a>
+  {% empty %}
+    <p class="muted small">No free-size items yet. <a href="{% url 'shop:freesize_create' %}">Add one</a>.</p>
+  {% endfor %}
+</div>
+
+<div class="section-head"><h2>Recent activity</h2></div>
+<ul class="activity">
+  {% for a in activities %}
+    <li><p>{{ a.text }}</p><small>{{ a.created_at|friendly }}</small></li>
+  {% empty %}
+    <li><p class="muted small">Orders, sales and payments you record will show up here.</p></li>
+  {% endfor %}
+</ul>
+{% endblock %}

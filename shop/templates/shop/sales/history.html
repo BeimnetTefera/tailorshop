@@ -1,0 +1,57 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Sales history{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Sales history<div class="sub">Your recorded free-size sales.</div></h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'shop:sale_create' %}">{% icon "plus" 16 %} Record sale</a>
+</header>
+
+{% include "shop/partials/week_nav.html" %}
+
+<div class="section-head" style="margin-top:4px"><h2>Today's sales</h2></div>
+<div class="stats-3">
+  <div class="stat"><b>{{ today_count }}</b><span>Sales</span></div>
+  <div class="stat"><b>{{ today_items }}</b><span>Items sold</span></div>
+  <div class="stat"><b>{{ today_received|etb }}</b><span>ETB received</span></div>
+</div>
+
+<form method="get" class="mt" role="search">
+  <input type="hidden" name="week" value="{{ week.start|date:'Y-m-d' }}">
+  <label class="label" for="sales-q">Search sales</label>
+  <div class="search" style="margin-top:6px">{% icon "search" %}<input id="sales-q" type="search" name="q" value="{{ q }}" placeholder="Style code, clothing or customer…"></div>
+  <div class="row-between">
+    <div><b style="font-weight:500;font-size:17px">Recorded sales</b><div class="small">{{ week_total|etb }} ETB received this week</div></div>
+    <div class="row">
+      <select name="sort" class="input" style="width:auto;padding:6px 34px 6px 12px" onchange="this.form.submit()" aria-label="Sort">
+        <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+        <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest</option>
+        <option value="amount" {% if sort == "amount" %}selected{% endif %}>Highest amount</option>
+      </select>
+      <select name="status" class="input" style="width:auto;padding:6px 34px 6px 12px" onchange="this.form.submit()" aria-label="Payment status">
+        <option value="">All</option>
+        <option value="paid" {% if status == "paid" %}selected{% endif %}>Paid</option>
+        <option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option>
+      </select>
+    </div>
+  </div>
+</form>
+
+{% for day, sales in groups %}
+  {% if day %}<p class="small muted mt">{{ day|friendly }} · {{ day|date:"F j" }}</p>{% endif %}
+  <div class="stack-sm" style="margin-top:8px">
+  {% for s in sales %}
+    <article class="sale-card">
+      <div class="row-between"><h3>{{ s.item.code }} · {{ s.item.name }}</h3><span class="amount">{{ s.amount|etb }} ETB</span></div>
+      <div class="meta">{{ s.quantity }} item{{ s.quantity|pluralize }} · {% if s.status == "paid" %}✓ Paid{% else %}⏳ Pending{% endif %}</div>
+      {% if s.customer_name %}<small>Customer: {{ s.customer_name }}</small>{% endif %}
+      <div class="row-between"><small>{{ s.created_at|friendly }}</small>
+        {% if s.status == "pending" %}<form method="post" action="{% url 'shop:sale_mark_paid' s.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-light btn-sm">Mark paid</button></form>{% endif %}
+      </div>
+    </article>
+  {% endfor %}
+  </div>
+{% empty %}
+  <div class="empty"><b>No sales {% if q or status %}match{% else %}this week{% endif %}</b><p>{% if q or status %}Try a different search or filter.{% else %}Sales you record will show up here.{% endif %}</p></div>
+{% endfor %}
+{% endblock %}

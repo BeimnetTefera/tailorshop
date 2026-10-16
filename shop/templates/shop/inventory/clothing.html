@@ -1,0 +1,50 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Inventory{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Inventory library<div class="sub">Browse and manage clothing styles.</div></h1>
+</header>
+<p class="legend">HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion</p>
+
+<form class="search" method="get" role="search">
+  {% icon "search" %}<label class="sr-only" for="style-q">Search styles</label>
+  <input id="style-q" type="search" name="q" value="{{ q }}" placeholder="Style name, code or fabric…">
+</form>
+{% include "shop/partials/inventory_tabs.html" with current="clothing" %}
+
+<div class="row-between mt">
+  <div><p style="font-size:18px">Clothing</p><p class="small">Finished designs ready to show or add to an order.</p></div>
+  <button class="btn btn-outline btn-sm" data-open="style-filter">{% icon "filter" 18 %} Filter{% if filter_count %} ({{ filter_count }}){% endif %}</button>
+</div>
+
+<div class="tile-grid">
+  {% for s in styles %}
+    <a class="tile" href="{% url 'shop:style_detail' s.pk %}">
+      {% include "shop/partials/thumb.html" with photo=s.photo alt=s.name code=s.code %}
+      <div class="tile-body"><small>{{ s.code }}</small><strong>{{ s.name }}</strong><span class="tag">{{ s.get_category_display }}</span></div>
+    </a>
+  {% empty %}
+    <div class="empty" style="grid-column:1/-1"><b>{% if q or filter_count %}No styles match{% else %}Your style library is empty{% endif %}</b><p>{% if q or filter_count %}Try fewer filters.{% else %}Add the designs you make so customers can pick from them.{% endif %}</p></div>
+  {% endfor %}
+</div>
+
+<a class="fab" href="{% url 'shop:style_create' %}" aria-label="Add style">{% icon "plus" 26 %}</a>
+
+<dialog class="sheet" id="style-filter">
+  <form method="get" class="sheet-body">
+    <div class="sheet-head"><h2>Filter clothing</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    <p class="label" style="font-weight:600;font-size:16px">Occasion</p>
+    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in occasion_options %}<label class="chip-opt"><input type="checkbox" name="occasion" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label" style="font-weight:600;font-size:16px">Gender</p>
+    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in gender_options %}<label class="chip-opt"><input type="checkbox" name="gender" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label" style="font-weight:600;font-size:16px">Fabric</p>
+    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in fabric_options %}<label class="chip-opt"><input type="checkbox" name="fabric" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label" style="font-weight:600;font-size:16px">Quick filters</p>
+    <div class="chips" style="margin:8px 0 22px">{% for v, l, on in quick_options %}<label class="chip-opt"><input type="checkbox" name="quick" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <button class="btn btn-primary btn-block">Show results</button>
+    <a class="btn btn-outline btn-block mt" href="{% url 'shop:clothing_list' %}">Clear filters</a>
+  </form>
+</dialog>
+{% endblock %}

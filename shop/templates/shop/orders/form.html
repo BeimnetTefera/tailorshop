@@ -1,0 +1,74 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}{% if order %}Edit order{% else %}New order{% endif %}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% if order %}{% url 'shop:tracker_detail' order.pk %}{% else %}{% url 'shop:dashboard' %}{% endif %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>{% if order %}Edit {{ order.code }}{% else %}New order{% endif %}</h1>
+</header>
+
+<nav class="stepper" aria-label="Form sections">
+  <a href="#customer" class="active">Customer</a>
+  <a href="#clothing">Clothing</a>
+  <a href="#measure">Measure</a>
+  <a href="#payment">Payment</a>
+</nav>
+
+{{ style_categories|json_script:"style-categories" }}
+<form method="post" enctype="multipart/form-data" class="stack" novalidate>
+  {% csrf_token %}
+  {% if form.errors %}<div class="form-errors">Some details need fixing. They're marked below.</div>{% endif %}
+
+  <section class="fieldset" id="customer" data-step>
+    <h2>Customer information</h2>
+    {% include "shop/partials/field.html" with field=form.customer_name %}
+    {% include "shop/partials/field.html" with field=form.customer_phone %}
+  </section>
+
+  <section class="fieldset" id="clothing" data-step>
+    <h2>Clothing information</h2>
+    {% include "shop/partials/field.html" with field=form.style %}
+    <a class="btn btn-primary btn-block" style="margin-top:10px" href="{% url 'shop:clothing_list' %}">Browse style library</a>
+    <div class="mt">{% include "shop/partials/field.html" with field=form.reference_photo %}</div>
+    <div class="mt">{% include "shop/partials/field.html" with field=form.category %}</div>
+    <div class="mt">{% include "shop/partials/field.html" with field=form.people_count %}</div>
+  </section>
+
+  <section class="fieldset" id="measure" data-step>
+    <h2>Measurements</h2>
+    <p class="help">All measurements in centimetres.</p>
+    <p class="group-label">Upper body</p>
+    <div class="grid-2">
+      {% include "shop/partials/field.html" with field=form.bust unit=1 %}
+      {% include "shop/partials/field.html" with field=form.shoulder unit=1 %}
+    </div>
+    <div class="mt">{% include "shop/partials/field.html" with field=form.sleeve_length unit=1 %}</div>
+    <p class="group-label">Waist area</p>
+    <div class="grid-2">
+      {% include "shop/partials/field.html" with field=form.waist unit=1 %}
+      {% include "shop/partials/field.html" with field=form.hip unit=1 %}
+    </div>
+    <p class="group-label">Full length</p>
+    {% include "shop/partials/field.html" with field=form.dress_length unit=1 %}
+  </section>
+
+  <section class="fieldset">
+    <h2>Delivery details</h2>
+    {% include "shop/partials/field.html" with field=form.due_date %}
+    <div class="mt">{% include "shop/partials/field.html" with field=form.priority %}</div>
+  </section>
+
+  <section class="fieldset" id="payment" data-step>
+    <h2>Payment</h2>
+    {% include "shop/partials/field.html" with field=form.total_price %}
+    {% if form.deposit %}
+      <div class="mt">{% include "shop/partials/field.html" with field=form.deposit %}</div>
+      <div class="balance"><span>Remaining balance</span><b data-remaining data-paid="0">0</b></div>
+    {% else %}
+      <p class="help mt">Paid so far: {{ order.paid_amount|etb }} ETB. Record new payments from the production tracker.</p>
+      <div class="balance"><span>Remaining balance</span><b data-remaining data-paid="{{ order.paid_amount }}">{{ order.balance|etb }}</b></div>
+    {% endif %}
+  </section>
+
+  <button class="btn btn-primary btn-block">{% if order %}Save changes{% else %}Create order{% endif %}</button>
+</form>
+{% endblock %}

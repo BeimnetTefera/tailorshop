@@ -1,0 +1,181 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Production tracker{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:order_list' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Production tracker<div class="sub">Track where every garment is.</div></h1>
+</header>
+
+{% if delayed %}
+<div class="alert">
+  <b>{{ delayed|length }} order{{ delayed|pluralize }} past {{ delayed|length|pluralize:"its,their" }} delivery date:</b>
+  {% for d in delayed %}<a href="{% url 'shop:tracker_detail' d.pk %}">{{ d.customer.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+<p class="label mt" style="font-weight:600;font-size:17px">Find a garment</p>
+<form class="search" method="get" action="{% url 'shop:tracker' %}" role="search" style="margin-top:6px">
+  {% icon "search" %}
+  <label class="sr-only" for="tracker-q">Search</label>
+  <input id="tracker-q" type="search" name="q" value="{{ q }}" placeholder="Customer, style, phone…">
+</form>
+<p class="help">Search by customer, style, or order number (e.g. ORD-0007).</p>
+
+{% if q and not order %}
+  <div class="stack-sm mt">
+    {% for r in results %}
+      <a class="result-link" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b><br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small">{{ r.status_label }}</span></a>
+    {% empty %}
+      <div class="empty"><b>No active order matches “{{ q }}”</b><p>Delivered orders are on the Past tab of the orders list.</p></div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if order %}
+<div class="stack mt">
+  <section class="brown-card">
+    <h2>{{ order.customer.name }}</h2>
+    <div class="small" style="opacity:.85">{{ order.title }} · {{ order.code }} · {{ order.customer.phone }}</div>
+    <div class="kv mt"><span>Due</span><span>{{ order.due_date|date:"M j" }}{% if order.is_active %} ({{ order.days_left_label|lower }}){% endif %}</span></div>
+    <div class="kv"><span>Currently with</span><span>{{ order.current_worker.name|default:"Shop" }}</span></div>
+  </section>
+
+  <section class="brown-card">
+    <h2>Current stage</h2>
+    <span class="stage-chip">{{ order.get_stage_display }}</span>{% if order.is_delayed %} <span class="pill pill-danger">Delayed · {{ order.days_left_label }}</span>{% endif %}
+    <div class="small">Started {% if order.days_in_stage == 0 %}today{% else %}{{ order.days_in_stage }} day{{ order.days_in_stage|pluralize }} ago{% endif %}</div>
+    {% if order.expected_finish %}<div class="small">Expected finish: {{ order.expected_finish|date:"M j" }}</div>{% endif %}
+  </section>
+
+  <section class="timeline-box">
+    <h2>Production timeline</h2>
+    <ol class="timeline">
+      {% for step in timeline %}
+        <li class="{{ step.state }}"><span class="node">{% if step.state == "done" %}{% icon "check" 16 %}{% endif %}</span><span>{{ step.label }}{% if step.state == "current" and step.value != "ready" %} in progress{% endif %}</span></li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  {% if order.is_active %}
+  <section class="holder">
+    <div class="row-between"><span class="small">Current holder</span>{% if order.current_worker %}<span class="pill pill-dark">{% if order.days_in_stage == 0 %}Today{% else %}{{ order.days_in_stage }} day{{ order.days_in_stage|pluralize }} ago{% endif %}</span>{% endif %}</div>
+    <h3>{{ order.current_worker.name|default:"Not assigned" }}</h3>
+    <div class="small">{% if order.current_worker %}{{ order.current_worker.get_role_display }} · since {{ order.stage_started_at|date:"M j" }}{% else %}The garment is at the shop.{% endif %}</div>
+    <button class="btn btn-primary btn-block mt" data-open="transfer-sheet">Transfer worker</button>
+  </section>
+  {% endif %}
+
+  <section>
+    <p class="label" style="font-weight:600;font-size:16px;margin-bottom:8px">Stage notes</p>
+    <div class="stack-sm">
+      {% for n in notes %}<div class="note-card"><p>{{ n.text }}</p><small>{{ n.author }} · {{ n.created_at|date:"M j" }}</small></div>
+      {% empty %}<p class="help">No notes yet. Add instructions like “Need sleeve adjustment”.</p>{% endfor %}
+    </div>
+  </section>
+
+  <div class="btn-row">
+    {% if order.is_active %}
+    <button class="btn btn-primary btn-sm" data-open="stage-sheet">Update stage</button>
+    <button class="btn btn-primary btn-sm" data-open="transfer-sheet">Transfer worker</button>
+    {% endif %}
+    <button class="btn btn-primary btn-sm" data-open="note-sheet">Add note</button>
+  </div>
+
+  <section class="fieldset">
+    <h2>Payment</h2>
+    <div class="row-between"><span>Total price</span><span>{{ order.total_price|etb }} ETB</span></div>
+    <div class="row-between"><span>Paid</span><span>{{ order.paid_amount|etb }} ETB</span></div>
+    <div class="balance"><span>Remaining balance</span><b>{{ order.balance|etb }} ETB</b></div>
+    {% if order.balance > 0 %}<button class="btn btn-outline btn-block mt" data-open="payment-sheet">Record payment</button>{% endif %}
+  </section>
+
+  {% if order.measurements %}
+  <section class="fieldset">
+    <h2>Measurements (cm)</h2>
+    <div class="grid-2 small">{% for label, value in order.measurements %}<div class="row-between"><span class="muted">{{ label }}</span><b>{{ value }}</b></div>{% endfor %}</div>
+    {% if order.reference_photo %}<img class="mt" src="{{ order.reference_photo.url }}" alt="Reference photo" style="border-radius:10px">{% endif %}
+  </section>
+  {% endif %}
+
+  {% if tasks %}
+  <section>
+    <p class="label" style="font-weight:600;font-size:16px;margin-bottom:4px">Hand-over history</p>
+    <ul class="list small">
+      {% for t in tasks %}<li><span>{{ t.worker.name }} · {{ t.get_stage_display }}</span><span class="muted">{{ t.started_on|date:"M j" }}{% if t.finished_on %} – {{ t.finished_on|date:"M j" }}{% else %} – now{% endif %}</span></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <div class="btn-row">
+    <a class="btn btn-outline" href="{% url 'shop:order_edit' order.pk %}">Edit order</a>
+    {% if order.stage == "ready" %}
+      <form method="post" action="{% url 'shop:order_deliver' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary" style="width:100%">Mark delivered</button></form>
+    {% elif order.is_active %}
+      <form method="post" action="{% url 'shop:order_mark_ready' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary" style="width:100%">Mark ready</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<dialog class="sheet" id="transfer-sheet">
+  <form method="post" action="{% url 'shop:order_transfer' order.pk %}" class="sheet-body">
+    {% csrf_token %}
+    <div class="sheet-head"><h2>Transfer garment</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <p class="label" style="margin-bottom:8px">Select next worker</p>
+    {% for role in roles %}
+      <details class="role-group" {% if role.value == order.stage %}open{% endif %}>
+        <summary><span class="ring"></span>{{ role.label }} <span class="small" style="opacity:.7">({{ role.workers|length }})</span>{% icon "chev-down" 18 %}</summary>
+        <div class="role-workers">
+          {% for w in role.workers %}
+            <label class="worker-opt"><input type="radio" name="worker" value="{{ w.pk }}" {% if w.pk == order.current_worker_id %}disabled{% endif %}><span>{{ w.name }}{% if w.pk == order.current_worker_id %} (has it now){% endif %}</span></label>
+          {% empty %}
+            <p class="small">No {{ role.label|lower }} yet. <a href="{% url 'shop:team' %}">Add one</a>.</p>
+          {% endfor %}
+        </div>
+      </details>
+    {% endfor %}
+    <div class="field mt"><label class="label" for="t-finish">Expected finish</label><input class="input" id="t-finish" type="date" name="expected_finish" value="{{ default_finish }}"></div>
+    <div class="field mt"><label class="label" for="t-note">Add note</label><textarea class="input" id="t-note" name="note" maxlength="300" placeholder="Add instructions"></textarea></div>
+    <button class="btn btn-primary btn-block mt">Transfer</button>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="stage-sheet">
+  <form method="post" action="{% url 'shop:order_update_stage' order.pk %}" class="sheet-body">
+    {% csrf_token %}
+    <div class="sheet-head"><h2>Update stage</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="panel">
+      {% for value, label in stage_choices %}
+        <label class="stage-opt"><input type="radio" name="stage" value="{{ value }}" {% if value == order.stage %}checked{% endif %}>{{ label }}</label>
+      {% endfor %}
+    </div>
+    <p class="help" style="margin-bottom:12px">Moving to “Ready for pickup” or “Delivered” closes the current worker's task so it shows up in worker payments.</p>
+    <button class="btn btn-primary btn-block">Update stage</button>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="note-sheet">
+  <form method="post" action="{% url 'shop:order_add_note' order.pk %}" class="sheet-body">
+    {% csrf_token %}
+    <div class="sheet-head"><h2>Add note</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="panel"><label class="label" for="n-text">Note</label><textarea class="input" id="n-text" name="text" maxlength="300" required placeholder="e.g. Need sleeve adjustment"></textarea></div>
+    <button class="btn btn-primary btn-block">Add note</button>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="payment-sheet">
+  <form method="post" action="{% url 'shop:order_add_payment' order.pk %}" class="sheet-body">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <div class="sheet-head"><h2>Record payment</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="panel">
+      <label class="label" for="p-amount">Amount paid (ETB)</label>
+      <input class="input" id="p-amount" type="number" name="amount" min="1" max="{{ order.balance }}" step="0.01" value="{{ order.balance|num }}" inputmode="decimal" required>
+      <small class="help">Remaining balance: {{ order.balance|etb }} ETB</small>
+    </div>
+    <button class="btn btn-primary btn-block">Record payment</button>
+  </form>
+</dialog>
+{% elif not q %}
+  <div class="empty mt-lg"><b>No garments in production</b><p>Create an order and it will appear here.</p><a class="btn btn-primary" href="{% url 'shop:order_create' %}">New order</a></div>
+{% endif %}
+{% endblock %}

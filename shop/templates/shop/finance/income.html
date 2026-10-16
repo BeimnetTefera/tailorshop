@@ -1,0 +1,20 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Income{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Income for the week</h1>
+</header>
+<div style="text-align:center;margin:10px 0 20px">
+  <p style="font-size:18px">{{ label }}</p>
+  <p style="font-size:30px;font-weight:700">{{ total|etb }} ETB</p>
+  <p style="font-size:17px">{{ count }} payment{{ count|pluralize }} and sale{{ count|pluralize }}</p>
+</div>
+<ul class="list">
+  {% for name, row in rows %}
+    <li><span>{{ name }}{% if row.count > 1 %} <span class="small muted">×{{ row.count }}</span>{% endif %}</span><span>{{ row.amount|etb }} ETB</span></li>
+  {% empty %}
+    <li><span class="muted">No money received in this period.</span></li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Team{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Team<div class="sub">The people who cut, sew, decorate and check garments.</div></h1>
+  {% include "shop/partials/theme_toggle.html" %}
+</header>
+
+{% regroup workers by get_role_display as roles %}
+{% for role in roles %}
+  <div class="section-head"><h2>{{ role.grouper }}</h2></div>
+  {% for w in role.list %}
+  <div class="team-row">
+    <div><a href="{% url 'shop:worker_edit' w.pk %}"><b>{{ w.name }}</b></a>{% if not w.is_active %} <span class="muted small">(inactive)</span>{% endif %}
+      <div class="muted small">{{ w.phone|default:"No phone" }} · {{ w.rate_per_task|etb }} ETB per task</div></div>
+    <span class="small">{% if w.open_tasks %}{{ w.open_tasks }} garment{{ w.open_tasks|pluralize }} now{% else %}Free{% endif %}</span>
+  </div>
+  {% endfor %}
+{% empty %}
+  <p class="muted">No workers yet. Add your first one below so you can hand garments over.</p>
+{% endfor %}
+
+<form method="post" class="fieldset mt-lg" novalidate>
+  {% csrf_token %}
+  <h2>Add a worker</h2>
+  {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
+  <button class="btn btn-primary btn-block mt">Add worker</button>
+</form>
+
+<form method="post" action="{% url 'logout' %}" class="mt-lg">
+  {% csrf_token %}
+  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} Sign out</button>
+</form>
+{% endblock %}

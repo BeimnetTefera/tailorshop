@@ -1,0 +1,16 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url back %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>{{ title }}{% if intro %}<div class="sub">{{ intro }}</div>{% endif %}</h1>
+</header>
+<form method="post" enctype="multipart/form-data" class="stack" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  <div class="fieldset">
+    {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
+  </div>
+  <button class="btn btn-primary btn-block">{{ submit }}</button>
+</form>
+{% endblock %}

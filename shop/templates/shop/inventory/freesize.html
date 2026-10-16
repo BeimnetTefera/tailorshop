@@ -1,0 +1,25 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Free-size stock{% endblock %}
+{% block content %}
+<a class="crumb" href="{% url 'shop:clothing_list' %}">{% icon "back" 16 %} Inventory library</a>
+<header class="topbar" style="margin-bottom:6px">
+  <h1>Free-size stock<div class="sub">Ready-made clothes you sell off the rack.</div></h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'shop:sale_create' %}">Record sale</a>
+</header>
+{% include "shop/partials/inventory_tabs.html" with current="freesize" %}
+<div class="stack-sm mt">
+  {% for item in items %}
+    <div class="team-row">
+      <div class="row">
+        <span class="row-thumb">{% if item.photo %}<img src="{{ item.photo.url }}" alt="{{ item.name }}" loading="lazy">{% endif %}</span>
+        <div><a href="{% url 'shop:freesize_edit' item.pk %}"><b>{{ item.code }} · {{ item.name }}</b></a><div class="small muted">{{ item.price|etb }} ETB each</div></div>
+      </div>
+      <div class="right"><span class="{% if item.quantity == 0 %}status-out{% elif item.is_low %}status-low{% endif %}">{% if item.quantity == 0 %}Sold out{% else %}{{ item.quantity }} left{% endif %}</span><br>
+        {% if item.quantity %}<a class="small" href="{% url 'shop:sale_create' %}?item={{ item.pk }}">Sell</a>{% else %}<a class="small" href="{% url 'shop:freesize_edit' item.pk %}">Restock</a>{% endif %}</div>
+    </div>
+  {% empty %}
+    <div class="empty"><b>No free-size items yet</b><p>Add ready-made pieces to sell them and track what's left.</p></div>
+  {% endfor %}
+</div>
+<a class="fab" href="{% url 'shop:freesize_create' %}" aria-label="Add free-size item">{% icon "plus" 26 %}</a>
+{% endblock %}

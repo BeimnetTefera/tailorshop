@@ -1,0 +1,242 @@
+(function () {
+  "use strict";
+
+  // ---- Bottom sheets (<dialog class="sheet">) ---------------------------------
+  document.addEventListener("click", function (e) {
+    var opener = e.target.closest("[data-open]");
+    if (opener) {
+      var dialog = document.getElementById(opener.dataset.open);
+      if (dialog) { e.preventDefault(); dialog.showModal(); }
+      return;
+    }
+    var closer = e.target.closest("[data-close]");
+    if (closer) { e.preventDefault(); closer.closest("dialog").close(); return; }
+    if (e.target.tagName === "DIALOG") e.target.close(); // tap on the backdrop
+  });
+  document.querySelectorAll("dialog[data-autoopen]").forEach(function (d) { d.showModal(); });
+
+  // ---- Light / dark mode -------------------------------------------------------
+  var root = document.documentElement;
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  function applyTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    if (themeMeta) themeMeta.content = theme === "dark" ? "#121413" : "#F3F3F3";
+    document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
+      btn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+    });
+  }
+  applyTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("[data-theme-toggle]")) return;
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("theme", next); } catch (err) {}
+  });
+  if (window.matchMedia) {
+    // Follow the device setting until the user picks a mode themselves.
+    var media = matchMedia("(prefers-color-scheme: dark)");
+    var onChange = function (ev) {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (err) {}
+      if (!saved) applyTheme(ev.matches ? "dark" : "light");
+    };
+    if (media.addEventListener) media.addEventListener("change", onChange);
+  }
+
+  // ---- Toasts fade out ---------------------------------------------------------
+  document.querySelectorAll(".toast").forEach(function (t) {
+    setTimeout(function () { t.classList.add("hide"); }, 3500);
+    setTimeout(function () { t.remove(); }, 4000);
+  });
+
+  // ---- Photo inputs: show the chosen image ------------------------------------
+  document.querySelectorAll(".dropzone input[type=file]").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var zone = input.closest(".dropzone");
+      var text = zone.querySelector("[data-file-label]");
+      var file = input.files && input.files[0];
+      if (!file) return;
+      if (text) text.textContent = input.files.length > 1 ? input.files.length + " photos chosen" : file.name;
+      var img = zone.querySelector("img");
+      if (!img) { img = document.createElement("img"); img.alt = "Selected photo"; zone.insertBefore(img, zone.firstChild); }
+      img.src = URL.createObjectURL(file);
+    });
+  });
+
+  // ---- Style gallery: tap a thumbnail or swipe the big photo -------------------
+  var gallery = document.querySelector("[data-gallery]");
+  var mainImg = gallery && gallery.querySelector("[data-gallery-main]");
+  var thumbs = gallery ? Array.prototype.slice.call(gallery.querySelectorAll("[data-gallery-thumb]")) : [];
+  if (mainImg && thumbs.length) {
+    var current = 0;
+    var counter = gallery.querySelector("[data-gallery-count]");
+    var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var showPhoto = function (i) {
+      current = (i + thumbs.length) % thumbs.length;
+      var src = thumbs[current].dataset.galleryThumb;
+      thumbs.forEach(function (t, n) {
+        t.classList.toggle("is-active", n === current);
+        if (n === current) t.setAttribute("aria-current", "true"); else t.removeAttribute("aria-current");
+      });
+      if (counter) counter.textContent = (current + 1) + " / " + thumbs.length;
+      mainImg.alt = mainImg.alt.replace(/photo \d+ of/, "photo " + (current + 1) + " of");
+      if (reduceMotion) { mainImg.src = src; return; }
+      mainImg.classList.add("is-swapping");
+      setTimeout(function () { mainImg.src = src; mainImg.classList.remove("is-swapping"); }, 150);
+    };
+    thumbs.forEach(function (t, n) { t.addEventListener("click", function () { showPhoto(n); }); });
+    var gx = 0, gy = 0;
+    mainImg.addEventListener("touchstart", function (e) { gx = e.touches[0].clientX; gy = e.touches[0].clientY; }, { passive: true });
+    mainImg.addEventListener("touchend", function (e) {
+      var dx = e.changedTouches[0].clientX - gx, dy = e.changedTouches[0].clientY - gy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPhoto(current + (dx < 0 ? 1 : -1));
+    });
+  }
+
+  // ---- Style pages: previous / next slide in from the side ---------------------
+  var stylePage = document.querySelector("[data-style-page]");
+  if (stylePage) {
+    var cameFrom = null;
+    try { cameFrom = sessionStorage.getItem("styleNav"); sessionStorage.removeItem("styleNav"); } catch (err) {}
+    if (cameFrom === "next" || cameFrom === "prev") stylePage.classList.add("enter-" + cameFrom);
+    var go = function (link) {
+      var dir = link.dataset.pager;
+      try { sessionStorage.setItem("styleNav", dir); } catch (err) {}
+      stylePage.classList.add("leave-" + dir);
+      setTimeout(function () { window.location.href = link.href; }, 180);
+    };
+    document.querySelectorAll("[data-pager]").forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        go(link);
+      });
+    });
+    window.addEventListener("pageshow", function (e) {
+      // Coming back with the Back button can restore the faded-out page.
+      if (e.persisted) stylePage.classList.remove("leave-next", "leave-prev");
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.target.closest("input, textarea, select") || e.altKey || e.metaKey || e.ctrlKey) return;
+      var link = document.querySelector('[data-pager="' + (e.key === "ArrowRight" ? "next" : e.key === "ArrowLeft" ? "prev" : "") + '"]');
+      if (link) go(link);
+    });
+  }
+
+  // ---- Swipe order cards: right = mark ready, left = edit ----------------------
+  document.querySelectorAll(".swipe-card").forEach(function (card) {
+    var startX = 0, startY = 0, dx = 0, tracking = false, moved = false;
+    card.addEventListener("touchstart", function (e) {
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY; dx = 0; tracking = true; moved = false;
+      card.classList.add("dragging");
+    }, { passive: true });
+    card.addEventListener("touchmove", function (e) {
+      if (!tracking) return;
+      dx = e.touches[0].clientX - startX;
+      var dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > Math.abs(dx)) return;
+      if (Math.abs(dx) > 8) moved = true;
+      card.style.transform = "translateX(" + Math.max(-120, Math.min(120, dx)) + "px)";
+    }, { passive: true });
+    card.addEventListener("touchend", function () {
+      tracking = false;
+      card.classList.remove("dragging");
+      card.style.transform = "";
+      if (dx > 90 && card.dataset.right) {
+        var form = document.getElementById(card.dataset.right);
+        if (form && !form.querySelector("button[disabled]")) form.submit();
+      } else if (dx < -90 && card.dataset.left) {
+        window.location.href = card.dataset.left;
+      }
+    });
+    card.addEventListener("click", function (e) { if (moved) { e.preventDefault(); moved = false; } }, true);
+  });
+
+  // ---- New order form ----------------------------------------------------------
+  var total = document.getElementById("id_total_price");
+  var deposit = document.getElementById("id_deposit");
+  var remaining = document.querySelector("[data-remaining]");
+  function updateRemaining() {
+    if (!remaining || !total) return;
+    var paid = parseFloat(remaining.dataset.paid || "0") + (deposit ? parseFloat(deposit.value || "0") : 0);
+    var left = (parseFloat(total.value || "0") || 0) - (paid || 0);
+    remaining.textContent = left.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  }
+  [total, deposit].forEach(function (el) { if (el) el.addEventListener("input", updateRemaining); });
+  updateRemaining();
+
+  var styleMap = document.getElementById("style-categories");
+  var styleSelect = document.getElementById("id_style");
+  if (styleMap && styleSelect) {
+    var map = JSON.parse(styleMap.textContent);
+    styleSelect.addEventListener("change", function () {
+      var cat = map[styleSelect.value];
+      var radio = cat && document.querySelector('input[name="category"][value="' + cat + '"]');
+      if (radio) radio.checked = true;
+    });
+  }
+
+  var steps = document.querySelectorAll(".stepper a");
+  if (steps.length && "IntersectionObserver" in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        steps.forEach(function (s) { s.classList.toggle("active", s.getAttribute("href") === "#" + entry.target.id); });
+      });
+    }, { rootMargin: "-30% 0px -60% 0px" });
+    document.querySelectorAll("[data-step]").forEach(function (sec) { observer.observe(sec); });
+  }
+
+  // ---- Style code suggestion follows the chosen category -----------------------
+  var codeInput = document.querySelector("input[data-suggest]");
+  if (codeInput) {
+    var suggestions = JSON.parse(codeInput.dataset.suggest);
+    var touched = false;
+    codeInput.addEventListener("input", function () { touched = true; });
+    document.querySelectorAll('input[name="category"]').forEach(function (r) {
+      r.addEventListener("change", function () {
+        if (!touched && suggestions[r.value]) codeInput.value = suggestions[r.value];
+      });
+    });
+  }
+
+  // ---- Record sale: live summary ----------------------------------------------
+  var saleForm = document.querySelector("[data-sale-form]");
+  if (saleForm) {
+    var item = saleForm.querySelector("#id_item");
+    var qty = saleForm.querySelector("#id_quantity");
+    var amount = saleForm.querySelector("#id_amount");
+    var amountEdited = amount.value !== "" && saleForm.dataset.bound === "1";
+    amount.addEventListener("input", function () { amountEdited = true; });
+
+    function selected() { return item.options[item.selectedIndex]; }
+    function render() {
+      var opt = selected();
+      if (!opt || !opt.value) return;
+      var stock = parseInt(opt.dataset.stock || "0", 10);
+      var price = parseFloat(opt.dataset.price || "0");
+      var n = Math.max(1, parseInt(qty.value || "1", 10));
+      qty.max = stock;
+      if (!amountEdited) amount.value = (price * n).toFixed(0);
+      var fmt = function (v) { return Number(v || 0).toLocaleString("en-US"); };
+      saleForm.querySelector("[data-sum-item]").textContent = opt.dataset.label;
+      saleForm.querySelector("[data-sum-qty]").textContent = n;
+      saleForm.querySelector("[data-sum-amount]").textContent = fmt(amount.value) + " ETB";
+      var after = stock - n;
+      saleForm.querySelector("[data-sum-stock]").textContent = stock + " → " + (after < 0 ? "not enough" : after + " available");
+      saleForm.querySelector("[data-stock-note]").textContent = stock + " available";
+    }
+    saleForm.querySelectorAll("[data-step-qty]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var n = parseInt(qty.value || "1", 10) + parseInt(btn.dataset.stepQty, 10);
+        var max = parseInt(selected().dataset.stock || "1", 10);
+        qty.value = Math.max(1, Math.min(n, Math.max(max, 1)));
+        render();
+      });
+    });
+    item.addEventListener("change", function () { amountEdited = false; render(); });
+    qty.addEventListener("input", render);
+    amount.addEventListener("input", render);
+    render();
+  }
+})();

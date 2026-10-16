@@ -6,8 +6,10 @@
 import random
 from datetime import timedelta
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
@@ -18,6 +20,8 @@ from shop.models import (
 )
 
 D = Decimal
+# Photos for the ready-made rack, shipped with the app so every fresh demo has them.
+DEMO_PHOTOS = Path(__file__).resolve().parents[2] / "demo_photos"
 
 # Color, fit and lengths shown in the style page's details grid.
 STYLE_DETAILS = {
@@ -143,25 +147,40 @@ class Command(BaseCommand):
             Tibebe.objects.create(code=code, name=name, size=size, occasion=occasion, material=cotton)
 
     def _free_size(self):
-        hand, machine, both = FreeSizeItem.Made.HANDMADE, FreeSizeItem.Made.MACHINE, FreeSizeItem.Made.BOTH
+        hand, both = FreeSizeItem.Made.HANDMADE, FreeSizeItem.Made.BOTH
         data = [
-            ("FS-024", "White kemis", "habesha", 2500, 2,
-             dict(pattern_type="Tibeb border", sleeve_length="58 cm", length="140 cm", waist="70 cm",
-                  fit="Flowing", fabric="Hand-woven cotton", color="White and gold", made=hand)),
-            ("FS-027", "Gold kemis (short)", "modern", 1800, 6,
-             dict(pattern_type="Tibeb bands", sleeve_length="18 cm", length="100 cm", waist="66 cm",
-                  fit="Slim fit", fabric="Chiffon", color="Gold on ivory", made=both)),
-            ("FS-031", "Gold kemis", "wedding", 1800, 1,
-             dict(pattern_type="Gold embroidery", sleeve_length="60 cm", length="145 cm", waist="68 cm",
-                  fit="Fitted bodice", fabric="Cotton", color="White and gold", made=hand)),
-            ("FS-035", "Black shawl", "formal", 1200, 9,
-             dict(pattern_type="Plain weave", length="180 cm", fabric="Cotton", color="Black and silver", made=machine)),
-            ("FS-040", "Children's kemis", "children", 1500, 5,
-             dict(pattern_type="Tibeb border", sleeve_length="Short sleeve", length="80 cm", fit="Loose",
-                  fabric="Cotton", color="White and green", made=both)),
+            ("FS-024", "White cotton kemis", "habesha", 4500, 2, "white-cotton-kemis.jpg",
+             dict(pattern_type="Green tibeb at the hem", sleeve_length="Wide butterfly sleeve", length="145 cm",
+                  fit="Flowing, tied at the waist", fabric="Hand-woven cotton (shemma)", color="Natural white", made=hand)),
+            ("FS-027", "Black kemis with red crosses", "modern", 3800, 6, "black-red-cross-kemis.jpg",
+             dict(pattern_type="Red cross embroidery, red hem", sleeve_length="Wide sleeve", length="125 cm",
+                  fit="Loose and flowing", fabric="Chiffon", color="Black and red", made=both)),
+            ("FS-031", "Gold wedding gown", "wedding", 9500, 1, "gold-wedding-gown.jpg",
+             dict(pattern_type="Gold tibeb bands", sleeve_length="Sleeveless", length="150 cm", waist="66 cm",
+                  fit="Fitted bodice, full skirt", fabric="Cotton with gold thread", color="White and gold", made=hand)),
+            ("FS-033", "Cross tibeb kemis", "habesha", 6200, 3, "cross-tibeb-kemis.jpg",
+             dict(pattern_type="Cross tibeb down the front", sleeve_length="60 cm", length="150 cm",
+                  fit="Flowing", fabric="Cotton", color="White, black and gold", made=hand)),
+            ("FS-035", "Cream tibeb dress", "modern", 5200, 9, "cream-tibeb-dress.jpg",
+             dict(pattern_type="Colourful tibeb panel", sleeve_length="Sleeveless", length="150 cm", waist="68 cm",
+                  fit="Fitted", fabric="Cotton", color="Cream with colourful tibeb", made=both)),
+            ("FS-038", "Holiday cross kemis", "holiday", 5800, 4, "holiday-cross-kemis.jpg",
+             dict(pattern_type="Green, red and yellow crosses", sleeve_length="Long sleeve", length="150 cm",
+                  fit="Flowing", fabric="Cotton", color="White with green, red and yellow", made=hand)),
+            ("FS-040", "Purple and gold kemis", "formal", 7500, 5, "purple-gold-kemis.jpg",
+             dict(pattern_type="Purple and gold embroidery", sleeve_length="Long, embroidered cuffs", length="145 cm",
+                  waist="70 cm", fit="Fitted waist", fabric="Chiffon", color="White, purple and gold", made=hand)),
         ]
-        return [FreeSizeItem.objects.create(code=c, name=n, category=cat, price=D(p), quantity=q, **extra)
-                for c, n, cat, p, q, extra in data]
+        items = []
+        for code, name, category, price, qty, photo, extra in data:
+            item = FreeSizeItem.objects.create(code=code, name=name, category=category, price=D(price),
+                                               quantity=qty, **extra)
+            path = DEMO_PHOTOS / photo
+            if path.exists():
+                with path.open("rb") as f:
+                    item.photo.save(photo, File(f), save=True)
+            items.append(item)
+        return items
 
     def _order(self, name, phone, style, *, people=1, created_ago=10, due_in=10, stage=Stage.SEWING,
                worker=None, total=8000, deposit=3000, urgent=False, delivered_ago=None):
@@ -280,9 +299,9 @@ class Command(BaseCommand):
                     created_at=self._ago(day, hour=random.randint(9, 18), minute=random.choice([0, 10, 20, 40])),
                 )
         # A couple of sales today, like the mockup.
-        Sale.objects.create(item=items[0], quantity=2, amount=D(5000), status="pending", customer_name="Hana",
+        Sale.objects.create(item=items[0], quantity=1, amount=items[0].price, status="pending", customer_name="Hana",
                             created_at=self._ago(0, 9, 20))
-        Sale.objects.create(item=items[3], quantity=1, amount=D(1200), status="paid", created_at=self._ago(0, 9, 10))
+        Sale.objects.create(item=items[4], quantity=1, amount=items[4].price, status="paid", created_at=self._ago(0, 9, 10))
 
     def _activity(self):
         # Message templates match the ones the app logs, so they show in each reader's language.

@@ -1,11 +1,19 @@
+import atexit
+import shutil
+import tempfile
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone, translation
+
+# The demo data saves photos; keep everything the tests upload out of the project's media/.
+_TEST_MEDIA = tempfile.mkdtemp(prefix="tailorshop-test-media-")
+atexit.register(shutil.rmtree, _TEST_MEDIA, ignore_errors=True)
+override_settings(MEDIA_ROOT=_TEST_MEDIA).enable()
 
 from . import ethiopian
 from .models import (
@@ -270,13 +278,12 @@ class UpdateThreadTests(TempMediaMixin, TestCase):
         self.assertContains(page, "Take 2 spools of Gold Thread")
 
 
-class ReadyMadePageTests(TempMediaMixin, TestCase):
+class ReadyMadePageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.use_temp_media()
         self.owner = _english(get_user_model().objects.get(username="selam"))
         self.client.force_login(self.owner)
 
@@ -284,12 +291,18 @@ class ReadyMadePageTests(TempMediaMixin, TestCase):
         item = FreeSizeItem.objects.get(code="FS-031")
         page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
         self.assertContains(page, '<h1 class="product-title">Wedding</h1>', html=False)
-        self.assertContains(page, "Gold embroidery")
+        self.assertContains(page, "Gold tibeb bands")
         self.assertContains(page, "Handmade")
+        self.assertContains(page, item.photo.url)
+        self.assertEqual(self.client.get(item.photo.url).status_code, 200)
         StaffProfile.objects.filter(user=self.owner).update(language="am")
         page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
         self.assertContains(page, '<h1 class="product-title">ሰርግ</h1>', html=False)
         self.assertContains(page, "በእጅ የተሠራ")
+
+    def test_every_demo_piece_has_its_photo(self):
+        self.assertEqual(FreeSizeItem.objects.count(), 7)
+        self.assertFalse(FreeSizeItem.objects.filter(photo="").exists())
 
     def test_previous_and_next_walk_the_rack(self):
         items = list(FreeSizeItem.objects.all())

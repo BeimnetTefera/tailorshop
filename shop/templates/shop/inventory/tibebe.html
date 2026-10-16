@@ -1,21 +1,22 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Tibebe{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Tibebe" %}{% endblock %}
 {% block content %}
-<a class="crumb" href="{% url 'shop:clothing_list' %}">{% icon "back" 16 %} Inventory library</a>
-<header class="topbar" style="margin-bottom:6px"><h1>Tibebe<div class="sub">Woven border designs you can add to a kemis.</div></h1></header>
+<header class="topbar">
+  <h1>{% translate "Stock" %}<div class="sub">{% translate "Woven border designs you can add to a kemis." %}</div></h1>
+  <button class="icon-btn" data-open="tb-sort" aria-label="{% translate 'Sort' %}">{% icon "sort" 20 %}</button>
+</header>
 
 <form class="search" method="get" role="search">
-  {% icon "search" %}<label class="sr-only" for="tb-q">Search tibebe</label>
-  <input id="tb-q" type="search" name="q" value="{{ q }}" placeholder="Name, code or occasion…">
+  {% icon "search" 20 %}<label class="sr-only" for="tb-q">{% translate "Search tibebe" %}</label>
+  <input id="tb-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Name, code or occasion…' %}">
 </form>
 {% include "shop/partials/inventory_tabs.html" with current="tibebe" %}
 
-<nav class="chips-scroll mt" aria-label="Border width">
-  <a class="chip {% if not size %}active{% endif %}" href="?sort={{ sort }}">All</a>
+<nav class="chips-scroll mt" aria-label="{% translate 'Border width' %}">
+  <a class="chip {% if not size %}active{% endif %}" href="?sort={{ sort }}">{% translate "All" %}</a>
   {% for v, l in sizes %}<a class="chip {% if size == v %}active{% endif %}" href="?size={{ v }}&sort={{ sort }}">{{ l }}</a>{% endfor %}
 </nav>
 
-<div class="row-between mt-lg"><p style="font-size:18px">Your tibebes</p><button class="btn btn-outline btn-sm" data-open="tb-sort">{% icon "sort" 18 %} Sort</button></div>
 <div class="tile-grid">
   {% for t in tibebes %}
     <a class="tile" href="{% url 'shop:tibebe_detail' t.pk %}">
@@ -23,14 +24,14 @@
       <div class="tile-body"><small>{{ t.code }}</small><strong>{{ t.name }}</strong><span class="status">{{ t.occasion|default:t.get_size_display }}</span></div>
     </a>
   {% empty %}
-    <div class="empty" style="grid-column:1/-1"><b>No tibebe designs {% if q or size %}match{% else %}yet{% endif %}</b><p>Save border patterns so you can show them to customers.</p></div>
+    <div class="empty" style="grid-column:1/-1"><b>{% if q or size %}{% translate "No tibebe designs match" %}{% else %}{% translate "No tibebe designs yet" %}{% endif %}</b><p>{% translate "Save border patterns so you can show them to customers." %}</p></div>
   {% endfor %}
 </div>
-<a class="fab" href="{% url 'shop:tibebe_create' %}" aria-label="Add tibebe">{% icon "plus" 26 %}</a>
+{% if is_owner %}<a class="fab" href="{% url 'shop:tibebe_create' %}" aria-label="{% translate 'Add tibebe' %}">{% icon "plus" 26 %}</a>{% endif %}
 
 <dialog class="sheet" id="tb-sort">
   <div class="sheet-body">
-    <div class="sheet-head"><h2>Sort by</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Sort by" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <ul class="sort-list">{% for v, l in sort_options %}<li><a class="{% if sort == v %}active{% endif %}" href="?sort={{ v }}{% if size %}&size={{ size }}{% endif %}">{{ l }}{% if sort == v %} ✓{% endif %}</a></li>{% endfor %}</ul>
   </div>
 </dialog>

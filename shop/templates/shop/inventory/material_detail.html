@@ -1,62 +1,61 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
 {% block title %}{{ material.name }}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:material_list' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <a href="{% url 'shop:material_list' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
   <h1></h1>
-  <a class="btn btn-outline btn-sm" href="{% url 'shop:material_edit' material.pk %}">Edit</a>
+  {% if is_owner %}<a class="icon-btn" href="{% url 'shop:material_edit' material.pk %}" aria-label="{% translate 'Edit' %}">{% icon "edit" 20 %}</a>{% endif %}
 </header>
 <div class="hero-img">{% if material.photo %}<img src="{{ material.photo.url }}" alt="{{ material.name }}">{% else %}<span>{{ material.get_material_type_display }}</span>{% endif %}</div>
 <h1 class="detail-title">{{ material.name }}</h1>
 <table class="table">
-  <tr><td>Material price</td><td>ETB {{ material.price|etb }} per {{ material.get_unit_display|lower|slice:":-1" }}</td></tr>
-  <tr><td>Type</td><td>{{ material.get_material_type_display }}</td></tr>
-  <tr><td>Available</td><td class="status-{{ material.status }}">{{ material.availability }}</td></tr>
+  <tr><td>{% translate "Price" %}</td><td>{% blocktranslate with price=material.price|birr unit=material.get_unit_display|lower %}{{ price }} per {{ unit }}{% endblocktranslate %}</td></tr>
+  <tr><td>{% translate "Type" %}</td><td>{{ material.get_material_type_display }}</td></tr>
+  <tr><td>{% translate "Available" %}</td><td class="status-{{ material.status }}">{{ material.availability }}</td></tr>
 </table>
-{% if material.description %}<p class="mt">{{ material.description }}</p>{% endif %}
-
-<h2 class="mt-lg" style="font-size:26px;font-weight:600">Used for</h2>
-<div class="tags mt">
-  {% for s in styles %}<a class="tag-box" href="{% url 'shop:style_detail' s.pk %}">{{ s.code }}</a>{% empty %}<p class="help">Not linked to any style yet.</p>{% endfor %}
-</div>
+{% if material.description %}<p class="mt muted">{{ material.description }}</p>{% endif %}
 
 <div class="btn-row mt-lg">
-  <button class="btn btn-outline" data-open="add-stock">Add stock</button>
-  <button class="btn btn-primary" data-open="use-material" {% if material.status == "out" %}disabled{% endif %}>Use material</button>
+  <button class="btn btn-outline" data-open="add-stock">{% translate "Add stock" %}</button>
+  <button class="btn btn-primary" data-open="use-material" {% if material.status == "out" %}disabled{% endif %}>{% translate "Use material" %}</button>
+</div>
+
+<div class="section-head"><h2>{% translate "Used for" %}</h2></div>
+<div class="tags">
+  {% for s in styles %}<a class="tag-box" href="{% url 'shop:style_detail' s.pk %}">{{ s.code }}</a>{% empty %}<p class="help">{% translate "Not linked to any style yet." %}</p>{% endfor %}
 </div>
 
 {% if usages %}
-<h2 class="mt-lg" style="font-size:17px;font-weight:600">Recent use</h2>
-<ul class="list small">{% for u in usages %}<li><span>{{ u.quantity|num }} {{ material.unit }}{% if u.order %} · {{ u.order.customer.name }}{% endif %}</span><span class="muted">{{ u.created_at|friendly }}</span></li>{% endfor %}</ul>
+<div class="section-head"><h2>{% translate "Recent use" %}</h2></div>
+<ul class="list">{% for u in usages %}<li><span>{{ u.quantity|num }} {{ material.get_unit_display|lower }}{% if u.order %} · {{ u.order.customer.name }}{% endif %}</span><span class="faint small">{{ u.created_at|friendly }}</span></li>{% endfor %}</ul>
 {% endif %}
 
 <dialog class="sheet" id="add-stock">
   <form method="post" action="{% url 'shop:material_add_stock' material.pk %}" class="sheet-body">
     {% csrf_token %}
-    <div class="sheet-head"><h2>Add stock</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Add stock" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <div class="panel">
-      <label class="label" for="as-q">Quantity to add</label>
-      <input class="input" id="as-q" type="number" name="quantity" min="0.01" step="0.01" inputmode="decimal" required style="margin-top:6px">
-      <p class="help" style="margin-top:8px">Unit: {{ material.get_unit_display|lower }}</p>
+      <label class="label" for="as-q">{% blocktranslate with unit=material.get_unit_display|lower %}How many {{ unit }} arrived?{% endblocktranslate %}</label>
+      <input class="input" id="as-q" type="number" name="quantity" min="0.01" step="0.01" inputmode="decimal" required style="margin-top:8px">
     </div>
-    <button class="btn btn-primary btn-block">Add</button>
+    <button class="btn btn-primary btn-block">{% translate "Add" %}</button>
   </form>
 </dialog>
 
 <dialog class="sheet" id="use-material">
   <form method="post" action="{% url 'shop:material_use' material.pk %}" class="sheet-body">
     {% csrf_token %}
-    <div class="sheet-head"><h2>Use material</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Use material" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <div class="panel">
-      <label class="label" for="um-q">Quantity ({{ material.get_unit_display|lower }})</label>
-      <input class="input" id="um-q" type="number" name="quantity" min="0.01" max="{{ material.quantity }}" step="0.01" inputmode="decimal" required style="margin:6px 0 14px">
-      <label class="label" for="um-o">Used for</label>
-      <select class="input" id="um-o" name="order" style="margin-top:6px">
-        <option value="">General shop use</option>
+      <label class="label" for="um-q">{% blocktranslate with unit=material.get_unit_display|lower %}How many {{ unit }}?{% endblocktranslate %}</label>
+      <input class="input" id="um-q" type="number" name="quantity" min="0.01" max="{{ material.quantity }}" step="0.01" inputmode="decimal" required style="margin:8px 0 14px">
+      <label class="label" for="um-o">{% translate "Used for" %}</label>
+      <select class="input" id="um-o" name="order" style="margin-top:8px">
+        <option value="">{% translate "General shop use" %}</option>
         {% for o in orders %}<option value="{{ o.pk }}">{{ o.customer.name }} · {{ o.title }}</option>{% endfor %}
       </select>
     </div>
-    <button class="btn btn-primary btn-block">Save</button>
+    <button class="btn btn-primary btn-block">{% translate "Save" %}</button>
   </form>
 </dialog>
 {% endblock %}

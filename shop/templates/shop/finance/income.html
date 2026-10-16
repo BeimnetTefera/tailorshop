@@ -1,20 +1,21 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Income{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Income" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Income for the week</h1>
+  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{% translate "Income for the week" %}<div class="sub">{{ label }}</div></h1>
 </header>
-<div style="text-align:center;margin:10px 0 20px">
-  <p style="font-size:18px">{{ label }}</p>
-  <p style="font-size:30px;font-weight:700">{{ total|etb }} ETB</p>
-  <p style="font-size:17px">{{ count }} payment{{ count|pluralize }} and sale{{ count|pluralize }}</p>
-</div>
-<ul class="list">
+<section class="gold-card">
+  <div style="text-align:center">
+    <p class="big">{{ total|birr }}</p>
+    <p class="muted">{% blocktranslate count n=count %}{{ n }} payment or sale{% plural %}{{ n }} payments and sales{% endblocktranslate %}</p>
+  </div>
+</section>
+<ul class="list mt">
   {% for name, row in rows %}
-    <li><span>{{ name }}{% if row.count > 1 %} <span class="small muted">×{{ row.count }}</span>{% endif %}</span><span>{{ row.amount|etb }} ETB</span></li>
+    <li><span>{{ name }}{% if row.count > 1 %} <span class="small faint">×{{ row.count }}</span>{% endif %}</span><span class="gold">{{ row.amount|birr }}</span></li>
   {% empty %}
-    <li><span class="muted">No money received in this period.</span></li>
+    <li><span class="muted">{% translate "No money received in this period." %}</span></li>
   {% endfor %}
 </ul>
 {% endblock %}

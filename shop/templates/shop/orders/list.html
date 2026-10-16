@@ -1,59 +1,59 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Orders{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Orders" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Orders</h1>
-  {% if tab == "current" %}<button class="icon-btn" data-open="order-filter" aria-label="Filter orders">{% icon "filter" %}</button>{% endif %}
+  <h1>{% translate "Orders" %}</h1>
+  <a class="icon-btn" href="{% url 'shop:tracker' %}" aria-label="{% translate 'Find a garment' %}">{% icon "search" 20 %}</a>
+  {% if tab == "current" %}<button class="icon-btn" data-open="order-filter" aria-label="{% translate 'Filter orders' %}">{% icon "filter" 20 %}</button>{% endif %}
 </header>
 
 <form class="search" method="get" role="search">
   <input type="hidden" name="tab" value="{{ tab }}">
-  {% icon "search" %}
-  <label class="sr-only" for="order-q">Search orders</label>
-  <input id="order-q" type="search" name="q" value="{{ q }}" placeholder="Customer, style, phone…">
+  {% icon "search" 20 %}
+  <label class="sr-only" for="order-q">{% translate "Search orders" %}</label>
+  <input id="order-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Customer, style, phone…' %}">
 </form>
 
 <nav class="tabs">
-  <a href="?tab=current{% if q %}&q={{ q|urlencode }}{% endif %}" class="{% if tab == 'current' %}active{% endif %}">Current ({{ current_count }})</a>
-  <a href="?tab=past{% if q %}&q={{ q|urlencode }}{% endif %}" class="{% if tab == 'past' %}active{% endif %}">Past ({{ past_count }})</a>
+  <a href="?tab=current{% if q %}&q={{ q|urlencode }}{% endif %}" class="{% if tab == 'current' %}active{% endif %}">{% blocktranslate with n=current_count %}Current ({{ n }}){% endblocktranslate %}</a>
+  <a href="?tab=past{% if q %}&q={{ q|urlencode }}{% endif %}" class="{% if tab == 'past' %}active{% endif %}">{% blocktranslate with n=past_count %}Delivered ({{ n }}){% endblocktranslate %}</a>
 </nav>
-{% if filters and tab == "current" %}<p class="filter-note">Showing {{ filters|join:", "|lower }} · <a href="?tab=current">Show all</a></p>{% endif %}
+{% if filters and tab == "current" %}<p class="filter-note">{% blocktranslate with f=filters|join:", " %}Showing: {{ f }}{% endblocktranslate %} · <a href="?tab=current">{% translate "Show all" %}</a></p>{% endif %}
 
 {% if tab == "current" %}
-  {% if orders %}<p class="hint">Swipe a card right to mark it ready, left to edit.</p>{% endif %}
+  {% if orders %}<p class="hint">{% translate "Swipe a card right to mark it ready, left to edit." %}</p>{% endif %}
   <div class="stack">
   {% for o in orders %}
     <article>
-      <div class="order-card swipe-card" data-left="{% url 'shop:order_edit' o.pk %}" data-right="ready-{{ o.pk }}">
+      <div class="order-card swipe-card{% if o.priority == 'urgent' %} urgent{% endif %}" data-left="{% url 'shop:order_edit' o.pk %}" data-right="ready-{{ o.pk }}">
         <a href="{% url 'shop:tracker_detail' o.pk %}">
           <div class="row-between">
-            <div><h3>{{ o.customer.name }}</h3>{% if o.people_count > 1 %}<small>with {{ o.people_count }} people</small>{% endif %}</div>
+            <div><h3>{{ o.customer.name }}</h3>{% if o.people_count > 1 %}<small>{% blocktranslate with n=o.people_count %}for {{ n }} people{% endblocktranslate %}</small>{% endif %}</div>
             <span class="pill pill-outline">{{ o.status_label }}</span>
           </div>
-          <p>{{ o.title }}{% if o.priority == "urgent" %} · Urgent{% endif %}</p>
+          <p>{{ o.title }}{% if o.priority == "urgent" %} · <span class="status-out">{% translate "Urgent" %}</span>{% endif %}{% if o.current_worker %} · {% blocktranslate with name=o.current_worker.name %}with {{ name }}{% endblocktranslate %}{% endif %}</p>
           <div class="row-between">
-            <span class="pill pill-{{ o.urgency }}">{% if o.stage == "ready" %}Waiting for pickup{% else %}{{ o.days_left_label }}{% endif %}</span>
-            <span class="small">Due {{ o.due_date|date:"M j" }}</span>
+            <span class="pill pill-{{ o.urgency }}">{% if o.stage == "ready" %}{% translate "Waiting for pickup" %}{% else %}{{ o.days_left_label }}{% endif %}</span>
+            <span class="small muted">{% blocktranslate with d=o.due_date|ethdate:"short" %}Due {{ d }}{% endblocktranslate %}</span>
           </div>
         </a>
       </div>
       <div class="order-actions">
         {% if o.stage == "ready" %}
-        <form method="post" action="{% url 'shop:order_deliver' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">Mark delivered</button></form>
+        <form method="post" action="{% url 'shop:order_deliver' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark delivered" %}</button></form>
         <form id="ready-{{ o.pk }}" hidden><button disabled></button></form>
         {% else %}
-        <form id="ready-{{ o.pk }}" method="post" action="{% url 'shop:order_mark_ready' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">Mark ready</button></form>
+        <form id="ready-{{ o.pk }}" method="post" action="{% url 'shop:order_mark_ready' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark ready" %}</button></form>
         {% endif %}
-        <a class="btn-mini" href="{% url 'shop:order_edit' o.pk %}">Edit order</a>
+        <a class="btn-mini" href="{% url 'shop:order_edit' o.pk %}">{% translate "Edit order" %}</a>
       </div>
     </article>
   {% empty %}
     <div class="empty">
       <span class="icon-box">{% icon "plus" 18 %}</span>
-      <b>{% if q or filters %}No orders match{% else %}No active orders{% endif %}</b>
-      <p>{% if q or filters %}Try another name or phone number, or clear the filters.{% else %}Create your first order to start tracking garments.{% endif %}</p>
-      <a class="btn btn-primary" href="{% url 'shop:order_create' %}">New order</a>
+      <b>{% if q or filters %}{% translate "No orders match" %}{% else %}{% translate "No active orders" %}{% endif %}</b>
+      <p>{% if q or filters %}{% translate "Try another name or phone number, or clear the filters." %}{% else %}{% translate "Create your first order to start tracking garments." %}{% endif %}</p>
+      <a class="btn btn-primary" href="{% url 'shop:order_create' %}">{% translate "New order" %}</a>
     </div>
   {% endfor %}
   </div>
@@ -61,40 +61,40 @@
   <div class="stack">
   {% for o in orders %}
     <a class="past-card" href="{% url 'shop:tracker_detail' o.pk %}">
-      <div><h3 style="font-size:17px;font-weight:600">{{ o.customer.name }}</h3><p>{{ o.title }}</p><p>Delivered {{ o.delivered_at|date:"M j" }}</p></div>
-      <span class="row">{% icon "badge" 20 %} Completed</span>
+      <div><h3>{{ o.customer.name }}</h3><p>{{ o.title }}</p><p>{% blocktranslate with d=o.delivered_at|ethdate %}Delivered {{ d }}{% endblocktranslate %}</p></div>
+      <span class="pill pill-ok">{% icon "check" 14 %} {% translate "Completed" %}</span>
     </a>
   {% empty %}
-    <div class="empty"><b>No delivered orders yet</b><p>Orders move here after you mark them delivered.</p></div>
+    <div class="empty"><b>{% translate "No delivered orders yet" %}</b><p>{% translate "Orders move here after you mark them delivered." %}</p></div>
   {% endfor %}
   </div>
 {% endif %}
 
-<a class="fab" href="{% url 'shop:order_create' %}" aria-label="New order">{% icon "plus" 26 %}</a>
+<a class="fab" href="{% url 'shop:order_create' %}" aria-label="{% translate 'New order' %}">{% icon "plus" 26 %}</a>
 
 <dialog class="sheet" id="order-filter">
   <form method="get" class="sheet-body">
-    <div class="sheet-head"><h2>Filter orders</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Filter orders" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <input type="hidden" name="tab" value="current">
     {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
     <div class="panel">
-      <p class="label">Stage</p>
-      <div class="chips mt" style="margin-top:8px">
-        <label class="chip-opt"><input type="radio" name="stage" value="" {% if not stage %}checked{% endif %}><span>Any</span></label>
+      <p class="label">{% translate "Stage" %}</p>
+      <div class="chips" style="margin-top:10px">
+        <label class="chip-opt"><input type="radio" name="stage" value="" {% if not stage %}checked{% endif %}><span>{% translate "Any" %}</span></label>
         {% for value, label in stage_choices %}<label class="chip-opt"><input type="radio" name="stage" value="{{ value }}" {% if stage == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
       </div>
     </div>
     <div class="panel">
-      <p class="label">Due</p>
-      <div class="chips" style="margin-top:8px">
-        <label class="chip-opt"><input type="radio" name="due" value="" {% if not due %}checked{% endif %}><span>Any time</span></label>
-        <label class="chip-opt"><input type="radio" name="due" value="today" {% if due == "today" %}checked{% endif %}><span>Today</span></label>
-        <label class="chip-opt"><input type="radio" name="due" value="late" {% if due == "late" %}checked{% endif %}><span>Delayed</span></label>
+      <p class="label">{% translate "Due" %}</p>
+      <div class="chips" style="margin-top:10px">
+        <label class="chip-opt"><input type="radio" name="due" value="" {% if not due %}checked{% endif %}><span>{% translate "Any time" %}</span></label>
+        <label class="chip-opt"><input type="radio" name="due" value="today" {% if due == "today" %}checked{% endif %}><span>{% translate "Today" %}</span></label>
+        <label class="chip-opt"><input type="radio" name="due" value="late" {% if due == "late" %}checked{% endif %}><span>{% translate "Delayed" %}</span></label>
       </div>
-      <label class="check mt"><input type="checkbox" name="priority" value="urgent" {% if priority == "urgent" %}checked{% endif %}> Urgent orders only</label>
+      <label class="check mt"><input type="checkbox" name="priority" value="urgent" {% if priority == "urgent" %}checked{% endif %}> {% translate "Urgent orders only" %}</label>
     </div>
-    <button class="btn btn-primary btn-block">Show orders</button>
-    <a class="btn btn-outline btn-block mt" href="?tab=current">Clear filters</a>
+    <button class="btn btn-primary btn-block">{% translate "Show orders" %}</button>
+    <a class="btn btn-outline btn-block mt" href="?tab=current">{% translate "Clear filters" %}</a>
   </form>
 </dialog>
 {% endblock %}

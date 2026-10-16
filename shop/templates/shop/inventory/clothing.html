@@ -1,22 +1,17 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Inventory{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Stock" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Inventory library<div class="sub">Browse and manage clothing styles.</div></h1>
+  <h1>{% translate "Stock" %}<div class="sub">{% translate "Styles, materials and tibebe designs." %}</div></h1>
+  <button class="icon-btn" data-open="style-filter" aria-label="{% translate 'Filter' %}">{% icon "filter" 20 %}{% if filter_count %}<span class="dot">{{ filter_count }}</span>{% endif %}</button>
 </header>
-<p class="legend">HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion</p>
 
 <form class="search" method="get" role="search">
-  {% icon "search" %}<label class="sr-only" for="style-q">Search styles</label>
-  <input id="style-q" type="search" name="q" value="{{ q }}" placeholder="Style name, code or fabric…">
+  {% icon "search" 20 %}<label class="sr-only" for="style-q">{% translate "Search styles" %}</label>
+  <input id="style-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Style name, code or fabric…' %}">
 </form>
 {% include "shop/partials/inventory_tabs.html" with current="clothing" %}
-
-<div class="row-between mt">
-  <div><p style="font-size:18px">Clothing</p><p class="small">Finished designs ready to show or add to an order.</p></div>
-  <button class="btn btn-outline btn-sm" data-open="style-filter">{% icon "filter" 18 %} Filter{% if filter_count %} ({{ filter_count }}){% endif %}</button>
-</div>
+<p class="legend mt">{% translate "HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion" %}</p>
 
 <div class="tile-grid">
   {% for s in styles %}
@@ -25,26 +20,26 @@
       <div class="tile-body"><small>{{ s.code }}</small><strong>{{ s.name }}</strong><span class="tag">{{ s.get_category_display }}</span></div>
     </a>
   {% empty %}
-    <div class="empty" style="grid-column:1/-1"><b>{% if q or filter_count %}No styles match{% else %}Your style library is empty{% endif %}</b><p>{% if q or filter_count %}Try fewer filters.{% else %}Add the designs you make so customers can pick from them.{% endif %}</p></div>
+    <div class="empty" style="grid-column:1/-1"><b>{% if q or filter_count %}{% translate "No styles match" %}{% else %}{% translate "Your style library is empty" %}{% endif %}</b><p>{% if q or filter_count %}{% translate "Try fewer filters." %}{% else %}{% translate "Add the designs you make so customers can pick from them." %}{% endif %}</p></div>
   {% endfor %}
 </div>
 
-<a class="fab" href="{% url 'shop:style_create' %}" aria-label="Add style">{% icon "plus" 26 %}</a>
+{% if is_owner %}<a class="fab" href="{% url 'shop:style_create' %}" aria-label="{% translate 'Add style' %}">{% icon "plus" 26 %}</a>{% endif %}
 
 <dialog class="sheet" id="style-filter">
   <form method="get" class="sheet-body">
-    <div class="sheet-head"><h2>Filter clothing</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Filter styles" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
-    <p class="label" style="font-weight:600;font-size:16px">Occasion</p>
-    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in occasion_options %}<label class="chip-opt"><input type="checkbox" name="occasion" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
-    <p class="label" style="font-weight:600;font-size:16px">Gender</p>
-    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in gender_options %}<label class="chip-opt"><input type="checkbox" name="gender" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
-    <p class="label" style="font-weight:600;font-size:16px">Fabric</p>
-    <div class="chips" style="margin:8px 0 18px">{% for v, l, on in fabric_options %}<label class="chip-opt"><input type="checkbox" name="fabric" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
-    <p class="label" style="font-weight:600;font-size:16px">Quick filters</p>
-    <div class="chips" style="margin:8px 0 22px">{% for v, l, on in quick_options %}<label class="chip-opt"><input type="checkbox" name="quick" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
-    <button class="btn btn-primary btn-block">Show results</button>
-    <a class="btn btn-outline btn-block mt" href="{% url 'shop:clothing_list' %}">Clear filters</a>
+    <p class="label">{% translate "Occasion" %}</p>
+    <div class="chips" style="margin:10px 0 18px">{% for v, l, on in occasion_options %}<label class="chip-opt"><input type="checkbox" name="occasion" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label">{% translate "For" %}</p>
+    <div class="chips" style="margin:10px 0 18px">{% for v, l, on in gender_options %}<label class="chip-opt"><input type="checkbox" name="gender" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label">{% translate "Fabric" %}</p>
+    <div class="chips" style="margin:10px 0 18px">{% for v, l, on in fabric_options %}<label class="chip-opt"><input type="checkbox" name="fabric" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <p class="label">{% translate "Quick filters" %}</p>
+    <div class="chips" style="margin:10px 0 22px">{% for v, l, on in quick_options %}<label class="chip-opt"><input type="checkbox" name="quick" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
+    <button class="btn btn-primary btn-block">{% translate "Show results" %}</button>
+    <a class="btn btn-outline btn-block mt" href="{% url 'shop:clothing_list' %}">{% translate "Clear filters" %}</a>
   </form>
 </dialog>
 {% endblock %}

@@ -1,6 +1,6 @@
-<nav class="chips-scroll" aria-label="Inventory sections">
-  <a class="chip {% if current == 'clothing' %}active{% endif %}" href="{% url 'shop:clothing_list' %}">Clothing</a>
-  <a class="chip {% if current == 'materials' %}active{% endif %}" href="{% url 'shop:material_list' %}">Raw materials</a>
-  <a class="chip {% if current == 'tibebe' %}active{% endif %}" href="{% url 'shop:tibebe_list' %}">Tibebe</a>
-  <a class="chip {% if current == 'freesize' %}active{% endif %}" href="{% url 'shop:freesize_list' %}">Free size</a>
+{% load i18n %}
+<nav class="chips-scroll" aria-label="{% translate 'Stock sections' %}">
+  <a class="chip {% if current == 'clothing' %}active{% endif %}" href="{% url 'shop:clothing_list' %}">{% translate "Clothing styles" %}</a>
+  <a class="chip {% if current == 'materials' %}active{% endif %}" href="{% url 'shop:material_list' %}">{% translate "Raw materials" %}</a>
+  <a class="chip {% if current == 'tibebe' %}active{% endif %}" href="{% url 'shop:tibebe_list' %}">{% translate "Tibebe" %}</a>
 </nav>

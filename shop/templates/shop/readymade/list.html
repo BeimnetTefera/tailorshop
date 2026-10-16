@@ -1,0 +1,36 @@
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Ready-made" %}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <h1>{% translate "Ready-made clothes" %}<div class="sub">{% translate "Finished pieces you sell off the rack." %}</div></h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'shop:sale_create' %}">{% icon "receipt" 16 %} {% translate "Record sale" %}</a>
+</header>
+
+<div class="section-head" style="margin-top:4px"><h2>{% translate "Today" %}</h2><a href="{% url 'shop:sales_history' %}">{% translate "Sales history" %} {% icon "arrow-right" 14 %}</a></div>
+<div class="stats-3">
+  <div class="stat"><b>{{ today_count }}</b><span>{% translate "Sales" %}</span></div>
+  <div class="stat"><b>{{ today_items }}</b><span>{% translate "Items sold" %}</span></div>
+  {% if is_owner %}<div class="stat"><b>{{ today_received|etb }}</b><span>{% translate "ETB received" %}</span></div>
+  {% else %}<a class="stat" href="{% url 'shop:sales_history' %}?status=pending"><b>{{ pending }}</b><span>{% translate "Not paid yet" %}</span></a>{% endif %}
+</div>
+
+<div class="section-head"><h2>{% translate "On the rack" %}</h2></div>
+<div class="rows">
+  {% for item in items %}
+    <div class="row-item">
+      <span class="row-thumb">{% if item.photo %}<img src="{{ item.photo.url }}" alt="{{ item.name }}" loading="lazy">{% else %}{{ item.code }}{% endif %}</span>
+      <span class="grow">
+        {% if is_owner %}<a class="title" href="{% url 'shop:freesize_edit' item.pk %}" style="color:inherit;text-decoration:none">{{ item.code }} · {{ item.name }}</a>{% else %}<span class="title">{{ item.code }} · {{ item.name }}</span>{% endif %}
+        <span class="meta">{% blocktranslate with price=item.price|birr %}{{ price }} each{% endblocktranslate %}</span>
+      </span>
+      <span class="end">
+        <span class="{% if item.quantity == 0 %}status-out{% elif item.is_low %}status-low{% else %}status-ok{% endif %}">{% if item.quantity == 0 %}{% translate "Sold out" %}{% else %}{% blocktranslate with n=item.quantity %}{{ n }} left{% endblocktranslate %}{% endif %}</span><br>
+        {% if item.quantity %}<a class="btn-mini" style="margin-top:6px" href="{% url 'shop:sale_create' %}?item={{ item.pk }}">{% translate "Sell" %}</a>{% elif is_owner %}<a class="btn-mini" style="margin-top:6px" href="{% url 'shop:freesize_edit' item.pk %}">{% translate "Restock" %}</a>{% endif %}
+      </span>
+    </div>
+  {% empty %}
+    <div class="empty"><span class="icon-box">{% icon "hanger" 20 %}</span><b>{% translate "No ready-made items yet" %}</b><p>{% translate "Add ready-made pieces to sell them and track what's left." %}</p></div>
+  {% endfor %}
+</div>
+{% if is_owner %}<a class="fab" href="{% url 'shop:freesize_create' %}" aria-label="{% translate 'Add ready-made item' %}">{% icon "plus" 26 %}</a>{% endif %}
+{% endblock %}

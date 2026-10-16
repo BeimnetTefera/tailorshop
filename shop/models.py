@@ -6,6 +6,8 @@ The app covers five areas shown in the mockups:
   * the style library, raw materials and tibebe (woven border) designs,
   * money coming in (deposits, balances, sales),
   * money going out to workers for finished tasks.
+
+Labels are wrapped in gettext so they show in Amharic or English (locale/am).
 """
 from decimal import Decimal
 
@@ -13,16 +15,18 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
+from django.utils.translation import gettext, ngettext
+from django.utils.translation import gettext_lazy as _
 
 
 class Category(models.TextChoices):
-    HABESHA = "habesha", "Habesha kemis"
-    WEDDING = "wedding", "Wedding"
-    MODERN = "modern", "Modern"
-    MEN = "men", "Men"
-    CHILDREN = "children", "Children"
-    FORMAL = "formal", "Formal"
-    HOLIDAY = "holiday", "Holiday"
+    HABESHA = "habesha", _("Habesha kemis")
+    WEDDING = "wedding", _("Wedding")
+    MODERN = "modern", _("Modern")
+    MEN = "men", _("Men")
+    CHILDREN = "children", _("Children")
+    FORMAL = "formal", _("Formal")
+    HOLIDAY = "holiday", _("Holiday")
 
 
 # Style-code prefixes used in the library legend (HK, WD, MN, CH, MF).
@@ -38,16 +42,16 @@ CATEGORY_PREFIX = {
 
 
 class Stage(models.TextChoices):
-    CREATED = "created", "Order created"
-    MEASURED = "measured", "Measurements taken"
-    FABRIC = "fabric", "Fabric prepared"
-    CUTTING = "cutting", "Cutting"
-    SEWING = "sewing", "Sewing"
-    DECORATION = "decoration", "Decoration"
-    REPAIR = "repair", "Repair"
-    QUALITY = "quality", "Quality check"
-    READY = "ready", "Ready for pickup"
-    DELIVERED = "delivered", "Delivered"
+    CREATED = "created", _("Order created")
+    MEASURED = "measured", _("Measurements taken")
+    FABRIC = "fabric", _("Fabric prepared")
+    CUTTING = "cutting", _("Cutting")
+    SEWING = "sewing", _("Sewing")
+    DECORATION = "decoration", _("Decoration")
+    REPAIR = "repair", _("Repair")
+    QUALITY = "quality", _("Quality check")
+    READY = "ready", _("Ready for pickup")
+    DELIVERED = "delivered", _("Delivered")
 
 
 STAGE_SEQUENCE = list(Stage.values)
@@ -80,8 +84,8 @@ class StaffProfile(models.Model):
     """App login details. The owner creates messenger accounts and switches them off when they leave."""
 
     class Role(models.TextChoices):
-        OWNER = "owner", "Owner"
-        MESSENGER = "messenger", "Messenger"
+        OWNER = "owner", _("Owner")
+        MESSENGER = "messenger", _("Messenger")
 
     class Language(models.TextChoices):
         AMHARIC = "am", "አማርኛ"
@@ -102,20 +106,20 @@ class Worker(models.Model):
 
     class Role(models.TextChoices):
         # Values match Stage values so a transfer moves the order to that stage.
-        CUTTING = "cutting", "Cutter"
-        SEWING = "sewing", "Sewing"
-        DECORATION = "decoration", "Decoration specialist"
-        REPAIR = "repair", "Patch repairer"
-        QUALITY = "quality", "Quality checker"
+        CUTTING = "cutting", _("Cutter")
+        SEWING = "sewing", _("Sewing")
+        DECORATION = "decoration", _("Decoration specialist")
+        REPAIR = "repair", _("Patch repairer")
+        QUALITY = "quality", _("Quality checker")
 
-    name = models.CharField(max_length=100)
-    role = models.CharField(max_length=20, choices=Role.choices)
-    phone = models.CharField(max_length=20, blank=True)
+    name = models.CharField(_("Name"), max_length=100)
+    role = models.CharField(_("Role"), max_length=20, choices=Role.choices)
+    phone = models.CharField(_("Phone"), max_length=20, blank=True)
     rate_per_task = models.DecimalField(
-        "Pay per task (ETB)", max_digits=10, decimal_places=2, default=0,
-        help_text="Default amount owed when this worker finishes a garment.",
+        _("Pay per task (ETB)"), max_digits=10, decimal_places=2, default=0,
+        help_text=_("Default amount owed when this worker finishes a garment."),
     )
-    is_active = models.BooleanField("Currently working here", default=True)
+    is_active = models.BooleanField(_("Currently working here"), default=True)
 
     class Meta:
         ordering = ["role", "name"]
@@ -141,25 +145,25 @@ class Customer(models.Model):
 
 class Style(models.Model):
     class Gender(models.TextChoices):
-        WOMEN = "women", "Women"
-        MEN = "men", "Men"
-        CHILDREN = "children", "Children"
+        WOMEN = "women", _("Women")
+        MEN = "men", _("Men")
+        CHILDREN = "children", _("Children")
 
-    code = models.CharField("Style code", max_length=20, unique=True)
-    name = models.CharField("Style name", max_length=120)
-    category = models.CharField(max_length=20, choices=Category.choices, default=Category.HABESHA)
-    gender = models.CharField(max_length=20, choices=Gender.choices, default=Gender.WOMEN)
-    fabric = models.CharField(max_length=60, blank=True, help_text="e.g. Cotton, Lace, Chiffon")
-    color = models.CharField("Color", max_length=60, blank=True, help_text="e.g. White and gold")
-    fit = models.CharField("Fit", max_length=60, blank=True, help_text="e.g. Slim fit, Loose, Flared skirt")
-    length = models.CharField("Dress length", max_length=40, blank=True, help_text="e.g. Ankle length, 140 cm")
-    sleeve_length = models.CharField("Sleeve length", max_length=40, blank=True, help_text="e.g. Long sleeve, 60 cm")
-    photo = models.ImageField("Main photo", upload_to="styles/", blank=True)
-    description = models.TextField(blank=True)
+    code = models.CharField(_("Style code"), max_length=20, unique=True)
+    name = models.CharField(_("Style name"), max_length=120)
+    category = models.CharField(_("Category"), max_length=20, choices=Category.choices, default=Category.HABESHA)
+    gender = models.CharField(_("Gender"), max_length=20, choices=Gender.choices, default=Gender.WOMEN)
+    fabric = models.CharField(_("Fabric"), max_length=60, blank=True, help_text=_("e.g. Cotton, Lace, Chiffon"))
+    color = models.CharField(_("Color"), max_length=60, blank=True, help_text=_("e.g. White and gold"))
+    fit = models.CharField(_("Fit"), max_length=60, blank=True, help_text=_("e.g. Slim fit, Loose, Flared skirt"))
+    length = models.CharField(_("Dress length"), max_length=40, blank=True, help_text=_("e.g. Ankle length, 140 cm"))
+    sleeve_length = models.CharField(_("Sleeve length"), max_length=40, blank=True, help_text=_("e.g. Long sleeve, 60 cm"))
+    photo = models.ImageField(_("Main photo"), upload_to="styles/", blank=True)
+    description = models.TextField(_("Description"), blank=True)
     recommended_sizes = models.CharField(
-        max_length=100, blank=True, help_text="Comma separated, e.g. Medium, Large"
+        _("Recommended sizes"), max_length=100, blank=True, help_text=_("Comma separated, e.g. Medium, Large")
     )
-    is_popular = models.BooleanField("Popular style", default=False)
+    is_popular = models.BooleanField(_("Popular style"), default=False)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -198,28 +202,28 @@ class StylePhoto(models.Model):
 
 class Material(models.Model):
     class Type(models.TextChoices):
-        FABRIC = "fabric", "Fabric"
-        THREAD = "thread", "Thread"
-        BUTTONS = "buttons", "Buttons"
-        EMBROIDERY = "embroidery", "Embroidery"
-        LACE = "lace", "Lace"
-        OTHER = "other", "Other"
+        FABRIC = "fabric", _("Fabric")
+        THREAD = "thread", _("Thread")
+        BUTTONS = "buttons", _("Buttons")
+        EMBROIDERY = "embroidery", _("Embroidery")
+        LACE = "lace", _("Lace")
+        OTHER = "other", _("Other")
 
     class Unit(models.TextChoices):
-        METERS = "meters", "Meters"
-        SPOOLS = "spools", "Spools"
-        PIECES = "pieces", "Pieces"
+        METERS = "meters", _("Meters")
+        SPOOLS = "spools", _("Spools")
+        PIECES = "pieces", _("Pieces")
 
-    name = models.CharField("Material name", max_length=120)
-    material_type = models.CharField("Material type", max_length=20, choices=Type.choices, default=Type.FABRIC)
-    price = models.DecimalField("Price per unit (ETB)", max_digits=10, decimal_places=2)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    unit = models.CharField(max_length=10, choices=Unit.choices, default=Unit.METERS)
+    name = models.CharField(_("Material name"), max_length=120)
+    material_type = models.CharField(_("Material type"), max_length=20, choices=Type.choices, default=Type.FABRIC)
+    price = models.DecimalField(_("Price per unit (ETB)"), max_digits=10, decimal_places=2)
+    quantity = models.DecimalField(_("Quantity"), max_digits=10, decimal_places=2, default=0)
+    unit = models.CharField(_("Unit"), max_length=10, choices=Unit.choices, default=Unit.METERS)
     low_stock_at = models.DecimalField(
-        "Warn me when stock is at or below", max_digits=10, decimal_places=2, default=5
+        _("Warn me when stock is at or below"), max_digits=10, decimal_places=2, default=5
     )
-    photo = models.ImageField(upload_to="materials/", blank=True)
-    description = models.TextField(blank=True)
+    photo = models.ImageField(_("Photo"), upload_to="materials/", blank=True)
+    description = models.TextField(_("Description"), blank=True)
     used_for = models.ManyToManyField(Style, blank=True, related_name="materials")
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -238,28 +242,32 @@ class Material(models.Model):
         return "ok"
 
     @property
+    def amount_label(self):
+        return f"{plain_number(self.quantity)} {self.get_unit_display().lower()}"
+
+    @property
     def availability(self):
-        amount = f"{plain_number(self.quantity)} {self.get_unit_display().lower()}"
         if self.status == "out":
-            return "Out of stock"
+            return gettext("Out of stock")
         if self.status == "low":
-            return f"Low stock: {amount}"
-        return f"{amount} available"
+            return gettext("Low stock: %(amount)s") % {"amount": self.amount_label}
+        return gettext("%(amount)s available") % {"amount": self.amount_label}
 
 
 class Tibebe(models.Model):
     class Size(models.TextChoices):
-        LARGE = "large", "Large"
-        MEDIUM = "medium", "Medium"
-        THIN = "thin", "Thin"
+        LARGE = "large", _("Large")
+        MEDIUM = "medium", _("Medium")
+        THIN = "thin", _("Thin")
 
-    code = models.CharField("Style code", max_length=20, unique=True)
-    name = models.CharField("Style name", max_length=120)
-    size = models.CharField("Border width", max_length=10, choices=Size.choices, default=Size.MEDIUM)
-    occasion = models.CharField(max_length=60, blank=True, help_text="e.g. Wedding, Holiday, Everyday")
-    material = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, blank=True, related_name="tibebes")
-    photo = models.ImageField(upload_to="tibebe/", blank=True)
-    description = models.TextField(blank=True)
+    code = models.CharField(_("Style code"), max_length=20, unique=True)
+    name = models.CharField(_("Style name"), max_length=120)
+    size = models.CharField(_("Border width"), max_length=10, choices=Size.choices, default=Size.MEDIUM)
+    occasion = models.CharField(_("Occasion"), max_length=60, blank=True, help_text=_("e.g. Wedding, Holiday, Everyday"))
+    material = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, blank=True, related_name="tibebes",
+                                 verbose_name=_("Material"))
+    photo = models.ImageField(_("Photo"), upload_to="tibebe/", blank=True)
+    description = models.TextField(_("Description"), blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -279,27 +287,28 @@ def _measure(label):
 
 class Order(models.Model):
     class Priority(models.TextChoices):
-        STANDARD = "standard", "Standard"
-        URGENT = "urgent", "Urgent"
+        STANDARD = "standard", _("Standard")
+        URGENT = "urgent", _("Urgent")
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="orders")
-    style = models.ForeignKey(Style, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
-    category = models.CharField(max_length=20, choices=Category.choices, default=Category.HABESHA)
-    reference_photo = models.ImageField(upload_to="references/", blank=True)
+    style = models.ForeignKey(Style, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders",
+                              verbose_name=_("Style"))
+    category = models.CharField(_("Category"), max_length=20, choices=Category.choices, default=Category.HABESHA)
+    reference_photo = models.ImageField(_("Reference photo"), upload_to="references/", blank=True)
     people_count = models.PositiveSmallIntegerField(
-        "Number of people", default=1, help_text="For group orders, e.g. bride and bridesmaids."
+        _("Number of people"), default=1, help_text=_("For group orders, e.g. bride and bridesmaids.")
     )
 
-    bust = _measure("Bust")
-    shoulder = _measure("Shoulder")
-    sleeve_length = _measure("Sleeve length")
-    waist = _measure("Waist")
-    hip = _measure("Hip")
-    dress_length = _measure("Dress length")
+    bust = _measure(_("Bust"))
+    shoulder = _measure(_("Shoulder"))
+    sleeve_length = _measure(_("Sleeve length"))
+    waist = _measure(_("Waist"))
+    hip = _measure(_("Hip"))
+    dress_length = _measure(_("Dress length"))
 
-    due_date = models.DateField("Delivery date")
-    priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.STANDARD)
-    total_price = models.DecimalField("Total price (ETB)", max_digits=10, decimal_places=2)
+    due_date = models.DateField(_("Delivery date"))
+    priority = models.CharField(_("Priority"), max_length=10, choices=Priority.choices, default=Priority.STANDARD)
+    total_price = models.DecimalField(_("Total price (ETB)"), max_digits=10, decimal_places=2)
 
     stage = models.CharField(max_length=20, choices=Stage.choices, default=Stage.MEASURED)
     current_worker = models.ForeignKey(
@@ -319,7 +328,7 @@ class Order(models.Model):
     # ---- labels
     @property
     def code(self):
-        return f"ORD-{self.pk:04d}" if self.pk else "New order"
+        return f"ORD-{self.pk:04d}" if self.pk else gettext("New order")
 
     @property
     def ref(self):
@@ -353,7 +362,7 @@ class Order(models.Model):
 
     @property
     def status_label(self):
-        return "Delayed" if self.is_delayed else self.get_stage_display()
+        return gettext("Delayed") if self.is_delayed else self.get_stage_display()
 
     @property
     def urgency(self):
@@ -370,10 +379,10 @@ class Order(models.Model):
     def days_left_label(self):
         days = self.days_left
         if days < 0:
-            return f"{-days} day{'s' if days != -1 else ''} late"
+            return ngettext("%(n)s day late", "%(n)s days late", -days) % {"n": -days}
         if days == 0:
-            return "Due today"
-        return f"{days} day{'s' if days != 1 else ''} left"
+            return gettext("Due today")
+        return ngettext("%(n)s day left", "%(n)s days left", days) % {"n": days}
 
     @property
     def days_in_stage(self):
@@ -395,6 +404,16 @@ class Order(models.Model):
             steps.append({"value": value, "label": label, "state": state})
         return steps
 
+    def step_position(self):
+        """(current step number, number of steps) for 'Step 4 of 9'."""
+        steps = self.timeline()
+        current = next((i for i, s in enumerate(steps, 1) if s["state"] == "current"), len(steps))
+        return current, len(steps)
+
+    def next_stage(self):
+        index = STAGE_SEQUENCE.index(self.stage)
+        return Stage(STAGE_SEQUENCE[index + 1]) if index + 1 < len(STAGE_SEQUENCE) else None
+
     def measurements(self):
         fields = ["bust", "shoulder", "sleeve_length", "waist", "hip", "dress_length"]
         return [
@@ -405,16 +424,21 @@ class Order(models.Model):
 
 
 class StageNote(models.Model):
+    """An update on an order, like a comment on a ticket: text, a photo, or both."""
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="notes")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name="order_notes")
     author = models.CharField(max_length=100)
-    text = models.CharField(max_length=300)
+    text = models.CharField(max_length=500, blank=True)
+    photo = models.ImageField(upload_to="updates/", blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.text
+        return self.text or "Photo"
 
 
 class WorkerTask(models.Model):
@@ -427,6 +451,10 @@ class WorkerTask(models.Model):
     finished_on = models.DateField(null=True, blank=True)
     amount = models.DecimalField("Pay (ETB)", max_digits=10, decimal_places=2, default=0)
     paid_on = models.DateField(null=True, blank=True)
+    # The messenger (or owner) who carried the garment to this worker.
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="handovers")
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["-started_on", "-pk"]
@@ -442,6 +470,10 @@ class WorkerTask(models.Model):
 class Payment(models.Model):
     """Money a customer paid towards an order (deposit or balance)."""
 
+    class Kind:
+        DEPOSIT = "Deposit"
+        BALANCE = "Balance"
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid_on = models.DateField(default=timezone.localdate)
@@ -452,6 +484,10 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.amount} ETB · {self.order}"
+
+    @property
+    def kind_label(self):
+        return {"Deposit": gettext("Deposit"), "Balance": gettext("Balance")}.get(self.note, self.note or gettext("Payment"))
 
 
 class MaterialUsage(models.Model):
@@ -468,12 +504,12 @@ class MaterialUsage(models.Model):
 
 
 class FreeSizeItem(models.Model):
-    code = models.CharField(max_length=20, unique=True)
-    name = models.CharField(max_length=120)
-    price = models.DecimalField("Price (ETB)", max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField("In stock", default=0)
-    low_stock_at = models.PositiveIntegerField("Warn me at or below", default=3)
-    photo = models.ImageField(upload_to="free-size/", blank=True)
+    code = models.CharField(_("Code"), max_length=20, unique=True)
+    name = models.CharField(_("Name"), max_length=120)
+    price = models.DecimalField(_("Price (ETB)"), max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField(_("In stock"), default=0)
+    low_stock_at = models.PositiveIntegerField(_("Warn me at or below"), default=3)
+    photo = models.ImageField(_("Photo"), upload_to="free-size/", blank=True)
 
     class Meta:
         ordering = ["code"]
@@ -489,8 +525,8 @@ class FreeSizeItem(models.Model):
 
 class Sale(models.Model):
     class Status(models.TextChoices):
-        PAID = "paid", "Paid"
-        PENDING = "pending", "Pending"
+        PAID = "paid", _("Paid")
+        PENDING = "pending", _("Pending")
 
     item = models.ForeignKey(FreeSizeItem, on_delete=models.PROTECT, related_name="sales")
     quantity = models.PositiveIntegerField(default=1)
@@ -507,7 +543,11 @@ class Sale(models.Model):
 
 
 class Activity(models.Model):
+    """The home page feed. `text` is an English message template; it is translated
+    when shown, so each person reads it in their own language."""
+
     text = models.CharField(max_length=200)
+    params = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -515,8 +555,21 @@ class Activity(models.Model):
         verbose_name_plural = "activities"
 
     def __str__(self):
-        return self.text
+        return self.display
 
     @classmethod
-    def log(cls, text):
-        return cls.objects.create(text=text[:200])
+    def log(cls, text, **params):
+        """Activity.log(gettext_noop("Sale recorded · %(code)s"), code=item.code)"""
+        return cls.objects.create(text=text[:200], params=params)
+
+    @property
+    def display(self):
+        params = dict(self.params or {})
+        if "stage" in params and params["stage"] in Stage.values:
+            params["stage"] = str(Stage(params["stage"]).label).lower()
+        if "unit" in params and params["unit"] in Material.Unit.values:
+            params["unit"] = str(Material.Unit(params["unit"]).label).lower()
+        try:
+            return gettext(self.text) % params if params else gettext(self.text)
+        except (KeyError, TypeError, ValueError):
+            return self.text

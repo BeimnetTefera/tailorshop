@@ -1,35 +1,29 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Team{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Production workers" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Team<div class="sub">The people who cut, sew, decorate and check garments.</div></h1>
-  {% include "shop/partials/theme_toggle.html" %}
+  <a href="{% url 'shop:account' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{% translate "Production workers" %}<div class="sub">{% translate "The people who cut, sew, decorate and check garments. They don't need a login." %}</div></h1>
 </header>
 
 {% regroup workers by get_role_display as roles %}
 {% for role in roles %}
   <div class="section-head"><h2>{{ role.grouper }}</h2></div>
   {% for w in role.list %}
-  <div class="team-row">
-    <div><a href="{% url 'shop:worker_edit' w.pk %}"><b>{{ w.name }}</b></a>{% if not w.is_active %} <span class="muted small">(inactive)</span>{% endif %}
-      <div class="muted small">{{ w.phone|default:"No phone" }} · {{ w.rate_per_task|etb }} ETB per task</div></div>
-    <span class="small">{% if w.open_tasks %}{{ w.open_tasks }} garment{{ w.open_tasks|pluralize }} now{% else %}Free{% endif %}</span>
-  </div>
+  <a class="team-row" href="{% url 'shop:worker_edit' w.pk %}">
+    <div><b>{{ w.name }}</b>{% if not w.is_active %} <span class="pill pill-danger">{% translate "Inactive" %}</span>{% endif %}
+      <div class="muted small">{{ w.phone|default:_("No phone") }} · {% blocktranslate with amount=w.rate_per_task|birr %}{{ amount }} per task{% endblocktranslate %}</div></div>
+    <span class="small {% if w.open_tasks %}gold{% else %}muted{% endif %}">{% if w.open_tasks %}{% blocktranslate count n=w.open_tasks %}{{ n }} garment now{% plural %}{{ n }} garments now{% endblocktranslate %}{% else %}{% translate "Free" %}{% endif %}</span>
+  </a>
   {% endfor %}
 {% empty %}
-  <p class="muted">No workers yet. Add your first one below so you can hand garments over.</p>
+  <p class="muted">{% translate "No workers yet. Add your first one below so you can hand garments over." %}</p>
 {% endfor %}
 
 <form method="post" class="fieldset mt-lg" novalidate>
   {% csrf_token %}
-  <h2>Add a worker</h2>
+  <h2>{% translate "Add a worker" %}</h2>
   {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
-  <button class="btn btn-primary btn-block mt">Add worker</button>
-</form>
-
-<form method="post" action="{% url 'logout' %}" class="mt-lg">
-  {% csrf_token %}
-  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} Sign out</button>
+  <button class="btn btn-primary btn-block mt">{% translate "Add worker" %}</button>
 </form>
 {% endblock %}

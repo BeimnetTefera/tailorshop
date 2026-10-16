@@ -42,6 +42,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Every page needs a signed-in user except the login page (Django 5.1+).
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    "shop.middleware.UserLanguageMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -88,7 +89,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "en-us"
+# Amharic first; each person can switch to English (saved on their profile).
+# Translations live in locale/am/LC_MESSAGES/django.po; build the .mo with
+# `python scripts/compile_translations.py` after editing it.
+LANGUAGE_CODE = "am"
+LANGUAGES = [("am", "አማርኛ"), ("en", "English")]
+LOCALE_PATHS = [BASE_DIR / "locale"]
+LANGUAGE_COOKIE_NAME = "language"
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
 TIME_ZONE = "Africa/Addis_Ababa"
 USE_I18N = True
 USE_TZ = True

@@ -1,78 +1,91 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
 {% block content %}
 <header class="home-head">
   <div>
-    <p>{{ greeting }}</p>
-    <h1>{{ user.first_name|default:user.username }}</h1>
+    <p class="date-line">{{ date_line }}</p>
+    <h1>{{ greeting }}</h1>
   </div>
-  <div class="row">
-    {% include "shop/partials/theme_toggle.html" %}
-    <a href="{% url 'shop:account' %}" class="icon-btn" aria-label="{% if is_owner %}Account, messengers and team{% else %}Account{% endif %}">{% icon "team" %}</a>
-    <a href="{% url 'shop:order_list' %}?due=late" class="icon-btn" aria-label="{{ delayed_count }} delayed orders">{% icon "bell" %}{% if delayed_count %}<span class="dot">{{ delayed_count }}</span>{% endif %}</a>
+  <div class="tools">
+    {% include "shop/partials/lang_toggle.html" %}
+    <a href="{% url 'shop:order_list' %}?due=late" class="icon-btn" aria-label="{% blocktranslate count n=delayed_count %}{{ n }} delayed order{% plural %}{{ n }} delayed orders{% endblocktranslate %}">{% icon "bell" 20 %}{% if delayed_count %}<span class="dot">{{ delayed_count }}</span>{% endif %}</a>
   </div>
 </header>
 
-<section class="priority">
-  <p class="label-sm">Today's priority</p>
-  {% if due_today_count %}
-    <h2>{{ due_today_count }} order{{ due_today_count|pluralize }} due today</h2>
-    <p>{{ due_today_text|capfirst }} need{{ due_today_count|pluralize:"s," }} attention.</p>
-    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}?due=today">View orders {% icon "arrow-right" 18 %}</a>
-  {% elif delayed_count %}
-    <h2>{{ delayed_count }} order{{ delayed_count|pluralize }} running late</h2>
-    <p>Nothing is due today, but these are past their delivery date.</p>
-    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}?due=late">View late orders {% icon "arrow-right" 18 %}</a>
-  {% else %}
-    <h2>Nothing due today</h2>
-    <p>{% if ready_count %}{{ ready_count }} order{{ ready_count|pluralize }} {{ ready_count|pluralize:"is,are" }} ready for pickup.{% else %}Every order is on schedule.{% endif %}</p>
-    <a class="btn btn-primary btn-sm" href="{% url 'shop:order_list' %}">View orders {% icon "arrow-right" 18 %}</a>
-  {% endif %}
+<section class="frame priority">
+  <div class="card">
+    <p class="eyebrow"><span class="diamond"></span>{% translate "Today's priority" %}</p>
+    {% if priority_order %}
+      {% with o=priority_order %}
+      <h2>{{ o.customer.name }} · {{ o.title }}</h2>
+      <p>{% if o.is_delayed %}{{ o.days_left_label }}{% else %}{% translate "Due today" %}{% endif %} · {{ o.get_stage_display }}{% if o.current_worker %} · {% blocktranslate with name=o.current_worker.name %}with {{ name }}{% endblocktranslate %}{% endif %}</p>
+      {% if due_today|length > 1 %}<p class="small">{% blocktranslate count n=due_today|length %}{{ n }} order is due today.{% plural %}{{ n }} orders are due today.{% endblocktranslate %}</p>{% endif %}
+      <div class="progress">
+        {% with pos=o.step_position %}
+        <span class="track" aria-hidden="true"><span class="fill" style="width:{% widthratio pos.0 pos.1 100 %}%"></span></span>
+        <span>{% blocktranslate with a=pos.0 b=pos.1 %}Step {{ a }} of {{ b }}{% endblocktranslate %}</span>
+        {% endwith %}
+      </div>
+      <a class="btn btn-primary btn-block" href="{% url 'shop:tracker_detail' o.pk %}">{% translate "Open the order" %} {% icon "arrow-right" 18 %}</a>
+      {% endwith %}
+    {% else %}
+      <h2>{% translate "Nothing due today" %}</h2>
+      <p>{% if ready_count %}{% blocktranslate count n=ready_count %}{{ n }} order is ready for pickup.{% plural %}{{ n }} orders are ready for pickup.{% endblocktranslate %}{% else %}{% translate "Every order is on schedule." %}{% endif %}</p>
+      <a class="btn btn-primary btn-block mt" href="{% url 'shop:order_list' %}">{% translate "View orders" %} {% icon "arrow-right" 18 %}</a>
+    {% endif %}
+  </div>
 </section>
 
-<div class="section-head"><h2>Quick actions</h2></div>
-<div class="actions-grid">
-  <a class="action-tile" href="{% url 'shop:order_create' %}">{% icon "plus" %}New order</a>
-  <a class="action-tile" href="{% url 'shop:order_list' %}">{% icon "orders" %}Orders</a>
-  <a class="action-tile" href="{% url 'shop:sale_create' %}">{% icon "clipboard" %}Record sale</a>
-  <a class="action-tile" href="{% url 'shop:clothing_list' %}">{% icon "hanger" %}Inventory</a>
-</div>
+<nav class="actions-grid" aria-label="{% translate 'Quick actions' %}">
+  <a class="action primary" href="{% url 'shop:order_create' %}"><span class="ring">{% icon "plus" %}</span>{% translate "New order" %}</a>
+  <a class="action" href="{% url 'shop:sale_create' %}"><span class="ring">{% icon "receipt" %}</span>{% translate "Record sale" %}</a>
+  <a class="action" href="{% url 'shop:material_list' %}"><span class="ring">{% icon "box" %}</span>{% translate "Add stock" %}</a>
+  {% if is_owner %}
+  <a class="action" href="{% url 'shop:messenger_list' %}"><span class="ring">{% icon "team" %}</span>{% translate "Messengers" %}</a>
+  {% else %}
+  <a class="action" href="{% url 'shop:tracker' %}"><span class="ring">{% icon "search" %}</span>{% translate "Find a garment" %}</a>
+  {% endif %}
+</nav>
 
-<div class="section-head"><h2>Production tracker</h2><a href="{% url 'shop:tracker' %}">View all {% icon "arrow-right" 16 %}</a></div>
-<div class="scroller">
+<div class="section-head"><h2>{% translate "In production" %}</h2><a href="{% url 'shop:tracker' %}">{% translate "Tracker" %} {% icon "arrow-right" 14 %}</a></div>
+<div class="counts">
   {% for value, label, count in tracker %}
-    <a class="stat" href="{% url 'shop:order_list' %}?stage={{ value }}"><b>{{ count }}</b><span>{{ label }}</span></a>
+    <a class="count" href="{% url 'shop:order_list' %}?stage={{ value }}"><b>{{ count }}</b><span>{{ label }}</span></a>
   {% endfor %}
+  <a class="count ready" href="{% url 'shop:order_list' %}?stage=ready"><b>{{ ready_count }}</b><span>{% translate "Ready" %}</span></a>
 </div>
 
-<div class="section-head"><h2>Current work</h2></div>
+<div class="section-head"><h2>{% translate "Work in progress" %}</h2><a href="{% url 'shop:order_list' %}">{% translate "See all" %}</a></div>
 {% if current_work %}
-<div class="work-card">
+<div class="rows">
   {% for o in current_work %}
-  <a class="work-row" href="{% url 'shop:tracker_detail' o.pk %}">
-    <div class="row-between"><b>{{ o.customer.name.split.0 }} · {{ o.ref }}</b><b>With {{ o.current_worker.name }}</b></div>
-    <div class="row-between"><span>{{ o.title }}</span><span>{{ o.get_stage_display }}</span></div>
+  <a class="row-item" href="{% url 'shop:tracker_detail' o.pk %}">
+    <span class="avatar{% if o.urgency == 'danger' %} danger{% endif %}">{{ o.customer.name|slice:":1" }}</span>
+    <span class="grow"><span class="title">{{ o.customer.name }}</span><span class="meta">{{ o.title }} · {{ o.get_stage_display }} · {{ o.current_worker.name }}</span></span>
+    <span class="end{% if o.urgency == 'danger' %} status-out{% endif %}">{% if o.days_left == 0 %}{% translate "Today" %}{% else %}{{ o.due_date|ethdate:"short" }}{% endif %}</span>
   </a>
   {% endfor %}
 </div>
 {% else %}
-<p class="muted small">No garment is with a worker right now. Open an order in the production tracker to hand it over.</p>
+<p class="muted small">{% translate "No garment is with a worker right now. Open an order to hand it over." %}</p>
 {% endif %}
 
-<div class="section-head"><h2>Free size stock</h2><a href="{% url 'shop:freesize_list' %}">View all {% icon "arrow-right" 16 %}</a></div>
+<div class="section-head"><h2>{% translate "Ready-made stock" %}</h2><a href="{% url 'shop:readymade' %}">{% translate "See all" %}</a></div>
 <div class="stack-sm">
   {% for item in stock %}
-    <a class="stock-pill {% if not item.is_low %}ok{% endif %}" href="{% url 'shop:sale_create' %}?item={{ item.pk }}"><span>{{ item.code }} {{ item.name }}</span><span class="left">{{ item.quantity }} left</span></a>
+    <a class="stock-pill {% if not item.is_low %}ok{% endif %}" href="{% url 'shop:sale_create' %}?item={{ item.pk }}"><span>{{ item.code }} · {{ item.name }}</span><span class="left">{% blocktranslate with n=item.quantity %}{{ n }} left{% endblocktranslate %}</span></a>
   {% empty %}
-    <p class="muted small">No free-size items yet. <a href="{% url 'shop:freesize_create' %}">Add one</a>.</p>
+    <p class="muted small">{% translate "No ready-made items yet." %}</p>
   {% endfor %}
 </div>
 
-<div class="section-head"><h2>Recent activity</h2></div>
+<div class="section-head"><h2>{% translate "Recent activity" %}</h2></div>
 <ul class="activity">
   {% for a in activities %}
-    <li><p>{{ a.text }}</p><small>{{ a.created_at|friendly }}</small></li>
+    <li><span class="diamond" aria-hidden="true"></span><div><p>{{ a.display }}</p><small>{{ a.created_at|friendly }}</small></div></li>
   {% empty %}
-    <li><p class="muted small">Orders, sales and payments you record will show up here.</p></li>
+    <li><p class="muted small">{% translate "Orders, sales and payments you record will show up here." %}</p></li>
   {% endfor %}
 </ul>
+
+<p class="mt-lg"><a class="btn btn-outline btn-block" href="{% url 'shop:account' %}">{% icon "user" 18 %} {% if is_owner %}{% translate "Account, messengers and team" %}{% else %}{% translate "Account" %}{% endif %}</a></p>
 {% endblock %}

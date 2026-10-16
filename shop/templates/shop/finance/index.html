@@ -1,56 +1,55 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Finance{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Money" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <h1>Finance<div class="sub">See how your business is doing.</div></h1>
-  <a class="btn btn-outline btn-sm" href="{% url 'shop:sales_history' %}">Sales</a>
+  <h1>{% translate "Money" %}<div class="sub">{% translate "How the shop is doing." %}</div></h1>
+  <a class="btn btn-outline btn-sm" href="{% url 'shop:worker_payments' %}">{% translate "Worker pay" %}</a>
 </header>
 
 <div class="week-nav">
-  <a class="icon-btn" href="?month={{ prev_month }}" aria-label="Previous month">{% icon "chev-left" %}</a>
+  <a class="icon-btn" href="?month={{ prev_month }}" aria-label="{% translate 'Previous month' %}">{% icon "chev-left" %}</a>
   <span>{{ month_label }}</span>
-  <a class="icon-btn" href="?month={{ next_month }}" aria-label="Next month">{% icon "chev-right" %}</a>
+  <a class="icon-btn" href="?month={{ next_month }}" aria-label="{% translate 'Next month' %}">{% icon "chev-right" %}</a>
 </div>
 
-<h2 style="font-size:20px;font-weight:600">{% if is_current_month %}This week{% else %}Selected week{% endif %}</h2>
-<p class="muted" style="margin-bottom:10px">{{ selected_label }}</p>
-<section class="gold-card">
+<p class="eyebrow"><span class="diamond"></span>{% if is_current_month %}{% translate "This week" %}{% else %}{% translate "Selected week" %}{% endif %} · {{ selected_label }}</p>
+<section class="gold-card mt" style="margin-top:10px">
   <a href="{% url 'shop:income_detail' %}?start={{ selected.start|date:'Y-m-d' }}&end={{ selected.end|date:'Y-m-d' }}">
-    <p>Money received {% if is_current_month %}this week{% else %}that week{% endif %}</p>
-    <p class="big">{{ selected.amount|etb }} ETB</p>
+    <p class="muted small">{% translate "Money received" %}</p>
+    <p class="big">{{ selected.amount|birr }}</p>
     {% if change is not None %}
-      <p class="row">{% if change >= 0 %}{% icon "arrow-up" 20 %}{% else %}{% icon "arrow-down" 20 %}{% endif %} {{ change_abs }}% from the week before</p>
+      <p class="row small">{% if change >= 0 %}<span class="status-ok row">{% icon "arrow-up" 16 %} {{ change_abs }}%</span>{% else %}<span class="status-out row">{% icon "arrow-down" 16 %} {{ change_abs }}%</span>{% endif %} {% translate "from the week before" %}</p>
     {% endif %}
-    <p class="small" style="margin-top:6px">From {{ selected.count }} payment{{ selected.count|pluralize }} and sale{{ selected.count|pluralize }} · tap for details</p>
+    <p class="small faint" style="margin-top:6px">{% blocktranslate count n=selected.count %}From {{ n }} payment or sale · tap for details{% plural %}From {{ n }} payments and sales · tap for details{% endblocktranslate %}</p>
   </a>
 </section>
 
 <div class="mini-stats">
-  <div><b>{{ to_collect|etb }} ETB</b><span>Still to collect from open orders</span></div>
-  <div><a href="{% url 'shop:worker_payments' %}?status=unpaid" style="text-decoration:none"><b>{{ owed_workers|etb }} ETB</b><span>Owed to workers</span></a></div>
+  <div><b>{{ to_collect|birr }}</b><span>{% translate "Still to collect from open orders" %}</span></div>
+  <a href="{% url 'shop:worker_payments' %}?status=unpaid"><b>{{ owed_workers|birr }}</b><span>{% translate "Owed to workers" %}</span></a>
 </div>
 
-<div class="section-head"><h2>Monthly income<div class="small muted" style="font-weight:400">Weekly income for {{ month_label }} · {{ month_total|etb }} ETB total</div></h2></div>
-<section class="bars" aria-label="Weekly income chart">
+<div class="section-head"><div><h2>{% translate "This month" %}</h2><div class="sub">{% blocktranslate with month=month_label total=month_total|birr %}Weekly income for {{ month }} · {{ total }} in total{% endblocktranslate %}</div></div></div>
+<section class="bars" aria-label="{% translate 'Weekly income chart' %}">
   <div class="bars-inner">
     {% for w in weeks %}
-      <a class="bar {% if w.is_selected %}is-selected{% endif %}" href="{% url 'shop:income_detail' %}?start={{ w.start|date:'Y-m-d' }}&end={{ w.end|date:'Y-m-d' }}" title="{{ w.amount|etb }} ETB">
-        <span class="tag">{% if w.is_selected %}This week{% elif not w.is_future %}{{ w.amount|etb }}{% endif %}</span>
+      <a class="bar {% if w.is_selected %}is-selected{% endif %}" href="{% url 'shop:income_detail' %}?start={{ w.start|date:'Y-m-d' }}&end={{ w.end|date:'Y-m-d' }}" aria-label="{{ w.label }}: {{ w.amount|birr }}">
+        <span class="tag">{% if not w.is_future %}{{ w.amount|etb }}{% endif %}</span>
         <i style="height:{{ w.height }}%"></i>
         <small>{{ w.label }}</small>
       </a>
     {% endfor %}
   </div>
 </section>
-<div class="trend"><small>This month</small><p>{{ trend }}</p></div>
+<div class="trend"><span class="diamond" aria-hidden="true"></span><p>{{ trend }}</p></div>
 
-<div class="section-head"><h2>Recent income</h2></div>
+<div class="section-head"><h2>{% translate "Recent income" %}</h2></div>
 {% for r in recent %}
   <div class="income-row">
     <div><b>{{ r.name }}</b><small>{{ r.detail }}</small><small>{{ r.kind }} · {{ r.date|friendly }}</small></div>
-    <b>{{ r.amount|etb }}</b>
+    <span class="amount">{{ r.amount|etb }}</span>
   </div>
 {% empty %}
-  <p class="muted small">No money recorded in {{ month_label }} yet.</p>
+  <p class="muted small">{% blocktranslate with month=month_label %}No money recorded in {{ month }} yet.{% endblocktranslate %}</p>
 {% endfor %}
 {% endblock %}

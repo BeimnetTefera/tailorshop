@@ -1,10 +1,13 @@
 import json
 import re
+from datetime import date
 
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy as _
 
+from . import ethiopian
 from .models import (
     CATEGORY_PREFIX,
     Customer,
@@ -36,6 +39,10 @@ def normalize_phone(raw):
     return digits
 
 
+def phone_error():
+    return forms.ValidationError(_("Enter a 10-digit phone number starting with 09 or 07."))
+
+
 class StyledFormMixin:
     """Adds the shared `input` class to text-like widgets."""
 
@@ -43,13 +50,74 @@ class StyledFormMixin:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             widget = field.widget
-            if isinstance(widget, (forms.RadioSelect, forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.FileInput)):
+            if isinstance(widget, (forms.RadioSelect, forms.CheckboxInput, forms.CheckboxSelectMultiple,
+                                   forms.FileInput, EthiopianDateWidget)):
                 continue
             widget.attrs.setdefault("class", "input")
 
 
 PHOTO = forms.FileInput(attrs={"accept": "image/*"})
-DATE = forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})
+
+
+class EthiopianDateWidget(forms.MultiWidget):
+    """Day, month and year in the Ethiopian calendar; the form gets a normal date.
+
+    Phones show three native pickers, which works the same on iPhone and Android.
+    """
+
+    template_name = "shop/widgets/ethiopian_date.html"
+
+    def __init__(self, attrs=None):
+        select = {"class": "input"}
+        super().__init__([forms.Select(attrs=select), forms.Select(attrs=select), forms.Select(attrs=select)], attrs)
+
+    def decompress(self, value):
+        if isinstance(value, str) and value.startswith("eth:"):
+            parts = value[4:].split("-")
+            return [parts[2], parts[1], parts[0]] if len(parts) == 3 else [None, None, None]
+        if isinstance(value, str):
+            try:
+                value = date.fromisoformat(value)
+            except ValueError:
+                return [None, None, None]
+        if isinstance(value, date):
+            e = ethiopian.from_gregorian(value)
+            return [e.day, e.month, e.year]
+        return [None, None, None]
+
+    def get_context(self, name, value, attrs):
+        this_year = ethiopian.today().year
+        day, month, year = self.decompress(value)
+        years = list(range(this_year - 1, this_year + 3))
+        if year and str(year).isdigit() and int(year) not in years:
+            years = sorted(set(years) | {int(year)})
+        day_widget, month_widget, year_widget = self.widgets
+        day_widget.choices = [("", gettext("Day"))] + [(d, d) for d in range(1, 31)]
+        month_widget.choices = [("", gettext("Month"))] + [(m, ethiopian.month_name(m)) for m in range(1, 14)]
+        year_widget.choices = [("", gettext("Year"))] + [(y, y) for y in years]
+        context = super().get_context(name, value, attrs)
+        labels = [gettext("Day"), gettext("Month"), gettext("Year")]
+        for sub, label in zip(context["widget"]["subwidgets"], labels):
+            sub["attrs"]["aria-label"] = label
+        return context
+
+    def value_from_datadict(self, data, files, name):
+        day, month, year = super().value_from_datadict(data, files, name)
+        if not (day or month or year):
+            return ""
+        try:
+            return ethiopian.to_gregorian(int(year), int(month), int(day)).isoformat()
+        except (TypeError, ValueError):
+            # Keep what was picked so the form can show it again with an error.
+            return f"eth:{year}-{month}-{day}"
+
+    def id_for_label(self, id_):
+        return f"{id_}_0" if id_ else id_
+
+
+class EthiopianDateField(forms.DateField):
+    widget = EthiopianDateWidget
+    default_error_messages = {"invalid": _("That day doesn't exist in that month. Pagume has 5 days (6 in a leap year).")}
 
 
 class MultiplePhotoInput(forms.FileInput):
@@ -74,11 +142,12 @@ class PhotoChoices(forms.CheckboxSelectMultiple):
 
 
 class OrderForm(StyledFormMixin, forms.ModelForm):
-    customer_name = forms.CharField(label="Customer name", max_length=120, help_text="Enter full name")
-    customer_phone = forms.CharField(label="Phone number", max_length=20, help_text="E.g. 0911013758")
+    customer_name = forms.CharField(label=_("Customer name"), max_length=120, help_text=_("Enter full name"))
+    customer_phone = forms.CharField(label=_("Phone number"), max_length=20, help_text=_("E.g. 0911013758"))
     deposit = forms.DecimalField(
-        label="Deposit paid (ETB)", min_value=0, max_digits=10, decimal_places=2, required=False
+        label=_("Deposit paid (ETB)"), min_value=0, max_digits=10, decimal_places=2, required=False
     )
+    due_date = EthiopianDateField(label=_("Delivery date"))
 
     class Meta:
         model = Order
@@ -90,15 +159,14 @@ class OrderForm(StyledFormMixin, forms.ModelForm):
         widgets = {
             "category": forms.RadioSelect,
             "priority": forms.RadioSelect,
-            "due_date": DATE,
             "reference_photo": PHOTO,
         }
-        labels = {"style": "Select style", "reference_photo": "Add reference photo"}
+        labels = {"style": _("Select style"), "reference_photo": _("Add reference photo")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["style"].queryset = Style.objects.order_by("name")
-        self.fields["style"].empty_label = "Choose a style (optional)"
+        self.fields["style"].empty_label = _("Choose a style (optional)")
         self.fields["customer_phone"].widget.attrs.update(inputmode="tel", placeholder="09…")
         self.fields["total_price"].widget.attrs.update(inputmode="decimal", min="0")
         self.fields["deposit"].widget.attrs.update(inputmode="decimal", min="0")
@@ -112,20 +180,20 @@ class OrderForm(StyledFormMixin, forms.ModelForm):
     def clean_customer_phone(self):
         phone = normalize_phone(self.cleaned_data["customer_phone"])
         if not PHONE_RE.match(phone):
-            raise forms.ValidationError("Enter a 10-digit phone number starting with 09 or 07.")
+            raise phone_error()
         return phone
 
     def clean_due_date(self):
         due = self.cleaned_data["due_date"]
         if not self.instance.pk and due < timezone.localdate():
-            raise forms.ValidationError("The delivery date can't be in the past.")
+            raise forms.ValidationError(_("The delivery date can't be in the past."))
         return due
 
     def clean(self):
         cleaned = super().clean()
         total, deposit = cleaned.get("total_price"), cleaned.get("deposit")
         if total is not None and deposit and deposit > total:
-            self.add_error("deposit", "The deposit can't be more than the total price.")
+            self.add_error("deposit", _("The deposit can't be more than the total price."))
         return cleaned
 
     def save(self, commit=True):
@@ -142,17 +210,17 @@ class OrderForm(StyledFormMixin, forms.ModelForm):
             order.save()
             deposit = self.cleaned_data.get("deposit")
             if deposit:
-                Payment.objects.create(order=order, amount=deposit, note="Deposit")
+                Payment.objects.create(order=order, amount=deposit, note=Payment.Kind.DEPOSIT)
         return order
 
 
 class StyleForm(StyledFormMixin, forms.ModelForm):
     more_photos = MultiplePhotoField(
-        label="More photos", help_text="Back, side and close-up shots. You can pick several at once.",
+        label=_("More photos"), help_text=_("Back, side and close-up shots. You can pick several at once."),
     )
     remove_photos = forms.ModelMultipleChoiceField(
         StylePhoto.objects.none(), required=False, widget=PhotoChoices,
-        label="Remove photos", help_text="Tap the photos you want to delete.",
+        label=_("Remove photos"), help_text=_("Tap the photos you want to delete."),
     )
 
     class Meta:
@@ -163,12 +231,13 @@ class StyleForm(StyledFormMixin, forms.ModelForm):
             "category": forms.RadioSelect,
             "gender": forms.RadioSelect,
             "photo": PHOTO,
-            "description": forms.Textarea(attrs={"rows": 3, "placeholder": "Describe this design"}),
+            "description": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["name"].widget.attrs["placeholder"] = "e.g. Habesha kemis"
+        self.fields["name"].widget.attrs["placeholder"] = _("e.g. Habesha kemis")
+        self.fields["description"].widget.attrs["placeholder"] = _("Describe this design")
         self.order_fields(["name", "category", "code", "gender", "photo", "more_photos", "remove_photos"])
         if self.instance.pk and self.instance.photos.exists():
             self.fields["remove_photos"].queryset = self.instance.photos.all()
@@ -204,11 +273,11 @@ class MaterialForm(StyledFormMixin, forms.ModelForm):
             "photo": PHOTO,
             "description": forms.Textarea(attrs={"rows": 3}),
         }
+        labels = {"used_for": _("Used for these styles")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["name"].widget.attrs["placeholder"] = "e.g. White cotton"
-        self.fields["used_for"].label = "Used for these styles"
+        self.fields["name"].widget.attrs["placeholder"] = _("e.g. White cotton")
 
 
 class TibebeForm(StyledFormMixin, forms.ModelForm):
@@ -223,7 +292,7 @@ class TibebeForm(StyledFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["material"].empty_label = "Not linked to a material"
+        self.fields["material"].empty_label = _("Not linked to a material")
         if not self.instance.pk:
             self.fields["code"].initial = next_code(Tibebe, "TB")
 
@@ -261,15 +330,15 @@ def _check_password(password, user=None):
 
 
 class MessengerCreateForm(StyledFormMixin, forms.Form):
-    name = forms.CharField(label="Full name", max_length=150)
-    phone = forms.CharField(label="Phone number", max_length=20, required=False, help_text="E.g. 0911013758")
+    name = forms.CharField(label=_("Full name"), max_length=150)
+    phone = forms.CharField(label=_("Phone number"), max_length=20, required=False, help_text=_("E.g. 0911013758"))
     username = forms.CharField(
-        label="Username", max_length=150,
-        help_text="What they type to sign in. Letters and numbers, no spaces.",
+        label=_("Username"), max_length=150,
+        help_text=_("What they type to sign in. Letters and numbers, no spaces."),
     )
     password = forms.CharField(
-        label="Password", max_length=128,
-        help_text="At least 8 characters. Write it down and give it to them.",
+        label=_("Password"), max_length=128,
+        help_text=_("At least 8 characters. Write it down and give it to them."),
     )
 
     def __init__(self, *args, **kwargs):
@@ -281,15 +350,15 @@ class MessengerCreateForm(StyledFormMixin, forms.Form):
     def clean_phone(self):
         phone = normalize_phone(self.cleaned_data["phone"])
         if phone and not PHONE_RE.match(phone):
-            raise forms.ValidationError("Enter a 10-digit phone number starting with 09 or 07.")
+            raise phone_error()
         return phone
 
     def clean_username(self):
         username = self.cleaned_data["username"].strip().lower()
         if not re.fullmatch(r"[\w.@+-]+", username):
-            raise forms.ValidationError("Use only letters, numbers and . @ + - _ (no spaces).")
+            raise forms.ValidationError(_("Use only letters, numbers and . @ + - _ (no spaces)."))
         if get_user_model().objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("That username is already taken.")
+            raise forms.ValidationError(_("That username is already taken."))
         return username
 
     def clean_password(self):
@@ -305,17 +374,17 @@ class MessengerCreateForm(StyledFormMixin, forms.Form):
 
 
 class MessengerEditForm(StyledFormMixin, forms.Form):
-    name = forms.CharField(label="Full name", max_length=150)
-    phone = forms.CharField(label="Phone number", max_length=20, required=False)
+    name = forms.CharField(label=_("Full name"), max_length=150)
+    phone = forms.CharField(label=_("Phone number"), max_length=20, required=False)
     is_active = forms.BooleanField(
-        label="Can sign in", required=False,
-        help_text="Untick when they leave. Their past work stays in the records.",
+        label=_("Can sign in"), required=False,
+        help_text=_("Untick when they leave. Their past work stays in the records."),
     )
     clean_phone = MessengerCreateForm.clean_phone
 
 
 class SetPasswordForm(StyledFormMixin, forms.Form):
-    password = forms.CharField(label="New password", max_length=128, help_text="At least 8 characters.")
+    password = forms.CharField(label=_("New password"), max_length=128, help_text=_("At least 8 characters."))
 
     def __init__(self, user, *args, **kwargs):
         self.user = user
@@ -332,31 +401,31 @@ class SaleForm(StyledFormMixin, forms.ModelForm):
         fields = ["item", "quantity", "amount", "status", "customer_name"]
         widgets = {"status": forms.RadioSelect}
         labels = {
-            "item": "Clothing",
-            "quantity": "Quantity sold",
-            "amount": "Sale amount (ETB)",
-            "status": "Payment",
-            "customer_name": "Customer name (optional)",
+            "item": _("Clothing"),
+            "quantity": _("Quantity sold"),
+            "amount": _("Sale amount (ETB)"),
+            "status": _("Payment"),
+            "customer_name": _("Customer name (optional)"),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["customer_name"].widget.attrs["placeholder"] = "Enter a name if you want to save it"
+        self.fields["customer_name"].widget.attrs["placeholder"] = _("Enter a name if you want to save it")
 
     def clean(self):
         cleaned = super().clean()
         item, qty = cleaned.get("item"), cleaned.get("quantity")
         if qty is not None and qty < 1:
-            self.add_error("quantity", "Sell at least one item.")
+            self.add_error("quantity", _("Sell at least one item."))
         elif item and qty and qty > item.quantity:
-            self.add_error("quantity", f"Only {item.quantity} left in stock.")
+            self.add_error("quantity", _("Only %(n)s left in stock.") % {"n": item.quantity})
         return cleaned
 
 
 class TransferForm(forms.Form):
     worker = forms.ModelChoiceField(queryset=Worker.objects.filter(is_active=True))
-    expected_finish = forms.DateField(required=False)
-    note = forms.CharField(max_length=300, required=False)
+    expected_finish = EthiopianDateField(required=False)
+    note = forms.CharField(max_length=500, required=False)
 
 
 class StageForm(forms.Form):
@@ -364,7 +433,14 @@ class StageForm(forms.Form):
 
 
 class NoteForm(forms.Form):
-    text = forms.CharField(max_length=300)
+    text = forms.CharField(max_length=500, required=False)
+    photo = forms.ImageField(required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("text", "").strip() and not cleaned.get("photo") and not self.errors:
+            raise forms.ValidationError(_("Write an update or add a photo."))
+        return cleaned
 
 
 class PaymentForm(forms.Form):

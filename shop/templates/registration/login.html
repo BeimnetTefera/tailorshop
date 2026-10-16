@@ -1,19 +1,25 @@
-{% extends "shop/base.html" %}
-{% block title %}Sign in{% endblock %}
+{% extends "shop/base.html" %}{% load i18n %}
+{% block title %}{% translate "Sign in" %}{% endblock %}
 {% block app_class %}no-nav{% endblock %}
 {% block nav %}{% endblock %}
 {% block content %}
 <div class="login">
-  <h1>Tailor shop</h1>
-  <p class="muted">Sign in to manage orders, stock and payments.</p>
-  {% if demo_mode %}<p class="muted">Demo logins: owner <strong>selam</strong> / <strong>selam1234</strong>, messenger <strong>dawit</strong> / <strong>dawit1234</strong>. Changes reset from time to time.</p>{% endif %}
+  <div class="brand">
+    <span class="eyebrow"><span class="diamond"></span>{% translate "Tailor shop" %}</span>
+    {% include "shop/partials/lang_toggle.html" %}
+  </div>
+  <h1>{% translate "Welcome back" %}</h1>
+  <p class="muted">{% translate "Sign in to manage orders, stock and payments." %}</p>
   <form method="post" class="stack mt">
     {% csrf_token %}
-    {% if form.non_field_errors %}<div class="form-errors">That username and password don't match. Try again.</div>{% endif %}
-    <div class="field"><label class="label" for="id_username">Username</label><input class="input" id="id_username" name="username" autocomplete="username" autofocus required value="{{ form.username.value|default:'' }}"></div>
-    <div class="field"><label class="label" for="id_password">Password</label><input class="input" id="id_password" type="password" name="password" autocomplete="current-password" required></div>
+    {% if form.non_field_errors %}<div class="form-errors">{% translate "That username and password don't match. Try again." %}</div>{% endif %}
+    <div class="field"><label class="label" for="id_username">{% translate "Username" %}</label><input class="input" id="id_username" name="username" autocomplete="username" autocapitalize="none" autofocus required value="{{ form.username.value|default:'' }}"></div>
+    <div class="field"><label class="label" for="id_password">{% translate "Password" %}</label><input class="input" id="id_password" type="password" name="password" autocomplete="current-password" required></div>
     <input type="hidden" name="next" value="{{ next }}">
-    <button class="btn btn-primary btn-block">Sign in</button>
+    <button class="btn btn-primary btn-block">{% translate "Sign in" %}</button>
   </form>
+  {% if demo_mode %}
+  <p class="demo-note mt">{% blocktranslate trimmed %}Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. Changes reset from time to time.{% endblocktranslate %}</p>
+  {% endif %}
 </div>
 {% endblock %}

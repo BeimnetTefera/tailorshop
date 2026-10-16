@@ -1,0 +1,1684 @@
+# Amharic translations for the tailor shop app.
+# Edit msgstr values (Poedit works well), then run: python scripts/compile_translations.py
+msgid ""
+msgstr ""
+"Project-Id-Version: tailorshop\n"
+"Language: am\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Enter a 10-digit phone number starting with 09 or 07."
+msgstr "በ09 ወይም በ07 የሚጀምር ባለ 10 አሃዝ ስልክ ቁጥር ያስገቡ።"
+
+msgid "That day doesn't exist in that month. Pagume has 5 days (6 in a leap year)."
+msgstr "ይህ ቀን በዚህ ወር ውስጥ የለም። ጳጉሜ 5 ቀናት አሏት (በዘመነ ሉቃስ 6)።"
+
+msgid "Choose a style (optional)"
+msgstr "ዲዛይን ይምረጡ (ካስፈለገ)"
+
+msgid "e.g. Habesha kemis"
+msgstr "ለምሳሌ፦ የሐበሻ ቀሚስ"
+
+msgid "Describe this design"
+msgstr "ይህን ዲዛይን ይግለጹ"
+
+msgid "e.g. White cotton"
+msgstr "ለምሳሌ፦ ነጭ ጥጥ"
+
+msgid "Not linked to a material"
+msgstr "ከጥሬ ዕቃ ጋር አልተገናኘም"
+
+msgid "Enter a name if you want to save it"
+msgstr "መመዝገብ ከፈለጉ ስም ያስገቡ"
+
+msgid "Day"
+msgstr "ቀን"
+
+msgid "Month"
+msgstr "ወር"
+
+msgid "Year"
+msgstr "ዓመት"
+
+msgid "Customer name"
+msgstr "የደንበኛ ስም"
+
+msgid "Enter full name"
+msgstr "ሙሉ ስም ያስገቡ"
+
+msgid "Phone number"
+msgstr "ስልክ ቁጥር"
+
+msgid "E.g. 0911013758"
+msgstr "ለምሳሌ፦ 0911013758"
+
+msgid "Deposit paid (ETB)"
+msgstr "የተከፈለ ቅድሚያ ክፍያ (ብር)"
+
+msgid "Delivery date"
+msgstr "የሚረከብበት ቀን"
+
+msgid "Select style"
+msgstr "ዲዛይን ይምረጡ"
+
+msgid "Add reference photo"
+msgstr "የናሙና ፎቶ ያክሉ"
+
+msgid "More photos"
+msgstr "ተጨማሪ ፎቶዎች"
+
+msgid "Back, side and close-up shots. You can pick several at once."
+msgstr "የኋላ፣ የጎን እና የቅርብ ፎቶዎች። ብዙ በአንድ ጊዜ መምረጥ ይችላሉ።"
+
+msgid "Remove photos"
+msgstr "ፎቶዎችን አስወግድ"
+
+msgid "Tap the photos you want to delete."
+msgstr "ማጥፋት የሚፈልጉትን ፎቶ ይንኩ።"
+
+msgid "Used for these styles"
+msgstr "ለእነዚህ ዲዛይኖች ይውላል"
+
+msgid "Full name"
+msgstr "ሙሉ ስም"
+
+msgid "Username"
+msgstr "የተጠቃሚ ስም"
+
+msgid "What they type to sign in. Letters and numbers, no spaces."
+msgstr "ለመግባት የሚጽፉት። ፊደላት እና ቁጥሮች፣ ያለ ክፍተት።"
+
+msgid "Password"
+msgstr "የይለፍ ቃል"
+
+msgid "At least 8 characters. Write it down and give it to them."
+msgstr "ቢያንስ 8 ፊደላት። ጽፈው ይስጧቸው።"
+
+msgid "Can sign in"
+msgstr "መግባት ይችላል"
+
+msgid "Untick when they leave. Their past work stays in the records."
+msgstr "ሥራ ሲለቁ ምልክቱን ያንሱ። ያለፈው ሥራቸው በመዝገብ ይቆያል።"
+
+msgid "New password"
+msgstr "አዲስ የይለፍ ቃል"
+
+msgid "At least 8 characters."
+msgstr "ቢያንስ 8 ፊደላት።"
+
+msgid "Clothing"
+msgstr "ልብስ"
+
+msgid "Quantity sold"
+msgstr "የተሸጠ ብዛት"
+
+msgid "Sale amount (ETB)"
+msgstr "የሽያጭ መጠን (ብር)"
+
+msgid "Payment"
+msgstr "ክፍያ"
+
+msgid "Customer name (optional)"
+msgstr "የደንበኛ ስም (ካስፈለገ)"
+
+msgid "The delivery date can't be in the past."
+msgstr "የሚረከብበት ቀን ያለፈ ቀን መሆን አይችልም።"
+
+msgid "The deposit can't be more than the total price."
+msgstr "ቅድሚያ ክፍያው ከጠቅላላ ዋጋው መብለጥ አይችልም።"
+
+msgid "Use only letters, numbers and . @ + - _ (no spaces)."
+msgstr "ፊደላት፣ ቁጥሮች እና . @ + - _ ብቻ ይጠቀሙ (ያለ ክፍተት)።"
+
+msgid "That username is already taken."
+msgstr "ይህ የተጠቃሚ ስም ተይዟል።"
+
+msgid "Sell at least one item."
+msgstr "ቢያንስ አንድ ይሽጡ።"
+
+msgid "Write an update or add a photo."
+msgstr "መልእክት ይጻፉ ወይም ፎቶ ያክሉ።"
+
+msgid "Only %(n)s left in stock."
+msgstr "በክምችት የቀረው %(n)s ብቻ ነው።"
+
+msgid "Habesha kemis"
+msgstr "የሐበሻ ቀሚስ"
+
+msgid "Wedding"
+msgstr "ሰርግ"
+
+msgid "Modern"
+msgstr "ዘመናዊ"
+
+msgid "Men"
+msgstr "ወንዶች"
+
+msgid "Children"
+msgstr "ልጆች"
+
+msgid "Formal"
+msgstr "መደበኛ"
+
+msgid "Holiday"
+msgstr "በዓል"
+
+msgid "Order created"
+msgstr "ትዕዛዝ ተመዝግቧል"
+
+msgid "Measurements taken"
+msgstr "ልኬት ተወስዷል"
+
+msgid "Fabric prepared"
+msgstr "ጨርቅ ተዘጋጅቷል"
+
+msgid "Cutting"
+msgstr "መቁረጥ"
+
+msgid "Sewing"
+msgstr "ስፌት"
+
+msgid "Decoration"
+msgstr "ጥልፍ"
+
+msgid "Repair"
+msgstr "ጥገና"
+
+msgid "Quality check"
+msgstr "የጥራት ፍተሻ"
+
+msgid "Ready for pickup"
+msgstr "ለመረከብ ዝግጁ"
+
+msgid "Delivered"
+msgstr "ተረክቧል"
+
+msgid "Name"
+msgstr "ስም"
+
+msgid "Role"
+msgstr "ሙያ"
+
+msgid "Phone"
+msgstr "ስልክ"
+
+msgid "Pay per task (ETB)"
+msgstr "ክፍያ በአንድ ሥራ (ብር)"
+
+msgid "Currently working here"
+msgstr "አሁን እዚህ ይሠራል"
+
+msgid "Style code"
+msgstr "የዲዛይን ኮድ"
+
+msgid "Style name"
+msgstr "የዲዛይን ስም"
+
+msgid "Category"
+msgstr "ዓይነት"
+
+msgid "Gender"
+msgstr "ለማን"
+
+msgid "Fabric"
+msgstr "ጨርቅ"
+
+msgid "Color"
+msgstr "ቀለም"
+
+msgid "Fit"
+msgstr "አቆራረጥ"
+
+msgid "Dress length"
+msgstr "የቀሚስ ርዝመት"
+
+msgid "Sleeve length"
+msgstr "የእጅጌ ርዝመት"
+
+msgid "Main photo"
+msgstr "ዋና ፎቶ"
+
+msgid "Description"
+msgstr "መግለጫ"
+
+msgid "Recommended sizes"
+msgstr "የሚመከሩ መጠኖች"
+
+msgid "Popular style"
+msgstr "ተወዳጅ ዲዛይን"
+
+msgid "Material name"
+msgstr "የዕቃው ስም"
+
+msgid "Material type"
+msgstr "የዕቃው ዓይነት"
+
+msgid "Price per unit (ETB)"
+msgstr "የአንዱ ዋጋ (ብር)"
+
+msgid "Quantity"
+msgstr "ብዛት"
+
+msgid "Unit"
+msgstr "መለኪያ"
+
+msgid "Warn me when stock is at or below"
+msgstr "ክምችቱ እዚህ ሲደርስ አሳውቀኝ"
+
+msgid "Photo"
+msgstr "ፎቶ"
+
+msgid "Border width"
+msgstr "የጥበብ ስፋት"
+
+msgid "Occasion"
+msgstr "ዝግጅት"
+
+msgid "Reference photo"
+msgstr "የናሙና ፎቶ"
+
+msgid "Number of people"
+msgstr "የሰዎች ብዛት"
+
+msgid "Bust"
+msgstr "ደረት"
+
+msgid "Shoulder"
+msgstr "ትከሻ"
+
+msgid "Waist"
+msgstr "ወገብ"
+
+msgid "Hip"
+msgstr "ዳሌ"
+
+msgid "Priority"
+msgstr "አስቸኳይነት"
+
+msgid "Total price (ETB)"
+msgstr "ጠቅላላ ዋጋ (ብር)"
+
+msgid "Code"
+msgstr "ኮድ"
+
+msgid "Price (ETB)"
+msgstr "ዋጋ (ብር)"
+
+msgid "In stock"
+msgstr "በክምችት ያለ"
+
+msgid "Warn me at or below"
+msgstr "እዚህ ሲደርስ አሳውቀኝ"
+
+msgid "Owner"
+msgstr "ባለቤት"
+
+msgid "Messenger"
+msgstr "መልእክተኛ"
+
+msgid "Cutter"
+msgstr "ቆራጭ"
+
+msgid "Decoration specialist"
+msgstr "የጥልፍ ባለሙያ"
+
+msgid "Patch repairer"
+msgstr "ጠጋኝ"
+
+msgid "Quality checker"
+msgstr "የጥራት ፈታሽ"
+
+msgid "Default amount owed when this worker finishes a garment."
+msgstr "ይህ ሠራተኛ አንድ ልብስ ሲጨርስ የሚከፈለው።"
+
+msgid "Women"
+msgstr "ሴቶች"
+
+msgid "e.g. Cotton, Lace, Chiffon"
+msgstr "ለምሳሌ፦ ጥጥ፣ ዳንቴል፣ ሺፎን"
+
+msgid "e.g. White and gold"
+msgstr "ለምሳሌ፦ ነጭ እና ወርቃማ"
+
+msgid "e.g. Slim fit, Loose, Flared skirt"
+msgstr "ለምሳሌ፦ ጥብቅ፣ ሰፊ፣ የተዘረጋ ቀሚስ"
+
+msgid "e.g. Ankle length, 140 cm"
+msgstr "ለምሳሌ፦ እስከ ቁርጭምጭሚት፣ 140 ሴ.ሜ"
+
+msgid "e.g. Long sleeve, 60 cm"
+msgstr "ለምሳሌ፦ ረጅም እጅጌ፣ 60 ሴ.ሜ"
+
+msgid "Comma separated, e.g. Medium, Large"
+msgstr "በኮማ ይለዩ፤ ለምሳሌ፦ መካከለኛ፣ ትልቅ"
+
+msgid "Thread"
+msgstr "ክር"
+
+msgid "Buttons"
+msgstr "ቁልፍ"
+
+msgid "Embroidery"
+msgstr "ጥልፍ"
+
+msgid "Lace"
+msgstr "ዳንቴል"
+
+msgid "Other"
+msgstr "ሌላ"
+
+msgid "Meters"
+msgstr "ሜትር"
+
+msgid "Spools"
+msgstr "ጥቅል"
+
+msgid "Pieces"
+msgstr "ቁራጭ"
+
+msgid "Out of stock"
+msgstr "አልቋል"
+
+msgid "%(amount)s available"
+msgstr "%(amount)s አለ"
+
+msgid "Large"
+msgstr "ሰፊ"
+
+msgid "Medium"
+msgstr "መካከለኛ"
+
+msgid "Thin"
+msgstr "ቀጭን"
+
+msgid "e.g. Wedding, Holiday, Everyday"
+msgstr "ለምሳሌ፦ ሰርግ፣ በዓል፣ የዘወትር"
+
+msgid "Material"
+msgstr "ጥሬ ዕቃ"
+
+msgid "Standard"
+msgstr "መደበኛ"
+
+msgid "Urgent"
+msgstr "አስቸኳይ"
+
+msgid "Style"
+msgstr "ዲዛይን"
+
+msgid "For group orders, e.g. bride and bridesmaids."
+msgstr "ለቡድን ትዕዛዝ፤ ለምሳሌ ሙሽሪት እና ሚዜዎች።"
+
+msgid "New order"
+msgstr "አዲስ ትዕዛዝ"
+
+msgid "Delayed"
+msgstr "ዘግይቷል"
+
+msgid "Due today"
+msgstr "ዛሬ የሚደርስ"
+
+msgid "%(n)s day left"
+msgid_plural "%(n)s days left"
+msgstr[0] "%(n)s ቀን ቀረው"
+msgstr[1] "%(n)s ቀናት ቀረው"
+
+msgid "Paid"
+msgstr "ተከፍሏል"
+
+msgid "Pending"
+msgstr "ያልተከፈለ"
+
+msgid "Low stock: %(amount)s"
+msgstr "እያለቀ ነው፦ %(amount)s"
+
+msgid "%(n)s day late"
+msgid_plural "%(n)s days late"
+msgstr[0] "በ%(n)s ቀን ዘግይቷል"
+msgstr[1] "በ%(n)s ቀናት ዘግይቷል"
+
+msgid "Deposit"
+msgstr "ቅድሚያ ክፍያ"
+
+msgid "Balance"
+msgstr "ቀሪ ክፍያ"
+
+msgid "Only the owner can open that page."
+msgstr "ይህን ገጽ መክፈት የሚችለው ባለቤቱ ብቻ ነው።"
+
+msgid "ETB"
+msgstr "ብር"
+
+msgid "Today"
+msgstr "ዛሬ"
+
+msgid "Yesterday"
+msgstr "ትናንት"
+
+msgid "Today, %(time)s"
+msgstr "ዛሬ፣ %(time)s"
+
+msgid "Yesterday, %(time)s"
+msgstr "ትናንት፣ %(time)s"
+
+msgid "Good morning"
+msgstr "እንደምን አደሩ"
+
+msgid "%(name)s's order delivered"
+msgstr "የ%(name)s ትዕዛዝ ተረክቧል"
+
+msgid "Delivered %(code)s."
+msgstr "%(code)s ተረክቧል።"
+
+msgid "Good afternoon"
+msgstr "እንደምን ዋሉ"
+
+msgid "Good evening"
+msgstr "እንደምን አመሹ"
+
+msgid "Save changes"
+msgstr "ለውጦቹን አስቀምጥ"
+
+msgid "%(name)s's order is ready for pickup"
+msgstr "የ%(name)s ትዕዛዝ ለመረከብ ዝግጁ ነው"
+
+msgid "%(name)s's order moved to %(stage)s · %(worker)s"
+msgstr "የ%(name)s ትዕዛዝ ወደ %(stage)s ተዛውሯል · %(worker)s"
+
+msgid "Handed over to %(name)s (%(role)s)."
+msgstr "ለ%(name)s (%(role)s) ተሰጥቷል።"
+
+msgid "%(name)s's order moved to %(stage)s"
+msgstr "የ%(name)s ትዕዛዝ ወደ %(stage)s ተዛውሯል"
+
+msgid "Update posted."
+msgstr "መልእክቱ ተለጥፏል።"
+
+msgid "Enter the amount the customer paid."
+msgstr "ደንበኛው የከፈለውን መጠን ያስገቡ።"
+
+msgid "Marked the %(code)s sale as paid."
+msgstr "የ%(code)s ሽያጭ እንደተከፈለ ተመዝግቧል።"
+
+msgid "Add ready-made item"
+msgstr "ዝግጁ ልብስ ጨምር"
+
+msgid "Add item"
+msgstr "ጨምር"
+
+msgid "Ready-made clothes you sell off the rack."
+msgstr "ተዘጋጅተው የሚሸጡ ልብሶች።"
+
+msgid "Your income went up each week for the last %(n)s weeks."
+msgstr "ገቢዎ ላለፉት %(n)s ሳምንታት በየሳምንቱ ጨምሯል።"
+
+msgid "Income is up compared with the week before."
+msgstr "ገቢው ካለፈው ሳምንት ጨምሯል።"
+
+msgid "This task isn't finished yet."
+msgstr "ይህ ሥራ ገና አላለቀም።"
+
+msgid "Payment recorded · %(name)s"
+msgstr "ክፍያ ተመዝግቧል · %(name)s"
+
+msgid "For"
+msgstr "ለማን"
+
+msgid "Sizes"
+msgstr "መጠኖች"
+
+msgid "Add style"
+msgstr "ዲዛይን ጨምር"
+
+msgid "Add material"
+msgstr "ጥሬ ዕቃ ጨምር"
+
+msgid "Stock added · %(name)s"
+msgstr "ክምችት ተጨምሯል · %(name)s"
+
+msgid "Enter how much stock to add."
+msgstr "ምን ያህል እንደሚጨመር ያስገቡ።"
+
+msgid "Add tibebe style"
+msgstr "የጥበብ ዲዛይን ጨምር"
+
+msgid "Add tibebe"
+msgstr "ጥበብ ጨምር"
+
+msgid "%(greeting)s, %(name)s"
+msgstr "%(greeting)s፣ %(name)s"
+
+msgid "Messenger account added · %(name)s"
+msgstr "የመልእክተኛ መለያ ተከፍቷል · %(name)s"
+
+msgid "Edit %(name)s"
+msgstr "%(name)s አስተካክል"
+
+msgid "%(name)s's order is marked ready."
+msgstr "የ%(name)s ትዕዛዝ ዝግጁ ተብሎ ተመዝግቧል።"
+
+msgid "%(amount)s is still unpaid."
+msgstr "%(amount)s ገና አልተከፈለም።"
+
+msgid "Pick the worker who should receive this garment."
+msgstr "ልብሱን የሚቀበለውን ሠራተኛ ይምረጡ።"
+
+msgid "Stage updated to %(stage)s."
+msgstr "ደረጃው ወደ %(stage)s ተቀይሯል።"
+
+msgid "Income is lower than the week before. Check unpaid balances on orders that are ready."
+msgstr "ገቢው ካለፈው ሳምንት ቀንሷል። ዝግጁ በሆኑ ትዕዛዞች ላይ ያልተከፈለውን ቀሪ ክፍያ ይመልከቱ።"
+
+msgid "Income is steady this month."
+msgstr "በዚህ ወር ገቢው የተረጋጋ ነው።"
+
+msgid "Sale"
+msgstr "ሽያጭ"
+
+msgid "Walk-in sales"
+msgstr "የመንገደኛ ሽያጮች"
+
+msgid "Marked %(name)s's task as paid."
+msgstr "የ%(name)s ሥራ እንደተከፈለ ተመዝግቧል።"
+
+msgid "Cotton"
+msgstr "ጥጥ"
+
+msgid "Wool"
+msgstr "ሱፍ"
+
+msgid "Chiffon"
+msgstr "ሺፎን"
+
+msgid "Added %(amount)s %(unit)s. Now %(status)s."
+msgstr "%(amount)s %(unit)s ተጨምሯል። አሁን፦ %(status)s።"
+
+msgid "Enter how much you used."
+msgstr "ምን ያህል እንደተጠቀሙ ያስገቡ።"
+
+msgid "Saved %(name)s."
+msgstr "%(name)s ተቀምጧል።"
+
+msgid "%(name)s can now sign in as “%(username)s”."
+msgstr "%(name)s አሁን በ“%(username)s” መግባት ይችላሉ።"
+
+msgid "New password saved for %(name)s. Give it to them in person."
+msgstr "ለ%(name)s አዲስ የይለፍ ቃል ተቀምጧል። በአካል ይስጧቸው።"
+
+msgid "Added %(name)s to your team."
+msgstr "%(name)s ወደ ሠራተኞችዎ ተጨምረዋል።"
+
+msgid "New order · %(name)s (%(title)s)"
+msgstr "አዲስ ትዕዛዝ · %(name)s (%(title)s)"
+
+msgid "Created order %(code)s for %(name)s."
+msgstr "ለ%(name)s ትዕዛዝ %(code)s ተመዝግቧል።"
+
+msgid "Saved changes to %(code)s."
+msgstr "በ%(code)s ላይ ያሉ ለውጦች ተቀምጠዋል።"
+
+msgid "That's more than the remaining balance of %(amount)s."
+msgstr "ይህ ከቀሪው ክፍያ %(amount)s ይበልጣል።"
+
+msgid "Recorded %(amount)s from %(name)s."
+msgstr "ከ%(name)s %(amount)s ተመዝግቧል።"
+
+msgid "W%(n)s"
+msgstr "ሳ%(n)s"
+
+msgid "Walk-in customer"
+msgstr "መንገደኛ ደንበኛ"
+
+msgid "Popular"
+msgstr "ተወዳጅ"
+
+msgid "Recently added"
+msgstr "በቅርብ የተጨመሩ"
+
+msgid "Most used"
+msgstr "በብዛት የሚውሉ"
+
+msgid "Price"
+msgstr "ዋጋ"
+
+msgid "Messenger account switched off · %(name)s"
+msgstr "የመልእክተኛ መለያ ተዘግቷል · %(name)s"
+
+msgid "Sale recorded · %(code)s"
+msgstr "ሽያጭ ተመዝግቧል · %(code)s"
+
+msgid "Only %(amount)s %(unit)s in stock."
+msgstr "በክምችት ያለው %(amount)s %(unit)s ብቻ ነው።"
+
+msgid "Used %(amount)s %(unit)s of %(material)s for %(name)s"
+msgstr "ለ%(name)s %(amount)s %(unit)s %(material)s ጥቅም ላይ ውሏል"
+
+msgid "Used %(amount)s %(unit)s of %(material)s"
+msgstr "%(amount)s %(unit)s %(material)s ጥቅም ላይ ውሏል"
+
+msgid "%(name)s can no longer sign in."
+msgstr "%(name)s ከአሁን በኋላ መግባት አይችሉም።"
+
+msgid "Recorded sale of %(qty)s × %(name)s. %(left)s left."
+msgstr "የ%(qty)s × %(name)s ሽያጭ ተመዝግቧል። %(left)s ቀርቷል።"
+
+msgid "Recorded %(amount)s %(unit)s used for %(name)s."
+msgstr "ለ%(name)s %(amount)s %(unit)s ጥቅም ላይ እንደዋለ ተመዝግቧል።"
+
+msgid "Recorded %(amount)s %(unit)s used."
+msgstr "%(amount)s %(unit)s ጥቅም ላይ እንደዋለ ተመዝግቧል።"
+
+msgid "Sign in"
+msgstr "ግባ"
+
+msgid "Tailor shop"
+msgstr "የልብስ ስፌት ቤት"
+
+msgid "Welcome back"
+msgstr "እንኳን በደህና ተመለሱ"
+
+msgid "Sign in to manage orders, stock and payments."
+msgstr "ትዕዛዞችን፣ ክምችትን እና ክፍያዎችን ለማስተዳደር ይግቡ።"
+
+msgid "That username and password don't match. Try again."
+msgstr "የተጠቃሚ ስሙ እና የይለፍ ቃሉ አይመሳሰሉም። እንደገና ይሞክሩ።"
+
+msgid "Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. Changes reset from time to time."
+msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>selam</b> / <b>selam1234</b>፣ መልእክተኛ <b>dawit</b> / <b>dawit1234</b>። ለውጦች አልፎ አልፎ ይሰረዛሉ።"
+
+msgid "Account"
+msgstr "መለያ"
+
+msgid "Back"
+msgstr "ተመለስ"
+
+msgid "Language"
+msgstr "ቋንቋ"
+
+msgid "Choose the language you read the app in."
+msgstr "መተግበሪያውን የሚያነቡበትን ቋንቋ ይምረጡ።"
+
+msgid "Manage"
+msgstr "አስተዳድር"
+
+msgid "Messengers"
+msgstr "መልእክተኞች"
+
+msgid "Give logins to the people who carry work between steps."
+msgstr "ሥራን ከደረጃ ወደ ደረጃ ለሚያደርሱ ሰዎች መግቢያ ይስጡ።"
+
+msgid "Production workers"
+msgstr "የምርት ሠራተኞች"
+
+msgid "Weavers, cutters, tailors and their pay per task."
+msgstr "ሸማኔዎች፣ ቆራጮች፣ ሰፊዎች እና የሥራ ክፍያቸው።"
+
+msgid "Worker payments"
+msgstr "የሠራተኛ ክፍያዎች"
+
+msgid "Finished tasks and what is still owed."
+msgstr "የተጠናቀቁ ሥራዎች እና ገና የሚከፈለው።"
+
+msgid "Sign out"
+msgstr "ውጣ"
+
+msgid "Signed in as %(username)s"
+msgstr "በ%(username)s ገብተዋል"
+
+msgid "Home"
+msgstr "መነሻ"
+
+msgid "Today's priority"
+msgstr "የዛሬ ቅድሚያ"
+
+msgid "Open the order"
+msgstr "ትዕዛዙን ክፈት"
+
+msgid "Nothing due today"
+msgstr "ዛሬ የሚደርስ የለም"
+
+msgid "Every order is on schedule."
+msgstr "ሁሉም ትዕዛዞች በጊዜያቸው ናቸው።"
+
+msgid "View orders"
+msgstr "ትዕዛዞችን እይ"
+
+msgid "Quick actions"
+msgstr "ፈጣን ተግባራት"
+
+msgid "Record sale"
+msgstr "ሽያጭ መዝግብ"
+
+msgid "Add stock"
+msgstr "ክምችት ጨምር"
+
+msgid "Find a garment"
+msgstr "ልብስ ፈልግ"
+
+msgid "In production"
+msgstr "በምርት ላይ"
+
+msgid "Tracker"
+msgstr "መከታተያ"
+
+msgid "Ready"
+msgstr "ዝግጁ"
+
+msgid "Work in progress"
+msgstr "በሂደት ያሉ ሥራዎች"
+
+msgid "See all"
+msgstr "ሁሉንም እይ"
+
+msgid "No garment is with a worker right now. Open an order to hand it over."
+msgstr "አሁን በሠራተኛ እጅ ያለ ልብስ የለም። ለማስረከብ ትዕዛዝ ይክፈቱ።"
+
+msgid "Ready-made stock"
+msgstr "የዝግጁ ልብስ ክምችት"
+
+msgid "No ready-made items yet."
+msgstr "ገና ዝግጁ ልብስ የለም።"
+
+msgid "Recent activity"
+msgstr "የቅርብ ጊዜ እንቅስቃሴ"
+
+msgid "Orders, sales and payments you record will show up here."
+msgstr "የሚመዘግቧቸው ትዕዛዞች፣ ሽያጮች እና ክፍያዎች እዚህ ይታያሉ።"
+
+msgid "Account, messengers and team"
+msgstr "መለያ፣ መልእክተኞች እና ሠራተኞች"
+
+msgid "%(n)s delayed order"
+msgid_plural "%(n)s delayed orders"
+msgstr[0] "%(n)s የዘገየ ትዕዛዝ"
+msgstr[1] "%(n)s የዘገዩ ትዕዛዞች"
+
+msgid "with %(name)s"
+msgstr "ከ%(name)s ጋር"
+
+msgid "%(n)s order is due today."
+msgid_plural "%(n)s orders are due today."
+msgstr[0] "%(n)s ትዕዛዝ ዛሬ ይደርሳል።"
+msgstr[1] "%(n)s ትዕዛዞች ዛሬ ይደርሳሉ።"
+
+msgid "Step %(a)s of %(b)s"
+msgstr "ደረጃ %(a)s ከ%(b)s"
+
+msgid "%(n)s order is ready for pickup."
+msgid_plural "%(n)s orders are ready for pickup."
+msgstr[0] "%(n)s ትዕዛዝ ለመረከብ ዝግጁ ነው።"
+msgstr[1] "%(n)s ትዕዛዞች ለመረከብ ዝግጁ ናቸው።"
+
+msgid "%(n)s left"
+msgstr "%(n)s ቀርቷል"
+
+msgid "Income"
+msgstr "ገቢ"
+
+msgid "Income for the week"
+msgstr "የሳምንቱ ገቢ"
+
+msgid "No money received in this period."
+msgstr "በዚህ ጊዜ የተቀበሉት ገንዘብ የለም።"
+
+msgid "%(n)s payment or sale"
+msgid_plural "%(n)s payments and sales"
+msgstr[0] "%(n)s ክፍያ ወይም ሽያጭ"
+msgstr[1] "%(n)s ክፍያዎች እና ሽያጮች"
+
+msgid "Money"
+msgstr "ገንዘብ"
+
+msgid "How the shop is doing."
+msgstr "የሱቁ ሁኔታ።"
+
+msgid "Worker pay"
+msgstr "የሠራተኛ ክፍያ"
+
+msgid "Previous month"
+msgstr "ያለፈው ወር"
+
+msgid "Next month"
+msgstr "የሚቀጥለው ወር"
+
+msgid "This week"
+msgstr "ይህ ሳምንት"
+
+msgid "Selected week"
+msgstr "የተመረጠው ሳምንት"
+
+msgid "Money received"
+msgstr "የተቀበሉት ገንዘብ"
+
+msgid "from the week before"
+msgstr "ካለፈው ሳምንት"
+
+msgid "Still to collect from open orders"
+msgstr "ከክፍት ትዕዛዞች ገና የሚሰበሰብ"
+
+msgid "Owed to workers"
+msgstr "ለሠራተኞች የሚከፈል"
+
+msgid "This month"
+msgstr "ይህ ወር"
+
+msgid "Weekly income chart"
+msgstr "የሳምንታዊ ገቢ ሰንጠረዥ"
+
+msgid "Recent income"
+msgstr "የቅርብ ጊዜ ገቢ"
+
+msgid "From %(n)s payment or sale · tap for details"
+msgid_plural "From %(n)s payments and sales · tap for details"
+msgstr[0] "ከ%(n)s ክፍያ ወይም ሽያጭ · ለዝርዝር ይንኩ"
+msgstr[1] "ከ%(n)s ክፍያዎች እና ሽያጮች · ለዝርዝር ይንኩ"
+
+msgid "Weekly income for %(month)s · %(total)s in total"
+msgstr "የ%(month)s ሳምንታዊ ገቢ · በጠቅላላ %(total)s"
+
+msgid "No money recorded in %(month)s yet."
+msgstr "በ%(month)s ገና የተመዘገበ ገንዘብ የለም።"
+
+msgid "Stock"
+msgstr "ክምችት"
+
+msgid "Styles, materials and tibebe designs."
+msgstr "ዲዛይኖች፣ ጥሬ ዕቃዎች እና ጥበቦች።"
+
+msgid "Filter"
+msgstr "አጣራ"
+
+msgid "Search styles"
+msgstr "ዲዛይን ፈልግ"
+
+msgid "Style name, code or fabric…"
+msgstr "የዲዛይን ስም፣ ኮድ ወይም ጨርቅ…"
+
+msgid "HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion"
+msgstr "HK የሐበሻ ቀሚስ · WD የሰርግ ቀሚስ · MN የወንዶች ባህላዊ · CH የልጆች · MF ዘመናዊ ቅልቅል"
+
+msgid "No styles match"
+msgstr "የሚዛመድ ዲዛይን የለም"
+
+msgid "Your style library is empty"
+msgstr "የዲዛይን ስብስብዎ ባዶ ነው"
+
+msgid "Try fewer filters."
+msgstr "ጥቂት ማጣሪያዎችን ይሞክሩ።"
+
+msgid "Add the designs you make so customers can pick from them."
+msgstr "ደንበኞች እንዲመርጡ የሚሠሯቸውን ዲዛይኖች ያክሉ።"
+
+msgid "Filter styles"
+msgstr "ዲዛይኖችን አጣራ"
+
+msgid "Close"
+msgstr "ዝጋ"
+
+msgid "Quick filters"
+msgstr "ፈጣን ማጣሪያዎች"
+
+msgid "Show results"
+msgstr "ውጤቶችን አሳይ"
+
+msgid "Clear filters"
+msgstr "ማጣሪያዎችን አጽዳ"
+
+msgid "Edit"
+msgstr "አስተካክል"
+
+msgid "Type"
+msgstr "ዓይነት"
+
+msgid "Available"
+msgstr "ያለው"
+
+msgid "Use material"
+msgstr "ዕቃ ተጠቀም"
+
+msgid "Used for"
+msgstr "የዋለበት"
+
+msgid "Not linked to any style yet."
+msgstr "ገና ከማንኛውም ዲዛይን ጋር አልተገናኘም።"
+
+msgid "Recent use"
+msgstr "የቅርብ ጊዜ አጠቃቀም"
+
+msgid "Add"
+msgstr "ጨምር"
+
+msgid "General shop use"
+msgstr "ለሱቁ አጠቃላይ ጥቅም"
+
+msgid "Save"
+msgstr "አስቀምጥ"
+
+msgid "%(price)s per %(unit)s"
+msgstr "%(price)s በአንድ %(unit)s"
+
+msgid "How many %(unit)s arrived?"
+msgstr "ስንት %(unit)s ገባ?"
+
+msgid "How many %(unit)s?"
+msgstr "ስንት %(unit)s?"
+
+msgid "Raw materials"
+msgstr "ጥሬ ዕቃዎች"
+
+msgid "Keep your fabrics and supplies easy to find."
+msgstr "ጨርቆችዎን እና ዕቃዎችዎን በቀላሉ ያግኙ።"
+
+msgid "Sort"
+msgstr "ደርድር"
+
+msgid "Search materials"
+msgstr "ጥሬ ዕቃ ፈልግ"
+
+msgid "Material name…"
+msgstr "የዕቃው ስም…"
+
+msgid "Materials"
+msgstr "ጥሬ ዕቃዎች"
+
+msgid "Low stock"
+msgstr "እያለቀ ያለ"
+
+msgid "All"
+msgstr "ሁሉም"
+
+msgid "No materials match"
+msgstr "የሚዛመድ ዕቃ የለም"
+
+msgid "No materials yet"
+msgstr "ገና ጥሬ ዕቃ የለም"
+
+msgid "Add fabric, thread and buttons to keep track of what's left."
+msgstr "የቀረውን ለመከታተል ጨርቅ፣ ክር እና ቁልፍ ያክሉ።"
+
+msgid "Sort by"
+msgstr "በዚህ ደርድር"
+
+msgid "Add photos"
+msgstr "ፎቶዎች ያክሉ"
+
+msgid "Browse styles"
+msgstr "ዲዛይኖችን ያስሱ"
+
+msgid "Previous"
+msgstr "ቀዳሚ"
+
+msgid "Next"
+msgstr "ቀጣይ"
+
+msgid "Materials used"
+msgstr "የዋሉ ጥሬ ዕቃዎች"
+
+msgid "Use this style"
+msgstr "ይህን ዲዛይን ተጠቀም"
+
+msgid "%(a)s of %(b)s"
+msgstr "%(a)s ከ%(b)s"
+
+msgid "Photos of %(name)s"
+msgstr "የ%(name)s ፎቶዎች"
+
+msgid "Show photo %(n)s"
+msgstr "ፎቶ %(n)s አሳይ"
+
+msgid "Opens a new order with this style chosen. Used in %(n)s order so far."
+msgid_plural "Opens a new order with this style chosen. Used in %(n)s orders so far."
+msgstr[0] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዝ ውስጥ ውሏል።"
+msgstr[1] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዞች ውስጥ ውሏል።"
+
+msgid "Tibebe"
+msgstr "ጥበብ"
+
+msgid "Woven border designs you can add to a kemis."
+msgstr "በቀሚስ ላይ የሚጨመሩ የተሸመኑ ጥበቦች።"
+
+msgid "Search tibebe"
+msgstr "ጥበብ ፈልግ"
+
+msgid "Name, code or occasion…"
+msgstr "ስም፣ ኮድ ወይም ዝግጅት…"
+
+msgid "No tibebe designs match"
+msgstr "የሚዛመድ ጥበብ የለም"
+
+msgid "No tibebe designs yet"
+msgstr "ገና ጥበብ የለም"
+
+msgid "Save border patterns so you can show them to customers."
+msgstr "ለደንበኞች ለማሳየት የጥበብ ዓይነቶችን ያስቀምጡ።"
+
+msgid "Use in a new order"
+msgstr "በአዲስ ትዕዛዝ ተጠቀም"
+
+msgid "Details"
+msgstr "ዝርዝሮች"
+
+msgid "Reset password"
+msgstr "የይለፍ ቃል ቀይር"
+
+msgid "Use this if they forget it. Tell them the new one in person."
+msgstr "ከረሱት ይህን ይጠቀሙ። አዲሱን በአካል ይንገሯቸው።"
+
+msgid "Set new password"
+msgstr "አዲስ የይለፍ ቃል አስቀምጥ"
+
+msgid "Signs in as “%(u)s”"
+msgstr "በ“%(u)s” ይገባሉ"
+
+msgid "They take orders, record money and stock, and carry garments between steps."
+msgstr "ትዕዛዝ ይቀበላሉ፣ ገንዘብ እና ክምችት ይመዘግባሉ፣ ልብሶችን ከደረጃ ወደ ደረጃ ያደርሳሉ።"
+
+msgid "Can't sign in"
+msgstr "መግባት አይችልም"
+
+msgid "No messengers yet. Add the first one below and give them their username and password."
+msgstr "ገና መልእክተኛ የለም። የመጀመሪያውን ከታች ያክሉ፣ የተጠቃሚ ስማቸውን እና የይለፍ ቃላቸውን ይስጧቸው።"
+
+msgid "Add a messenger"
+msgstr "መልእክተኛ ጨምር"
+
+msgid "Create login"
+msgstr "መግቢያ ፍጠር"
+
+msgid "Username: %(u)s"
+msgstr "የተጠቃሚ ስም፦ %(u)s"
+
+msgid "Edit order"
+msgstr "ትዕዛዝ አስተካክል"
+
+msgid "Form sections"
+msgstr "የቅጹ ክፍሎች"
+
+msgid "Customer"
+msgstr "ደንበኛ"
+
+msgid "Measure"
+msgstr "ልኬት"
+
+msgid "Some details need fixing. They're marked below."
+msgstr "አንዳንድ መረጃዎች መስተካከል አለባቸው። ከታች ምልክት ተደርጎባቸዋል።"
+
+msgid "Browse the style library"
+msgstr "የዲዛይን ስብስቡን ያስሱ"
+
+msgid "Measurements"
+msgstr "ልኬቶች"
+
+msgid "All measurements in centimetres."
+msgstr "ሁሉም ልኬቶች በሴንቲሜትር ናቸው።"
+
+msgid "Upper body"
+msgstr "የላይኛው አካል"
+
+msgid "Waist area"
+msgstr "የወገብ አካባቢ"
+
+msgid "Full length"
+msgstr "ሙሉ ርዝመት"
+
+msgid "Delivery"
+msgstr "ርክክብ"
+
+msgid "Remaining balance"
+msgstr "ቀሪ ክፍያ"
+
+msgid "Create order"
+msgstr "ትዕዛዝ መዝግብ"
+
+msgid "Edit %(code)s"
+msgstr "%(code)s አስተካክል"
+
+msgid "Paid so far: %(amount)s. Record new payments on the order page."
+msgstr "እስካሁን የተከፈለ፦ %(amount)s። አዲስ ክፍያ በትዕዛዙ ገጽ ላይ ይመዝግቡ።"
+
+msgid "Orders"
+msgstr "ትዕዛዞች"
+
+msgid "Filter orders"
+msgstr "ትዕዛዞችን አጣራ"
+
+msgid "Search orders"
+msgstr "ትዕዛዝ ፈልግ"
+
+msgid "Customer, style, phone…"
+msgstr "ደንበኛ፣ ዲዛይን፣ ስልክ…"
+
+msgid "Show all"
+msgstr "ሁሉንም አሳይ"
+
+msgid "Swipe a card right to mark it ready, left to edit."
+msgstr "ዝግጁ ለማድረግ ካርዱን ወደ ቀኝ፣ ለማስተካከል ወደ ግራ ይጎትቱ።"
+
+msgid "Waiting for pickup"
+msgstr "መረከብ በመጠበቅ ላይ"
+
+msgid "Mark delivered"
+msgstr "ርክክብ መዝግብ"
+
+msgid "Mark ready"
+msgstr "ዝግጁ አድርግ"
+
+msgid "No orders match"
+msgstr "የሚዛመድ ትዕዛዝ የለም"
+
+msgid "No active orders"
+msgstr "በሂደት ላይ ያለ ትዕዛዝ የለም"
+
+msgid "Try another name or phone number, or clear the filters."
+msgstr "ሌላ ስም ወይም ስልክ ቁጥር ይሞክሩ፣ ወይም ማጣሪያዎቹን ያጽዱ።"
+
+msgid "Create your first order to start tracking garments."
+msgstr "ልብሶችን መከታተል ለመጀመር የመጀመሪያ ትዕዛዝዎን ይመዝግቡ።"
+
+msgid "Completed"
+msgstr "ተጠናቋል"
+
+msgid "No delivered orders yet"
+msgstr "ገና የተረከበ ትዕዛዝ የለም"
+
+msgid "Orders move here after you mark them delivered."
+msgstr "ትዕዛዞች መረከባቸውን ሲመዘግቡ ወደዚህ ይመጣሉ።"
+
+msgid "Stage"
+msgstr "ደረጃ"
+
+msgid "Any"
+msgstr "ማንኛውም"
+
+msgid "Due"
+msgstr "የሚደርስበት"
+
+msgid "Any time"
+msgstr "በማንኛውም ጊዜ"
+
+msgid "Urgent orders only"
+msgstr "አስቸኳይ ትዕዛዞች ብቻ"
+
+msgid "Show orders"
+msgstr "ትዕዛዞችን አሳይ"
+
+msgid "Current (%(n)s)"
+msgstr "በሂደት ላይ (%(n)s)"
+
+msgid "Delivered (%(n)s)"
+msgstr "የተረከቡ (%(n)s)"
+
+msgid "Showing: %(f)s"
+msgstr "የሚታየው፦ %(f)s"
+
+msgid "for %(n)s people"
+msgstr "ለ%(n)s ሰዎች"
+
+msgid "Due %(d)s"
+msgstr "የሚደርሰው %(d)s"
+
+msgid "Delivered %(d)s"
+msgstr "%(d)s ተረክቧል"
+
+msgid "Nothing to choose yet."
+msgstr "ገና የሚመረጥ የለም።"
+
+msgid "Current photo"
+msgstr "የአሁኑ ፎቶ"
+
+msgid "Tap to replace the photo"
+msgstr "ፎቶውን ለመቀየር ይንኩ"
+
+msgid "Take or upload a photo"
+msgstr "ፎቶ ያንሱ ወይም ይጫኑ"
+
+msgid "photos chosen"
+msgstr "ፎቶዎች ተመርጠዋል"
+
+msgid "cm"
+msgstr "ሴ.ሜ"
+
+msgid "Extra photo %(n)s"
+msgstr "ተጨማሪ ፎቶ %(n)s"
+
+msgid "Stock sections"
+msgstr "የክምችት ክፍሎች"
+
+msgid "Clothing styles"
+msgstr "የልብስ ዲዛይኖች"
+
+msgid "Main"
+msgstr "ዋና"
+
+msgid "Ready-made"
+msgstr "ዝግጁ ልብስ"
+
+msgid "Previous week"
+msgstr "ያለፈው ሳምንት"
+
+msgid "this week"
+msgstr "ይህ ሳምንት"
+
+msgid "Next week"
+msgstr "የሚቀጥለው ሳምንት"
+
+msgid "Check which finished tasks have been paid."
+msgstr "የተጠናቀቁ ሥራዎች መከፈላቸውን ይመልከቱ።"
+
+msgid "Finished"
+msgstr "የተጠናቀቀ"
+
+msgid "Unpaid"
+msgstr "ያልተከፈለ"
+
+msgid "Worker"
+msgstr "ሠራተኛ"
+
+msgid "All workers"
+msgstr "ሁሉም ሠራተኞች"
+
+msgid "Started"
+msgstr "የተጀመረ"
+
+msgid "Mark as paid"
+msgstr "እንደተከፈለ መዝግብ"
+
+msgid "No finished tasks with that status"
+msgstr "በዚህ ሁኔታ የተጠናቀቀ ሥራ የለም"
+
+msgid "No finished tasks"
+msgstr "የተጠናቀቀ ሥራ የለም"
+
+msgid "Tasks show up here when a garment moves on from a worker."
+msgstr "ልብስ ከሠራተኛው ሲያልፍ ሥራው እዚህ ይታያል።"
+
+msgid "%(amount)s still to pay for this week's tasks."
+msgstr "ለዚህ ሳምንት ሥራዎች ገና %(amount)s ይከፈላል።"
+
+msgid "Paid %(d)s"
+msgstr "%(d)s ተከፍሏል"
+
+msgid "%(n)s task is still in progress."
+msgid_plural "%(n)s tasks are still in progress."
+msgstr[0] "%(n)s ሥራ ገና በሂደት ላይ ነው።"
+msgstr[1] "%(n)s ሥራዎች ገና በሂደት ላይ ናቸው።"
+
+msgid "Ready-made clothes"
+msgstr "ዝግጁ ልብሶች"
+
+msgid "Finished pieces you sell off the rack."
+msgstr "ተዘጋጅተው የሚሸጡ ልብሶች።"
+
+msgid "Sales history"
+msgstr "የሽያጭ ታሪክ"
+
+msgid "Sales"
+msgstr "ሽያጮች"
+
+msgid "Items sold"
+msgstr "የተሸጡ"
+
+msgid "ETB received"
+msgstr "የተቀበሉት ብር"
+
+msgid "Not paid yet"
+msgstr "ገና ያልተከፈለ"
+
+msgid "On the rack"
+msgstr "በመደርደሪያ ላይ"
+
+msgid "Sold out"
+msgstr "ተሽጦ አልቋል"
+
+msgid "Sell"
+msgstr "ሽጥ"
+
+msgid "Restock"
+msgstr "ክምችት ሙላ"
+
+msgid "No ready-made items yet"
+msgstr "ገና ዝግጁ ልብስ የለም"
+
+msgid "Add ready-made pieces to sell them and track what's left."
+msgstr "ለመሸጥ እና የቀረውን ለመከታተል ዝግጁ ልብሶችን ያክሉ።"
+
+msgid "%(price)s each"
+msgstr "እያንዳንዱ %(price)s"
+
+msgid "A ready-made piece sold off the rack."
+msgstr "ከመደርደሪያ የተሸጠ ዝግጁ ልብስ።"
+
+msgid "Add the ready-made clothes you sell, then record sales here."
+msgstr "የሚሸጡትን ዝግጁ ልብሶች ያክሉ፣ ከዚያም ሽያጮችን እዚህ ይመዝግቡ።"
+
+msgid "available"
+msgstr "አለ"
+
+msgid "not enough"
+msgstr "በቂ አይደለም"
+
+msgid "sold out"
+msgstr "ተሽጦ አልቋል"
+
+msgid "One less"
+msgstr "አንድ ቀንስ"
+
+msgid "One more"
+msgstr "አንድ ጨምር"
+
+msgid "Sale summary"
+msgstr "የሽያጭ ማጠቃለያ"
+
+msgid "Sale amount"
+msgstr "የሽያጭ መጠን"
+
+msgid "Stock after sale"
+msgstr "ከሽያጭ በኋላ ክምችት"
+
+msgid "Ready-made pieces you have sold."
+msgstr "የሸጧቸው ዝግጁ ልብሶች።"
+
+msgid "Today's sales"
+msgstr "የዛሬ ሽያጮች"
+
+msgid "Search sales"
+msgstr "ሽያጭ ፈልግ"
+
+msgid "Code, clothing or customer…"
+msgstr "ኮድ፣ ልብስ ወይም ደንበኛ…"
+
+msgid "Recorded sales"
+msgstr "የተመዘገቡ ሽያጮች"
+
+msgid "Newest"
+msgstr "አዲስ"
+
+msgid "Oldest"
+msgstr "የቆየ"
+
+msgid "Highest amount"
+msgstr "ከፍተኛ መጠን"
+
+msgid "Payment status"
+msgstr "የክፍያ ሁኔታ"
+
+msgid "Mark paid"
+msgstr "እንደተከፈለ መዝግብ"
+
+msgid "No sales match"
+msgstr "የሚዛመድ ሽያጭ የለም"
+
+msgid "No sales this week"
+msgstr "በዚህ ሳምንት ሽያጭ የለም"
+
+msgid "Try a different search or filter."
+msgstr "ሌላ ፍለጋ ወይም ማጣሪያ ይሞክሩ።"
+
+msgid "Sales you record will show up here."
+msgstr "የሚመዘግቧቸው ሽያጮች እዚህ ይታያሉ።"
+
+msgid "%(amount)s received this week"
+msgstr "በዚህ ሳምንት %(amount)s ተቀብለዋል"
+
+msgid "%(n)s item"
+msgid_plural "%(n)s items"
+msgstr[0] "%(n)s ልብስ"
+msgstr[1] "%(n)s ልብሶች"
+
+msgid "Customer: %(name)s"
+msgstr "ደንበኛ፦ %(name)s"
+
+msgid "The people who cut, sew, decorate and check garments. They don't need a login."
+msgstr "ልብሶችን የሚቆርጡ፣ የሚሰፉ፣ የሚጠልፉ እና የሚፈትሹ ሰዎች። መግቢያ አያስፈልጋቸውም።"
+
+msgid "Inactive"
+msgstr "አይሠራም"
+
+msgid "Free"
+msgstr "ነጻ"
+
+msgid "No workers yet. Add your first one below so you can hand garments over."
+msgstr "ገና ሠራተኛ የለም። ልብሶችን ለማስረከብ የመጀመሪያውን ከታች ያክሉ።"
+
+msgid "Add a worker"
+msgstr "ሠራተኛ ጨምር"
+
+msgid "Add worker"
+msgstr "ሠራተኛ ጨምር"
+
+msgid "No phone"
+msgstr "ስልክ የለም"
+
+msgid "%(amount)s per task"
+msgstr "በአንድ ሥራ %(amount)s"
+
+msgid "%(n)s garment now"
+msgid_plural "%(n)s garments now"
+msgstr[0] "አሁን %(n)s ልብስ"
+msgstr[1] "አሁን %(n)s ልብሶች"
+
+msgid "Back to orders"
+msgstr "ወደ ትዕዛዞች ተመለስ"
+
+msgid "Search"
+msgstr "ፈልግ"
+
+msgid "Search by customer, style, or order number (e.g. ORD-0007)."
+msgstr "በደንበኛ፣ በዲዛይን ወይም በትዕዛዝ ቁጥር ይፈልጉ (ለምሳሌ ORD-0007)።"
+
+msgid "Delivered orders are on the Delivered tab of the orders list."
+msgstr "የተረከቡ ትዕዛዞች በትዕዛዞች ዝርዝር “የተረከቡ” ክፍል ውስጥ ናቸው።"
+
+msgid "With a worker now"
+msgstr "አሁን በሠራተኛ እጅ"
+
+msgid "Now with"
+msgstr "አሁን ያለው"
+
+msgid "The customer"
+msgstr "ደንበኛው"
+
+msgid "At the shop"
+msgstr "ሱቅ ውስጥ"
+
+msgid "Production steps"
+msgstr "የምርት ደረጃዎች"
+
+msgid "Hand over to next step"
+msgstr "ለቀጣዩ ደረጃ አስረክብ"
+
+msgid "Change stage"
+msgstr "ደረጃ ቀይር"
+
+msgid "Total price"
+msgstr "ጠቅላላ ዋጋ"
+
+msgid "Record payment"
+msgstr "ክፍያ መዝግብ"
+
+msgid "Measurements (cm)"
+msgstr "ልኬቶች (ሴ.ሜ)"
+
+msgid "Updates"
+msgstr "መልእክቶች"
+
+msgid "Photo added to this update"
+msgstr "ከዚህ መልእክት ጋር የተያያዘ ፎቶ"
+
+msgid "No updates yet. Write what's happening, like “The weaver needs 2 more spools”, and add a photo."
+msgstr "ገና መልእክት የለም። ምን እየሆነ እንዳለ ይጻፉ፣ ለምሳሌ “ሸማኔው 2 ተጨማሪ ክር ይፈልጋል”፣ እና ፎቶ ያክሉ።"
+
+msgid "Add photo"
+msgstr "ፎቶ ጨምር"
+
+msgid "Write an update"
+msgstr "መልእክት ይጻፉ"
+
+msgid "Write an update…"
+msgstr "መልእክት ይጻፉ…"
+
+msgid "Send update"
+msgstr "መልእክት ላክ"
+
+msgid "Hand over"
+msgstr "አስረክብ"
+
+msgid "Who is the garment going to?"
+msgstr "ልብሱ ወደ ማን ይሄዳል?"
+
+msgid "has it now"
+msgstr "አሁን በእጁ ነው"
+
+msgid "Nobody here yet."
+msgstr "ገና ማንም የለም።"
+
+msgid "Add one"
+msgstr "ጨምር"
+
+msgid "Expected back"
+msgstr "የሚመለስበት ቀን"
+
+msgid "Note for the update thread"
+msgstr "ለመልእክቶቹ ማስታወሻ"
+
+msgid "Instructions, if any"
+msgstr "መመሪያ ካለ"
+
+msgid "Moving to “Ready for pickup” or “Delivered” closes the current worker's task so it shows up in worker payments."
+msgstr "ወደ “ለመረከብ ዝግጁ” ወይም “ተረክቧል” ሲቀየር የአሁኑ ሠራተኛ ሥራ ይዘጋና በሠራተኛ ክፍያዎች ውስጥ ይታያል።"
+
+msgid "Save stage"
+msgstr "ደረጃውን አስቀምጥ"
+
+msgid "Amount paid (ETB)"
+msgstr "የተከፈለ መጠን (ብር)"
+
+msgid "No garments in production"
+msgstr "በምርት ላይ ያለ ልብስ የለም"
+
+msgid "Create an order and it will appear here."
+msgstr "ትዕዛዝ ይመዝግቡ፣ እዚህ ይታያል።"
+
+msgid "Order %(code)s"
+msgstr "ትዕዛዝ %(code)s"
+
+msgid "%(n)s order is past its delivery date:"
+msgid_plural "%(n)s orders are past their delivery date:"
+msgstr[0] "%(n)s ትዕዛዝ የሚደርስበት ቀን አልፏል፦"
+msgstr[1] "%(n)s ትዕዛዞች የሚደርሱበት ቀን አልፏል፦"
+
+msgid "No active order matches “%(q)s”"
+msgstr "ከ“%(q)s” ጋር የሚዛመድ ትዕዛዝ የለም"
+
+msgid "back %(d)s"
+msgstr "%(d)s ይመለሳል"
+
+msgid "Step %(a)s of %(b)s · %(stage)s"
+msgstr "ደረጃ %(a)s ከ%(b)s · %(stage)s"
+
+msgid "Next: %(stage)s"
+msgstr "ቀጣይ፦ %(stage)s"
+
+msgid "%(n)s update"
+msgid_plural "%(n)s updates"
+msgstr[0] "%(n)s መልእክት"
+msgstr[1] "%(n)s መልእክቶች"
+
+msgid "%(by)s handed it to %(worker)s for %(stage)s"
+msgstr "%(by)s ልብሱን ለ%(worker)s አስረክበዋል (%(stage)s)"
+
+msgid "Handed to %(worker)s for %(stage)s"
+msgstr "ለ%(worker)s ተሰጥቷል (%(stage)s)"
+
+msgid "Remaining balance: %(amount)s"
+msgstr "ቀሪ ክፍያ፦ %(amount)s"
+
+#. From Django
+msgid "This field is required."
+msgstr "ይህ መረጃ ያስፈልጋል።"
+
+#. From Django
+msgid "Enter a valid date."
+msgstr "ትክክለኛ ቀን ያስገቡ።"
+
+#. From Django
+msgid "Enter a number."
+msgstr "ቁጥር ያስገቡ።"
+
+#. From Django
+msgid "Enter a whole number."
+msgstr "ሙሉ ቁጥር ያስገቡ።"
+
+#. From Django
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr "ትክክለኛ ምርጫ ይምረጡ። ያ ምርጫ ካሉት ውስጥ አይደለም።"
+
+#. From Django
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr "ትክክለኛ ምርጫ ይምረጡ። %(value)s ካሉት ምርጫዎች ውስጥ አይደለም።"
+
+#. From Django
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "ዋጋው ከ%(limit_value)s ጋር እኩል ወይም የሚበልጥ መሆን አለበት።"
+
+#. From Django
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "ዋጋው ከ%(limit_value)s ጋር እኩል ወይም ያነሰ መሆን አለበት።"
+
+#. From Django
+msgid "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+msgstr "ትክክለኛ ፎቶ ይጫኑ። የጫኑት ፋይል ፎቶ አይደለም ወይም ተበላሽቷል።"
+
+#. From Django
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] "በጠቅላላ ከ%(max)s አሃዝ መብለጥ የለበትም።"
+msgstr[1] "በጠቅላላ ከ%(max)s አሃዞች መብለጥ የለበትም።"
+
+#. From Django
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] "ከ%(max)s የአስርዮሽ ቦታ መብለጥ የለበትም።"
+msgstr[1] "ከ%(max)s የአስርዮሽ ቦታዎች መብለጥ የለበትም።"
+
+#. From Django
+msgid "Ensure this value has at most %(limit_value)d character (it has %(show_value)d)."
+msgid_plural "Ensure this value has at most %(limit_value)d characters (it has %(show_value)d)."
+msgstr[0] "ከ%(limit_value)d ፊደል መብለጥ የለበትም (አሁን %(show_value)d አለው)።"
+msgstr[1] "ከ%(limit_value)d ፊደላት መብለጥ የለበትም (አሁን %(show_value)d አለው)።"
+
+#. From Django
+msgid "This password is too short. It must contain at least %d character."
+msgid_plural "This password is too short. It must contain at least %d characters."
+msgstr[0] "ይህ የይለፍ ቃል በጣም አጭር ነው። ቢያንስ %d ፊደል ሊኖረው ይገባል።"
+msgstr[1] "ይህ የይለፍ ቃል በጣም አጭር ነው። ቢያንስ %d ፊደላት ሊኖሩት ይገባል።"
+
+#. From Django
+msgid "This password is too common."
+msgstr "ይህ የይለፍ ቃል በጣም የተለመደ ነው።"
+
+#. From Django
+msgid "This password is entirely numeric."
+msgstr "ይህ የይለፍ ቃል ቁጥር ብቻ ነው።"
+
+#. From Django
+msgid "The password is too similar to the %(verbose_name)s."
+msgstr "የይለፍ ቃሉ ከ%(verbose_name)s ጋር በጣም ይመሳሰላል።"
+
+#. From Django
+msgid "username"
+msgstr "የተጠቃሚ ስም"
+
+#. From Django
+msgid "first name"
+msgstr "ስም"
+
+#. From Django
+msgid "last name"
+msgstr "የአባት ስም"
+
+#. From Django
+msgid "email address"
+msgstr "ኢሜይል"

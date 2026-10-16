@@ -3,6 +3,7 @@ from functools import wraps
 
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.utils.translation import gettext as _
 
 
 def is_owner(user):
@@ -20,7 +21,7 @@ def owner_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not is_owner(request.user):
-            messages.error(request, "Only the owner can open that page.")
+            messages.error(request, _("Only the owner can open that page."))
             return redirect("shop:dashboard")
         return view(request, *args, **kwargs)
 

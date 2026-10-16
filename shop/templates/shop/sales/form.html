@@ -1,23 +1,24 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Record sale{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Record sale" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:sales_history' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Record sale<div class="sub">Record a free-size clothing sale.</div></h1>
+  <a href="{% url 'shop:readymade' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{% translate "Record sale" %}<div class="sub">{% translate "A ready-made piece sold off the rack." %}</div></h1>
 </header>
 
 {% if not items %}
-  <div class="empty"><b>No free-size items yet</b><p>Add the ready-made clothes you sell, then record sales here.</p><a class="btn btn-primary" href="{% url 'shop:freesize_create' %}">Add free-size item</a></div>
+  <div class="empty"><b>{% translate "No ready-made items yet" %}</b><p>{% translate "Add the ready-made clothes you sell, then record sales here." %}</p>{% if is_owner %}<a class="btn btn-primary" href="{% url 'shop:freesize_create' %}">{% translate "Add ready-made item" %}</a>{% endif %}</div>
 {% else %}
-<form method="post" class="stack" data-sale-form data-bound="{% if form.is_bound %}1{% else %}0{% endif %}" novalidate>
+<form method="post" class="stack" data-sale-form data-bound="{% if form.is_bound %}1{% else %}0{% endif %}"
+      data-currency="{% translate 'ETB' %}" data-available="{% translate 'available' %}" data-not-enough="{% translate 'not enough' %}" novalidate>
   {% csrf_token %}
   <div class="field{% if form.item.errors %} has-error{% endif %}">
-    <label class="label" for="id_item">Clothing</label>
+    <label class="label" for="id_item">{% translate "Clothing" %}</label>
     <select class="input" name="item" id="id_item">
       {% for it in items %}
         <option value="{{ it.pk }}" data-price="{{ it.price }}" data-stock="{{ it.quantity }}" data-label="{{ it.code }} · {{ it.name }}"
           {% if form.item.value|stringformat:"s" == it.pk|stringformat:"s" %}selected{% endif %} {% if it.quantity == 0 %}disabled{% endif %}>
-          {{ it.code }} · {{ it.name }}{% if it.quantity == 0 %} (sold out){% endif %}
+          {{ it.code }} · {{ it.name }}{% if it.quantity == 0 %} ({% translate "sold out" %}){% endif %}
         </option>
       {% endfor %}
     </select>
@@ -26,11 +27,11 @@
   </div>
 
   <div class="field{% if form.quantity.errors %} has-error{% endif %}">
-    <label class="label" for="id_quantity">Quantity sold</label>
+    <label class="label" for="id_quantity">{% translate "Quantity sold" %}</label>
     <div class="qty">
-      <button type="button" data-step-qty="-1" aria-label="One less"><span style="font-size:26px;line-height:1" aria-hidden="true">−</span></button>
+      <button type="button" data-step-qty="-1" aria-label="{% translate 'One less' %}"><span style="font-size:24px;line-height:1" aria-hidden="true">−</span></button>
       <input id="id_quantity" name="quantity" type="number" min="1" value="{{ form.quantity.value|default:1 }}" inputmode="numeric">
-      <button type="button" data-step-qty="1" aria-label="One more">{% icon "plus" %}</button>
+      <button type="button" data-step-qty="1" aria-label="{% translate 'One more' %}">{% icon "plus" %}</button>
     </div>
     {% for e in form.quantity.errors %}<small class="error" style="text-align:center">{{ e }}</small>{% endfor %}
   </div>
@@ -40,15 +41,15 @@
   {% include "shop/partials/field.html" with field=form.customer_name %}
 
   <section class="summary" aria-live="polite">
-    <h2>Sale summary</h2>
+    <h2>{% translate "Sale summary" %}</h2>
     <p data-sum-item></p>
-    <div class="row-between mt" style="margin-top:8px"><span>Quantity</span><span data-sum-qty></span></div>
-    <div class="row-between small"><span>Sale amount</span><span data-sum-amount></span></div>
+    <div class="row-between" style="margin-top:8px"><span class="muted">{% translate "Quantity" %}</span><span data-sum-qty></span></div>
+    <div class="row-between"><span class="muted">{% translate "Sale amount" %}</span><span class="gold" data-sum-amount></span></div>
     <hr>
-    <div class="row-between"><span>Stock after sale</span><span data-sum-stock></span></div>
+    <div class="row-between"><span class="muted">{% translate "Stock after sale" %}</span><span data-sum-stock></span></div>
   </section>
 
-  <button class="btn btn-primary btn-block">Record sale</button>
+  <button class="btn btn-primary btn-block">{% translate "Record sale" %}</button>
 </form>
 {% endif %}
 {% endblock %}

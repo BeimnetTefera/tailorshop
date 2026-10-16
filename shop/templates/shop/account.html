@@ -1,26 +1,36 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Account{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Account" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>{{ user.first_name|default:user.username }}<div class="sub">Signed in as {{ user.username }} · {% if is_owner %}Owner{% else %}Messenger{% endif %}</div></h1>
-  {% include "shop/partials/theme_toggle.html" %}
+  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{{ user.first_name|default:user.username }}<div class="sub">{% blocktranslate with username=user.username %}Signed in as {{ username }}{% endblocktranslate %} · {% if is_owner %}{% translate "Owner" %}{% else %}{% translate "Messenger" %}{% endif %}</div></h1>
 </header>
 
+<section class="card">
+  <div class="row-between">
+    <div><b>{% translate "Language" %}</b><div class="small muted">{% translate "Choose the language you read the app in." %}</div></div>
+    {% include "shop/partials/lang_toggle.html" %}
+  </div>
+</section>
+
 {% if is_owner %}
-<div class="section-head"><h2>Manage</h2></div>
+<div class="section-head"><h2>{% translate "Manage" %}</h2></div>
 <a class="team-row" href="{% url 'shop:messenger_list' %}">
-  <div><b>Messengers</b><div class="muted small">Give logins to the people who carry work between steps.</div></div>
+  <div><b>{% translate "Messengers" %}</b><div class="muted small">{% translate "Give logins to the people who carry work between steps." %}</div></div>
   {% icon "chev-right" 18 %}
 </a>
 <a class="team-row" href="{% url 'shop:team' %}">
-  <div><b>Production workers</b><div class="muted small">Weavers, cutters, tailors and their pay per task.</div></div>
+  <div><b>{% translate "Production workers" %}</b><div class="muted small">{% translate "Weavers, cutters, tailors and their pay per task." %}</div></div>
+  {% icon "chev-right" 18 %}
+</a>
+<a class="team-row" href="{% url 'shop:worker_payments' %}">
+  <div><b>{% translate "Worker payments" %}</b><div class="muted small">{% translate "Finished tasks and what is still owed." %}</div></div>
   {% icon "chev-right" 18 %}
 </a>
 {% endif %}
 
 <form method="post" action="{% url 'logout' %}" class="mt-lg">
   {% csrf_token %}
-  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} Sign out</button>
+  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} {% translate "Sign out" %}</button>
 </form>
 {% endblock %}

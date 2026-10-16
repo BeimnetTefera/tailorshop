@@ -1,164 +1,157 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Production tracker{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% if order %}{{ order.customer.name }}{% else %}{% translate "Find a garment" %}{% endif %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:order_list' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Production tracker<div class="sub">Track where every garment is.</div></h1>
+  <a href="{% url 'shop:order_list' %}" class="icon-btn plain" aria-label="{% translate 'Back to orders' %}">{% icon "back" %}</a>
+  <h1>{% if order and not searching %}<span class="label-caps">{% blocktranslate with code=order.code %}Order {{ code }}{% endblocktranslate %}</span>{% else %}{% translate "Find a garment" %}{% endif %}</h1>
+  {% if order and not searching %}<a href="{% url 'shop:order_edit' order.pk %}" class="icon-btn" aria-label="{% translate 'Edit order' %}">{% icon "edit" 20 %}</a>{% endif %}
 </header>
 
-{% if delayed %}
-<div class="alert">
-  <b>{{ delayed|length }} order{{ delayed|pluralize }} past {{ delayed|length|pluralize:"its,their" }} delivery date:</b>
-  {% for d in delayed %}<a href="{% url 'shop:tracker_detail' d.pk %}">{{ d.customer.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-</div>
-{% endif %}
-
-<p class="label mt" style="font-weight:600;font-size:17px">Find a garment</p>
-<form class="search" method="get" action="{% url 'shop:tracker' %}" role="search" style="margin-top:6px">
-  {% icon "search" %}
-  <label class="sr-only" for="tracker-q">Search</label>
-  <input id="tracker-q" type="search" name="q" value="{{ q }}" placeholder="Customer, style, phone…">
-</form>
-<p class="help">Search by customer, style, or order number (e.g. ORD-0007).</p>
-
-{% if q and not order %}
-  <div class="stack-sm mt">
-    {% for r in results %}
-      <a class="result-link" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b><br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small">{{ r.status_label }}</span></a>
-    {% empty %}
-      <div class="empty"><b>No active order matches “{{ q }}”</b><p>Delivered orders are on the Past tab of the orders list.</p></div>
-    {% endfor %}
+{% if searching %}
+  {% if delayed %}
+  <div class="alert">
+    <b>{% blocktranslate count n=delayed|length %}{{ n }} order is past its delivery date:{% plural %}{{ n }} orders are past their delivery date:{% endblocktranslate %}</b>
+    {% for d in delayed %}<a href="{% url 'shop:tracker_detail' d.pk %}">{{ d.customer.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
   </div>
+  {% endif %}
+  <form class="search mt" method="get" action="{% url 'shop:tracker' %}" role="search">
+    {% icon "search" 20 %}
+    <label class="sr-only" for="tracker-q">{% translate "Search" %}</label>
+    <input id="tracker-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Customer, style, phone…' %}">
+  </form>
+  <p class="help">{% translate "Search by customer, style, or order number (e.g. ORD-0007)." %}</p>
+  {% if q and not order %}
+    <div class="stack-sm mt">
+      {% for r in results %}
+        <a class="result-link" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b><br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small gold">{{ r.status_label }}</span></a>
+      {% empty %}
+        <div class="empty"><b>{% blocktranslate %}No active order matches “{{ q }}”{% endblocktranslate %}</b><p>{% translate "Delivered orders are on the Delivered tab of the orders list." %}</p></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if order %}<div class="section-head"><h2>{% translate "With a worker now" %}</h2></div>{% endif %}
 {% endif %}
 
 {% if order %}
-<div class="stack mt">
-  <section class="brown-card">
-    <h2>{{ order.customer.name }}</h2>
-    <div class="small" style="opacity:.85">{{ order.title }} · {{ order.code }} · {{ order.customer.phone }}</div>
-    <div class="kv mt"><span>Due</span><span>{{ order.due_date|date:"M j" }}{% if order.is_active %} ({{ order.days_left_label|lower }}){% endif %}</span></div>
-    <div class="kv"><span>Currently with</span><span>{{ order.current_worker.name|default:"Shop" }}</span></div>
-  </section>
+<section>
+  <h2 class="ticket-name">{{ order.customer.name }}</h2>
+  <p class="ticket-meta">{{ order.title }} · {{ order.ref }}{% if order.people_count > 1 %} · {% blocktranslate with n=order.people_count %}for {{ n }} people{% endblocktranslate %}{% endif %} · <a href="tel:{{ order.customer.phone }}">{{ order.customer.phone }}</a></p>
+  {% if order.priority == "urgent" or order.is_delayed %}<p class="mt" style="margin-top:8px">{% if order.priority == "urgent" %}<span class="pill pill-danger">{% translate "Urgent" %}</span>{% endif %} {% if order.is_delayed %}<span class="pill pill-danger">{% translate "Delayed" %} · {{ order.days_left_label }}</span>{% endif %}</p>{% endif %}
 
-  <section class="brown-card">
-    <h2>Current stage</h2>
-    <span class="stage-chip">{{ order.get_stage_display }}</span>{% if order.is_delayed %} <span class="pill pill-danger">Delayed · {{ order.days_left_label }}</span>{% endif %}
-    <div class="small">Started {% if order.days_in_stage == 0 %}today{% else %}{{ order.days_in_stage }} day{{ order.days_in_stage|pluralize }} ago{% endif %}</div>
-    {% if order.expected_finish %}<div class="small">Expected finish: {{ order.expected_finish|date:"M j" }}</div>{% endif %}
-  </section>
+  <div class="meta-grid">
+    <div><span>{% translate "Due" %}</span><b>{{ order.due_date|ethdate }}</b>{% if order.is_active and order.stage != "ready" %}<small class="muted">{{ order.days_left_label }}</small>{% endif %}</div>
+    <div><span>{% translate "Now with" %}</span><b>{% if order.current_worker %}{{ order.current_worker.name }}{% elif order.stage == "delivered" %}{% translate "The customer" %}{% else %}{% translate "At the shop" %}{% endif %}</b>{% if order.current_worker %}<small class="muted">{{ order.current_worker.get_role_display }}{% if order.expected_finish %} · {% blocktranslate with d=order.expected_finish|ethdate:"short" %}back {{ d }}{% endblocktranslate %}{% endif %}</small>{% endif %}</div>
+  </div>
 
-  <section class="timeline-box">
-    <h2>Production timeline</h2>
-    <ol class="timeline">
-      {% for step in timeline %}
-        <li class="{{ step.state }}"><span class="node">{% if step.state == "done" %}{% icon "check" 16 %}{% endif %}</span><span>{{ step.label }}{% if step.state == "current" and step.value != "ready" %} in progress{% endif %}</span></li>
-      {% endfor %}
-    </ol>
-  </section>
+  <div class="step-head">
+    <b>{% blocktranslate with a=step b=steps stage=order.get_stage_display %}Step {{ a }} of {{ b }} · {{ stage }}{% endblocktranslate %}</b>
+    {% if next_stage and order.is_active %}<span class="muted">{% blocktranslate with stage=next_stage %}Next: {{ stage }}{% endblocktranslate %}</span>{% endif %}
+  </div>
+  <div class="dots" aria-hidden="true">
+    {% for s in timeline %}{% if not forloop.first %}<span class="bar{% if s.state != 'todo' %} done{% endif %}"></span>{% endif %}<span class="dot {{ s.state }}"></span>{% endfor %}
+  </div>
+  <ol class="steps-list" aria-label="{% translate 'Production steps' %}">
+    {% for s in timeline %}<li class="{{ s.state }}">{% if s.state == "done" %}✓ {% endif %}{{ s.label }}</li>{% endfor %}
+  </ol>
 
   {% if order.is_active %}
-  <section class="holder">
-    <div class="row-between"><span class="small">Current holder</span>{% if order.current_worker %}<span class="pill pill-dark">{% if order.days_in_stage == 0 %}Today{% else %}{{ order.days_in_stage }} day{{ order.days_in_stage|pluralize }} ago{% endif %}</span>{% endif %}</div>
-    <h3>{{ order.current_worker.name|default:"Not assigned" }}</h3>
-    <div class="small">{% if order.current_worker %}{{ order.current_worker.get_role_display }} · since {{ order.stage_started_at|date:"M j" }}{% else %}The garment is at the shop.{% endif %}</div>
-    <button class="btn btn-primary btn-block mt" data-open="transfer-sheet">Transfer worker</button>
-  </section>
-  {% endif %}
-
-  <section>
-    <p class="label" style="font-weight:600;font-size:16px;margin-bottom:8px">Stage notes</p>
-    <div class="stack-sm">
-      {% for n in notes %}<div class="note-card"><p>{{ n.text }}</p><small>{{ n.author }} · {{ n.created_at|date:"M j" }}</small></div>
-      {% empty %}<p class="help">No notes yet. Add instructions like “Need sleeve adjustment”.</p>{% endfor %}
+  <div class="stack-sm mt-lg">
+    {% if order.stage != "ready" %}<button class="btn btn-primary btn-block" data-open="transfer-sheet">{% translate "Hand over to next step" %} {% icon "arrow-right" 18 %}</button>{% endif %}
+    <div class="btn-row">
+      {% if order.stage == "ready" %}
+        <form method="post" action="{% url 'shop:order_deliver' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary btn-block">{% translate "Mark delivered" %}</button></form>
+      {% else %}
+        <form method="post" action="{% url 'shop:order_mark_ready' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-outline">{% translate "Mark ready" %}</button></form>
+      {% endif %}
+      <button class="btn btn-outline" data-open="stage-sheet">{% translate "Change stage" %}</button>
     </div>
-  </section>
+  </div>
+  {% endif %}
+</section>
 
-  <div class="btn-row">
-    {% if order.is_active %}
-    <button class="btn btn-primary btn-sm" data-open="stage-sheet">Update stage</button>
-    <button class="btn btn-primary btn-sm" data-open="transfer-sheet">Transfer worker</button>
-    {% endif %}
-    <button class="btn btn-primary btn-sm" data-open="note-sheet">Add note</button>
+<section class="card mt-lg">
+  <h2>{% translate "Payment" %}</h2>
+  <div class="money-row"><span class="muted">{% translate "Total price" %}</span><span>{{ order.total_price|birr }}</span></div>
+  <div class="money-row"><span class="muted">{% translate "Paid" %}</span><span>{{ order.paid_amount|birr }}</span></div>
+  <div class="balance"><span>{% translate "Remaining balance" %}</span><b>{{ order.balance|birr }}</b></div>
+  {% if order.balance > 0 %}<button class="btn btn-outline btn-block mt" data-open="payment-sheet">{% translate "Record payment" %}</button>{% endif %}
+</section>
+
+{% if order.measurements or order.reference_photo %}
+<section class="card mt">
+  <h2>{% translate "Measurements (cm)" %}</h2>
+  <div class="measure-grid">{% for label, value in order.measurements %}<div><span class="muted">{{ label }}</span><b>{{ value }}</b></div>{% endfor %}</div>
+  {% if order.reference_photo %}<a class="bubble-photo mt" href="{{ order.reference_photo.url }}"><img src="{{ order.reference_photo.url }}" alt="{% translate 'Reference photo' %}"></a>{% endif %}
+</section>
+{% endif %}
+
+<section id="updates">
+  <div class="section-head"><h2>{% translate "Updates" %}</h2><span class="small faint">{% blocktranslate count n=thread|length %}{{ n }} update{% plural %}{{ n }} updates{% endblocktranslate %}</span></div>
+  <div class="thread">
+    {% for item in thread %}
+      {% if item.kind == "handover" %}{% with t=item.task %}
+        <div class="event"><span class="diamond" aria-hidden="true"></span><span>
+          {% if t.created_by %}{% blocktranslate with by=t.created_by.first_name|default:t.created_by.username worker=t.worker.name stage=t.get_stage_display|lower %}{{ by }} handed it to {{ worker }} for {{ stage }}{% endblocktranslate %}{% else %}{% blocktranslate with worker=t.worker.name stage=t.get_stage_display|lower %}Handed to {{ worker }} for {{ stage }}{% endblocktranslate %}{% endif %}
+          · {{ t.started_on|ethdate:"short" }}{% if t.finished_on %} – {{ t.finished_on|ethdate:"short" }}{% endif %}</span></div>
+      {% endwith %}{% else %}{% with n=item.note %}
+        <article class="bubble{% if item.owner %} owner{% endif %}">
+          <div class="bubble-head">
+            <span class="avatar sm{% if item.owner %} filled{% endif %}">{{ n.author|slice:":1" }}</span>
+            <span class="who">{{ n.author }}{% if n.user %} <span>· {% if item.owner %}{% translate "Owner" %}{% else %}{% translate "Messenger" %}{% endif %}</span>{% endif %}</span>
+            <time datetime="{{ n.created_at|date:'c' }}">{{ n.created_at|friendly }}</time>
+          </div>
+          {% if n.text %}<p>{{ n.text }}</p>{% endif %}
+          {% if n.photo %}<a class="bubble-photo" href="{{ n.photo.url }}"><img src="{{ n.photo.url }}" alt="{% translate 'Photo added to this update' %}" loading="lazy"></a>{% endif %}
+        </article>
+      {% endwith %}{% endif %}
+    {% empty %}
+      <p class="help">{% translate "No updates yet. Write what's happening, like “The weaver needs 2 more spools”, and add a photo." %}</p>
+    {% endfor %}
   </div>
 
-  <section class="fieldset">
-    <h2>Payment</h2>
-    <div class="row-between"><span>Total price</span><span>{{ order.total_price|etb }} ETB</span></div>
-    <div class="row-between"><span>Paid</span><span>{{ order.paid_amount|etb }} ETB</span></div>
-    <div class="balance"><span>Remaining balance</span><b>{{ order.balance|etb }} ETB</b></div>
-    {% if order.balance > 0 %}<button class="btn btn-outline btn-block mt" data-open="payment-sheet">Record payment</button>{% endif %}
-  </section>
-
-  {% if order.measurements %}
-  <section class="fieldset">
-    <h2>Measurements (cm)</h2>
-    <div class="grid-2 small">{% for label, value in order.measurements %}<div class="row-between"><span class="muted">{{ label }}</span><b>{{ value }}</b></div>{% endfor %}</div>
-    {% if order.reference_photo %}<img class="mt" src="{{ order.reference_photo.url }}" alt="Reference photo" style="border-radius:10px">{% endif %}
-  </section>
-  {% endif %}
-
-  {% if tasks %}
-  <section>
-    <p class="label" style="font-weight:600;font-size:16px;margin-bottom:4px">Hand-over history</p>
-    <ul class="list small">
-      {% for t in tasks %}<li><span>{{ t.worker.name }} · {{ t.get_stage_display }}</span><span class="muted">{{ t.started_on|date:"M j" }}{% if t.finished_on %} – {{ t.finished_on|date:"M j" }}{% else %} – now{% endif %}</span></li>{% endfor %}
-    </ul>
-  </section>
-  {% endif %}
-
-  <div class="btn-row">
-    <a class="btn btn-outline" href="{% url 'shop:order_edit' order.pk %}">Edit order</a>
-    {% if order.stage == "ready" %}
-      <form method="post" action="{% url 'shop:order_deliver' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary" style="width:100%">Mark delivered</button></form>
-    {% elif order.is_active %}
-      <form method="post" action="{% url 'shop:order_mark_ready' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary" style="width:100%">Mark ready</button></form>
-    {% endif %}
-  </div>
-</div>
+  <form class="composer" method="post" action="{% url 'shop:order_add_note' order.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="icon-btn attach" aria-label="{% translate 'Add photo' %}">{% icon "camera" 20 %}<input type="file" name="photo" accept="image/*" data-attach></label>
+    <label class="sr-only" for="note-text">{% translate "Write an update" %}</label>
+    <input class="input" id="note-text" name="text" maxlength="500" placeholder="{% translate 'Write an update…' %}" autocomplete="off">
+    <button class="icon-btn send" aria-label="{% translate 'Send update' %}">{% icon "send" 20 %}</button>
+  </form>
+</section>
 
 <dialog class="sheet" id="transfer-sheet">
   <form method="post" action="{% url 'shop:order_transfer' order.pk %}" class="sheet-body">
     {% csrf_token %}
-    <div class="sheet-head"><h2>Transfer garment</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
-    <p class="label" style="margin-bottom:8px">Select next worker</p>
+    <div class="sheet-head"><h2>{% translate "Hand over" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
+    <p class="label" style="margin-bottom:10px">{% translate "Who is the garment going to?" %}</p>
     {% for role in roles %}
-      <details class="role-group" {% if role.value == order.stage %}open{% endif %}>
-        <summary><span class="ring"></span>{{ role.label }} <span class="small" style="opacity:.7">({{ role.workers|length }})</span>{% icon "chev-down" 18 %}</summary>
+      <details class="role-group" {% if role.value == next_stage_value or role.value == order.stage %}open{% endif %}>
+        <summary><span class="ring"></span>{{ role.label }} <span class="small faint">({{ role.workers|length }})</span>{% icon "chev-down" 18 %}</summary>
         <div class="role-workers">
           {% for w in role.workers %}
-            <label class="worker-opt"><input type="radio" name="worker" value="{{ w.pk }}" {% if w.pk == order.current_worker_id %}disabled{% endif %}><span>{{ w.name }}{% if w.pk == order.current_worker_id %} (has it now){% endif %}</span></label>
+            <label class="worker-opt"><input type="radio" name="worker" value="{{ w.pk }}" {% if w.pk == order.current_worker_id %}disabled{% endif %}><span>{{ w.name }}{% if w.pk == order.current_worker_id %} ({% translate "has it now" %}){% endif %}</span></label>
           {% empty %}
-            <p class="small">No {{ role.label|lower }} yet. <a href="{% url 'shop:team' %}">Add one</a>.</p>
+            <p class="small muted">{% translate "Nobody here yet." %}{% if is_owner %} <a href="{% url 'shop:team' %}">{% translate "Add one" %}</a>{% endif %}</p>
           {% endfor %}
         </div>
       </details>
     {% endfor %}
-    <div class="field mt"><label class="label" for="t-finish">Expected finish</label><input class="input" id="t-finish" type="date" name="expected_finish" value="{{ default_finish }}"></div>
-    <div class="field mt"><label class="label" for="t-note">Add note</label><textarea class="input" id="t-note" name="note" maxlength="300" placeholder="Add instructions"></textarea></div>
-    <button class="btn btn-primary btn-block mt">Transfer</button>
+    <div class="field mt"><span class="label">{% translate "Expected back" %}</span>{{ transfer_form.expected_finish }}</div>
+    <div class="field mt"><label class="label" for="t-note">{% translate "Note for the update thread" %}</label><textarea class="input" id="t-note" name="note" maxlength="500" placeholder="{% translate 'Instructions, if any' %}"></textarea></div>
+    <button class="btn btn-primary btn-block mt">{% translate "Hand over" %}</button>
   </form>
 </dialog>
 
 <dialog class="sheet" id="stage-sheet">
   <form method="post" action="{% url 'shop:order_update_stage' order.pk %}" class="sheet-body">
     {% csrf_token %}
-    <div class="sheet-head"><h2>Update stage</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Change stage" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <div class="panel">
       {% for value, label in stage_choices %}
         <label class="stage-opt"><input type="radio" name="stage" value="{{ value }}" {% if value == order.stage %}checked{% endif %}>{{ label }}</label>
       {% endfor %}
     </div>
-    <p class="help" style="margin-bottom:12px">Moving to “Ready for pickup” or “Delivered” closes the current worker's task so it shows up in worker payments.</p>
-    <button class="btn btn-primary btn-block">Update stage</button>
-  </form>
-</dialog>
-
-<dialog class="sheet" id="note-sheet">
-  <form method="post" action="{% url 'shop:order_add_note' order.pk %}" class="sheet-body">
-    {% csrf_token %}
-    <div class="sheet-head"><h2>Add note</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
-    <div class="panel"><label class="label" for="n-text">Note</label><textarea class="input" id="n-text" name="text" maxlength="300" required placeholder="e.g. Need sleeve adjustment"></textarea></div>
-    <button class="btn btn-primary btn-block">Add note</button>
+    <p class="help" style="margin-bottom:12px">{% translate "Moving to “Ready for pickup” or “Delivered” closes the current worker's task so it shows up in worker payments." %}</p>
+    <button class="btn btn-primary btn-block">{% translate "Save stage" %}</button>
   </form>
 </dialog>
 
@@ -166,16 +159,16 @@
   <form method="post" action="{% url 'shop:order_add_payment' order.pk %}" class="sheet-body">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">
-    <div class="sheet-head"><h2>Record payment</h2><button type="button" class="icon-btn" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Record payment" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <div class="panel">
-      <label class="label" for="p-amount">Amount paid (ETB)</label>
-      <input class="input" id="p-amount" type="number" name="amount" min="1" max="{{ order.balance }}" step="0.01" value="{{ order.balance|num }}" inputmode="decimal" required>
-      <small class="help">Remaining balance: {{ order.balance|etb }} ETB</small>
+      <label class="label" for="p-amount">{% translate "Amount paid (ETB)" %}</label>
+      <input class="input" id="p-amount" type="number" name="amount" min="1" max="{{ order.balance }}" step="0.01" value="{{ order.balance|num }}" inputmode="decimal" required style="margin:6px 0">
+      <small class="help">{% blocktranslate with amount=order.balance|birr %}Remaining balance: {{ amount }}{% endblocktranslate %}</small>
     </div>
-    <button class="btn btn-primary btn-block">Record payment</button>
+    <button class="btn btn-primary btn-block">{% translate "Record payment" %}</button>
   </form>
 </dialog>
 {% elif not q %}
-  <div class="empty mt-lg"><b>No garments in production</b><p>Create an order and it will appear here.</p><a class="btn btn-primary" href="{% url 'shop:order_create' %}">New order</a></div>
+  <div class="empty mt-lg"><span class="icon-box">{% icon "orders" 20 %}</span><b>{% translate "No garments in production" %}</b><p>{% translate "Create an order and it will appear here." %}</p><a class="btn btn-primary" href="{% url 'shop:order_create' %}">{% translate "New order" %}</a></div>
 {% endif %}
 {% endblock %}

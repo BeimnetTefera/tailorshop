@@ -1,13 +1,51 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 
-from .models import FreeSizeItem, Material, Order, Payment, Sale, Stage, Style, Worker, WorkerTask
+from . import ethiopian
+from .models import (
+    Activity, FreeSizeItem, Material, Order, Payment, Sale, StaffProfile, Stage, StageNote, Style, Worker, WorkerTask,
+)
+
+
+def _english(user):
+    """Most tests read English text; Amharic is the default for new profiles."""
+    StaffProfile.objects.filter(user=user).update(language="en")
+    return user
+
+
+def _eth_date(name, value):
+    """Form data for an Ethiopian date picker (day, month, year selects)."""
+    e = ethiopian.from_gregorian(value)
+    return {f"{name}_0": e.day, f"{name}_1": e.month, f"{name}_2": e.year}
+
+
+def _png(name="photo.png", color="red"):
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (8, 10), color).save(buf, "PNG")
+    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/png")
+
+
+class TempMediaMixin:
+    def use_temp_media(self):
+        import shutil
+        import tempfile
+
+        media = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
+        override = self.settings(MEDIA_ROOT=media)
+        override.enable()
+        self.addCleanup(override.disable)
 
 
 class LoginRequiredTests(TestCase):
@@ -17,58 +55,111 @@ class LoginRequiredTests(TestCase):
         self.assertIn(reverse("login"), response["Location"])
 
 
+class EthiopianCalendarTests(TestCase):
+    KNOWN = {
+        date(2026, 9, 11): (2019, 1, 1),   # Enkutatash
+        date(2023, 9, 12): (2016, 1, 1),   # new year after a leap year
+        date(2023, 9, 11): (2015, 13, 6),  # Pagume 6 in leap year 2015
+        date(2025, 1, 7): (2017, 4, 29),   # Genna
+        date(2024, 1, 20): (2016, 5, 11),  # Timket
+    }
+
+    def test_known_dates_both_ways(self):
+        for greg, eth in self.KNOWN.items():
+            with self.subTest(greg=greg):
+                self.assertEqual(tuple(ethiopian.from_gregorian(greg)), eth)
+                self.assertEqual(ethiopian.to_gregorian(*eth), greg)
+
+    def test_every_day_round_trips(self):
+        day = date(2000, 1, 1)
+        while day < date(2040, 1, 1):
+            self.assertEqual(ethiopian.to_gregorian(*ethiopian.from_gregorian(day)), day)
+            day += timedelta(days=1)
+
+    def test_pagume_has_six_days_only_in_leap_years(self):
+        self.assertEqual(ethiopian.month_length(2015, 13), 6)
+        self.assertEqual(ethiopian.month_length(2016, 13), 5)
+        with self.assertRaises(ValueError):
+            ethiopian.to_gregorian(2016, 13, 6)
+
+    def test_formats_follow_the_language(self):
+        day = date(2026, 10, 16)
+        with translation.override("am"):
+            self.assertEqual(ethiopian.format_date(day, "full"), "ዓርብ፣ ጥቅምት 6 ቀን 2019 ዓ.ም.")
+            self.assertEqual(ethiopian.format_range(day, day + timedelta(days=6)), "ጥቅምት 6–12, 2019")
+        with translation.override("en"):
+            self.assertEqual(ethiopian.format_date(day), "Tikimt 6, 2019")
+            self.assertEqual(ethiopian.format_range(date(2026, 11, 7), date(2026, 11, 13)), "Tikimt 28 – Hidar 4, 2019")
+
+
 class ShopFlowTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.client.force_login(get_user_model().objects.get(username="selam"))
+        self.client.force_login(_english(get_user_model().objects.get(username="selam")))
 
     def test_every_page_renders(self):
         order = Order.objects.exclude(stage=Stage.DELIVERED).first()
         style, material = Style.objects.first(), Material.objects.first()
         urls = [
-            reverse("shop:dashboard"), reverse("shop:team"),
+            reverse("shop:dashboard"), reverse("shop:team"), reverse("shop:account"), reverse("shop:messenger_list"),
             reverse("shop:order_list"), reverse("shop:order_list") + "?tab=past",
             reverse("shop:order_list") + "?due=late&stage=sewing&priority=urgent",
             reverse("shop:order_create"), reverse("shop:order_create") + f"?style={style.pk}",
             reverse("shop:order_edit", args=[order.pk]),
             reverse("shop:tracker"), reverse("shop:tracker") + "?q=hana",
             reverse("shop:tracker_detail", args=[order.pk]),
-            reverse("shop:sales_history"), reverse("shop:sales_history") + "?sort=amount&status=paid",
-            reverse("shop:sale_create"),
-            reverse("shop:finance"), reverse("shop:finance") + "?month=2020-01", reverse("shop:finance") + "?month=bad",
+            reverse("shop:readymade"), reverse("shop:sales_history"),
+            reverse("shop:sales_history") + "?sort=amount&status=paid", reverse("shop:sale_create"),
+            reverse("shop:finance"), reverse("shop:finance") + "?month=2019-13", reverse("shop:finance") + "?month=bad",
             reverse("shop:income_detail"),
             reverse("shop:worker_payments"), reverse("shop:worker_payments") + "?status=unpaid",
             reverse("shop:clothing_list"), reverse("shop:clothing_list") + "?occasion=wedding&fabric=Lace&quick=recent",
             reverse("shop:style_detail", args=[style.pk]), reverse("shop:style_create"),
             reverse("shop:material_list") + "?sort=used", reverse("shop:material_detail", args=[material.pk]),
             reverse("shop:material_create"), reverse("shop:tibebe_list"), reverse("shop:tibebe_create"),
-            reverse("shop:freesize_list"), reverse("shop:freesize_create"),
+            reverse("shop:freesize_create"),
         ]
-        for url in urls:
-            with self.subTest(url=url):
-                self.assertEqual(self.client.get(url).status_code, 200)
+        for language in ("en", "am"):
+            StaffProfile.objects.filter(user__username="selam").update(language=language)
+            for url in urls:
+                with self.subTest(url=url, language=language):
+                    self.assertEqual(self.client.get(url).status_code, 200)
 
     def test_create_order_with_deposit(self):
         style = Style.objects.get(code="HK-024")
+        due = timezone.localdate() + timedelta(days=20)
         response = self.client.post(reverse("shop:order_create"), {
             "customer_name": "Hana Abebe", "customer_phone": "+251 911 013 759",
             "style": style.pk, "category": "wedding", "people_count": 1,
             "bust": "95", "shoulder": "40", "waist": "72",
-            "due_date": (timezone.localdate() + timedelta(days=20)).isoformat(),
+            **_eth_date("due_date", due),
             "priority": "standard", "total_price": "8000", "deposit": "3500",
         })
         order = Order.objects.latest("pk")
         self.assertRedirects(response, reverse("shop:tracker_detail", args=[order.pk]))
         self.assertEqual(order.customer.phone, "0911013759")
         self.assertEqual(order.balance, Decimal("4500"))
+        self.assertEqual(order.due_date, due)
+
+    def test_impossible_ethiopian_date_is_rejected(self):
+        count = Order.objects.count()
+        # 2020 E.C. is not a leap year, so its Pagume has only 5 days.
+        response = self.client.post(reverse("shop:order_create"), {
+            "customer_name": "X", "customer_phone": "0911000000", "category": "habesha", "people_count": 1,
+            "due_date_0": "6", "due_date_1": "13", "due_date_2": "2020",
+            "priority": "standard", "total_price": "1000",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Pagume has 5 days")
+        self.assertEqual(Order.objects.count(), count)
 
     def test_deposit_cannot_exceed_total(self):
         response = self.client.post(reverse("shop:order_create"), {
             "customer_name": "X", "customer_phone": "0911000000", "category": "habesha", "people_count": 1,
-            "due_date": (timezone.localdate() + timedelta(days=5)).isoformat(),
+            **_eth_date("due_date", timezone.localdate() + timedelta(days=5)),
             "priority": "standard", "total_price": "1000", "deposit": "2000",
         })
         self.assertEqual(response.status_code, 200)
@@ -77,13 +168,19 @@ class ShopFlowTests(TestCase):
     def test_transfer_closes_task_and_opens_new_one(self):
         order = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)
         sewer = Worker.objects.get(name="Abebe")
-        self.client.post(reverse("shop:order_transfer", args=[order.pk]), {"worker": sewer.pk, "note": "Short sleeves"})
+        back = timezone.localdate() + timedelta(days=4)
+        self.client.post(reverse("shop:order_transfer", args=[order.pk]),
+                         {"worker": sewer.pk, "note": "Short sleeves", **_eth_date("expected_finish", back)})
         order.refresh_from_db()
         self.assertEqual(order.stage, Stage.SEWING)
         self.assertEqual(order.current_worker, sewer)
+        self.assertEqual(order.expected_finish, back)
         self.assertTrue(WorkerTask.objects.filter(order=order, worker__name="Kebede", finished_on__isnull=False).exists())
-        self.assertTrue(WorkerTask.objects.filter(order=order, worker=sewer, finished_on__isnull=True).exists())
+        task = WorkerTask.objects.get(order=order, worker=sewer, finished_on__isnull=True)
+        self.assertEqual(task.created_by.username, "selam")
         self.assertEqual(order.notes.first().text, "Short sleeves")
+        page = self.client.get(reverse("shop:tracker_detail", args=[order.pk]))
+        self.assertContains(page, "Selam handed it to Abebe for sewing")
 
     def test_sale_reduces_stock_and_blocks_overselling(self):
         item = FreeSizeItem.objects.get(code="FS-035")
@@ -126,6 +223,92 @@ class ShopFlowTests(TestCase):
         response = self.client.post(reverse("shop:task_mark_paid", args=[task.pk]), {"next": "https://evil.example"})
         self.assertEqual(response["Location"], reverse("shop:worker_payments"))
 
+    def test_finance_follows_ethiopian_months(self):
+        response = self.client.get(reverse("shop:finance") + "?month=2019-2")
+        self.assertContains(response, "Tikimt 2019")
+        self.assertEqual([w["label"] for w in response.context["weeks"]], ["W1", "W2", "W3", "W4"])
+        self.assertEqual(response.context["weeks"][0]["start"], date(2026, 10, 11))
+        pagume = self.client.get(reverse("shop:finance") + "?month=2019-13")
+        self.assertEqual(len(pagume.context["weeks"]), 1)
+        self.assertContains(pagume, 'href="?month=2020-1"')
+
+
+class UpdateThreadTests(TempMediaMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.use_temp_media()
+        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.client.force_login(self.messenger)
+        self.order = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)
+
+    def test_post_an_update_with_a_photo(self):
+        url = reverse("shop:order_add_note", args=[self.order.pk])
+        self.client.post(url, {"text": "Fabric arrived from the weaver.", "photo": _png("fabric.png")})
+        note = StageNote.objects.get(order=self.order, text="Fabric arrived from the weaver.")
+        self.assertEqual(note.user, self.messenger)
+        self.assertTrue(note.photo.name.startswith("updates/"))
+        page = self.client.get(reverse("shop:tracker_detail", args=[self.order.pk]))
+        self.assertContains(page, "Fabric arrived from the weaver.")
+        self.assertContains(page, note.photo.url)
+        self.assertEqual(self.client.get(note.photo.url).status_code, 200)
+
+    def test_photo_only_update_is_fine_but_empty_is_not(self):
+        url = reverse("shop:order_add_note", args=[self.order.pk])
+        self.client.post(url, {"photo": _png()})
+        self.assertEqual(self.order.notes.filter(text="").count(), 1)
+        before = StageNote.objects.count()
+        self.client.post(url, {"text": "   "})
+        self.assertEqual(StageNote.objects.count(), before)
+
+    def test_owner_messages_stand_out(self):
+        hana = Order.objects.get(customer__name="Hana Tesfaye", stage=Stage.SEWING)
+        page = self.client.get(reverse("shop:tracker_detail", args=[hana.pk]))
+        self.assertContains(page, 'class="bubble owner"', count=1)
+        self.assertContains(page, "Take 2 spools of Gold Thread")
+
+
+class LanguageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def test_login_page_is_amharic_first_and_switches(self):
+        self.assertContains(self.client.get(reverse("login")), "እንኳን በደህና ተመለሱ")
+        response = self.client.post(reverse("shop:set_language"), {"language": "en", "next": reverse("login")})
+        self.assertRedirects(response, reverse("login"))
+        self.assertEqual(response.cookies["language"].value, "en")
+        self.assertContains(self.client.get(reverse("login")), "Welcome back")
+
+    def test_choice_is_saved_on_the_profile(self):
+        user = get_user_model().objects.get(username="dawit")
+        self.client.force_login(user)
+        home = self.client.get(reverse("shop:dashboard"))
+        self.assertContains(home, "መነሻ")
+        self.assertContains(home, ethiopian.MONTHS_AM[ethiopian.today().month - 1])
+        self.client.post(reverse("shop:set_language"), {"language": "en"})
+        user.profile.refresh_from_db()
+        self.assertEqual(user.profile.language, "en")
+        self.client.cookies.clear()
+        self.client.force_login(user)
+        self.assertContains(self.client.get(reverse("shop:dashboard")), "Ready-made")
+
+    def test_activity_feed_is_translated_when_shown(self):
+        entry = Activity.objects.get(text__startswith="Sale recorded")
+        with translation.override("am"):
+            self.assertEqual(entry.display, "ሽያጭ ተመዝግቧል · FS-024")
+        with translation.override("en"):
+            self.assertEqual(entry.display, "Sale recorded · FS-024")
+        moved = Activity.objects.get(text__contains="moved to")
+        with translation.override("am"):
+            self.assertIn("ስፌት", moved.display)
+
+    def test_unknown_language_falls_back_to_amharic(self):
+        self.client.cookies["language"] = "fr"
+        self.assertContains(self.client.get(reverse("login")), 'lang="am"')
+
 
 class RoleTests(TestCase):
     @classmethod
@@ -133,8 +316,8 @@ class RoleTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = get_user_model().objects.get(username="selam")
-        self.messenger = get_user_model().objects.get(username="dawit")
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.messenger = _english(get_user_model().objects.get(username="dawit"))
 
     def test_messenger_cannot_open_owner_pages(self):
         self.client.force_login(self.messenger)
@@ -151,13 +334,15 @@ class RoleTests(TestCase):
     def test_messenger_does_the_daily_work(self):
         self.client.force_login(self.messenger)
         for url in [reverse("shop:dashboard"), reverse("shop:order_list"), reverse("shop:order_create"),
-                    reverse("shop:sale_create"), reverse("shop:sales_history"), reverse("shop:material_list"),
-                    reverse("shop:account")]:
+                    reverse("shop:readymade"), reverse("shop:sale_create"), reverse("shop:sales_history"),
+                    reverse("shop:material_list"), reverse("shop:account")]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
         home = self.client.get(reverse("shop:dashboard"))
         self.assertNotContains(home, reverse("shop:finance"))
+        self.assertContains(home, reverse("shop:readymade"))
         self.assertNotContains(self.client.get(reverse("shop:sales_history")), "ETB received")
+        self.assertNotContains(self.client.get(reverse("shop:readymade")), "ETB received")
         material = Material.objects.get(name="White Thread")
         self.client.post(reverse("shop:material_add_stock", args=[material.pk]), {"quantity": "5"})
         material.refresh_from_db()
@@ -171,6 +356,7 @@ class RoleTests(TestCase):
         self.assertRedirects(response, reverse("shop:messenger_list"))
         meron = get_user_model().objects.get(username="meron")
         self.assertEqual(meron.profile.phone, "0912000111")
+        self.assertEqual(meron.profile.language, "am")
         self.assertFalse(meron.is_staff)
 
         other = self.client_class()
@@ -196,22 +382,19 @@ class RoleTests(TestCase):
         })
         self.assertContains(response, "already taken")
         self.assertContains(response, "too short")
+        StaffProfile.objects.filter(user=self.owner).update(language="am")
+        response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "dawit", "password": "123"})
+        self.assertContains(response, "ይህ የተጠቃሚ ስም ተይዟል።")
+        self.assertContains(response, "በጣም አጭር ነው")
 
     def test_owner_cannot_be_edited_as_a_messenger(self):
         self.client.force_login(self.owner)
         self.assertEqual(self.client.get(reverse("shop:messenger_edit", args=[self.owner.pk])).status_code, 404)
 
 
-class MediaTests(TestCase):
+class MediaTests(TempMediaMixin, TestCase):
     def setUp(self):
-        import shutil
-        import tempfile
-
-        media = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
-        override = self.settings(MEDIA_ROOT=media)
-        override.enable()
-        self.addCleanup(override.disable)
+        self.use_temp_media()
         from django.core.files.storage import default_storage
         self.name = default_storage.save("styles/test.png", _png())
 
@@ -225,32 +408,14 @@ class MediaTests(TestCase):
         self.assertEqual(self.client.get(reverse("media_file", args=["styles/missing.png"])).status_code, 404)
 
 
-def _png(name="photo.png", color="red"):
-    from io import BytesIO
-
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from PIL import Image
-
-    buf = BytesIO()
-    Image.new("RGB", (8, 10), color).save(buf, "PNG")
-    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/png")
-
-
-class StyleGalleryTests(TestCase):
+class StyleGalleryTests(TempMediaMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        import shutil
-        import tempfile
-
-        media = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
-        override = self.settings(MEDIA_ROOT=media)
-        override.enable()
-        self.addCleanup(override.disable)
-        self.client.force_login(get_user_model().objects.get(username="selam"))
+        self.use_temp_media()
+        self.client.force_login(_english(get_user_model().objects.get(username="selam")))
 
     def _post_edit(self, style, **extra):
         data = {

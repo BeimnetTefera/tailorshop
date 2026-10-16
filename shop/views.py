@@ -1,10 +1,11 @@
-import calendar
 import mimetypes
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_not_required
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Count, F, Q, Sum
@@ -13,8 +14,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_noop, ngettext
 from django.views.decorators.http import require_POST
 
+from . import ethiopian
 from .forms import (
     AddStockForm,
     FreeSizeItemForm,
@@ -52,22 +56,19 @@ from .models import (
     WorkerTask,
     plain_number,
 )
-from .roles import owner_required
+from .roles import is_owner, owner_required
 from .templatetags.shop_extras import format_etb
+
+
+def _birr(value):
+    return f"{format_etb(value)} {_('ETB')}"
+
 
 # --------------------------------------------------------------------------- helpers
 
 
 def _today():
     return timezone.localdate()
-
-
-def _range_label(start, end):
-    if start.year != end.year:
-        return f"{start:%b} {start.day}, {start.year} – {end:%b} {end.day}, {end.year}"
-    if start.month != end.month:
-        return f"{start:%b} {start.day} – {end:%b} {end.day}, {end.year}"
-    return f"{start:%b} {start.day}–{end.day}, {end.year}"
 
 
 def _week(request):
@@ -82,20 +83,25 @@ def _week(request):
     return {
         "start": start,
         "end": end,
-        "label": _range_label(start, end),
+        "label": ethiopian.format_range(start, end),
         "prev": (start - timedelta(days=7)).isoformat(),
         "next": (start + timedelta(days=7)).isoformat(),
         "is_current": start <= today <= end,
     }
 
 
-def _redirect_back(request, fallback, *args, **kwargs):
+def _safe_next(request):
     target = request.POST.get("next") or request.GET.get("next")
     if target and url_has_allowed_host_and_scheme(
         target, allowed_hosts={request.get_host()}, require_https=request.is_secure()
     ):
-        return redirect(target)
-    return redirect(fallback, *args, **kwargs)
+        return target
+    return None
+
+
+def _redirect_back(request, fallback, *args, **kwargs):
+    target = _safe_next(request)
+    return redirect(target) if target else redirect(fallback, *args, **kwargs)
 
 
 def _author(request):
@@ -143,42 +149,12 @@ def _simple_form(request, form_class, *, title, back, submit, success, instance=
         form = form_class(request.POST, request.FILES, instance=instance)
         if form.is_valid():
             obj = form.save()
-            messages.success(request, f"Saved {obj}.")
+            messages.success(request, _("Saved %(name)s.") % {"name": obj})
             return redirect(success(obj))
     else:
         form = form_class(instance=instance, initial=initial)
     return render(request, "shop/simple_form.html", {
         "form": form, "title": title, "back": back, "submit": submit, "intro": intro,
-    })
-
-
-# --------------------------------------------------------------------------- home
-
-
-def dashboard(request):
-    today = _today()
-    hour = timezone.localtime().hour
-    greeting = "Good morning" if hour < 12 else "Good afternoon" if hour < 18 else "Good evening"
-
-    active = Order.objects.exclude(stage=Stage.DELIVERED).select_related("customer", "style", "current_worker")
-    due_today = active.filter(due_date=today)
-    labels = dict(Category.choices)
-    breakdown = [
-        f"{row['n']} {labels[row['category']].lower()}"
-        for row in due_today.values("category").annotate(n=Count("id")).order_by("-n")
-    ]
-    stage_counts = {r["stage"]: r["n"] for r in active.values("stage").annotate(n=Count("id")).order_by()}
-
-    return render(request, "shop/dashboard.html", {
-        "greeting": greeting,
-        "due_today_count": due_today.count(),
-        "due_today_text": ", ".join(breakdown),
-        "delayed_count": active.filter(due_date__lt=today).exclude(stage=Stage.READY).count(),
-        "tracker": [(s.value, s.label, stage_counts.get(s.value, 0)) for s in WORK_STAGES],
-        "ready_count": stage_counts.get(Stage.READY, 0),
-        "current_work": active.filter(current_worker__isnull=False).order_by("due_date")[:4],
-        "stock": FreeSizeItem.objects.order_by("quantity", "code")[:3],
-        "activities": Activity.objects.all()[:5],
     })
 
 
@@ -190,6 +166,53 @@ def media_file(request, path):
     response = FileResponse(default_storage.open(path), content_type=content_type)
     response["Cache-Control"] = "private, max-age=86400"
     return response
+
+
+@login_not_required
+@require_POST
+def set_language(request):
+    """The አማ · EN switch. Saved on the profile when signed in, and in a cookie."""
+    language = request.POST.get("language")
+    if language not in dict(settings.LANGUAGES):
+        language = settings.LANGUAGE_CODE
+    user = request.user
+    if user.is_authenticated:
+        role = StaffProfile.Role.OWNER if user.is_superuser else StaffProfile.Role.MESSENGER
+        profile, _created = StaffProfile.objects.get_or_create(user=user, defaults={"role": role})
+        profile.language = language
+        profile.save(update_fields=["language"])
+    response = redirect(_safe_next(request) or ("shop:dashboard" if user.is_authenticated else "login"))
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language, max_age=settings.LANGUAGE_COOKIE_AGE,
+                        samesite="Lax", secure=request.is_secure())
+    return response
+
+
+# --------------------------------------------------------------------------- home
+
+
+def dashboard(request):
+    today = _today()
+    hour = timezone.localtime().hour
+    greeting = _("Good morning") if hour < 12 else _("Good afternoon") if hour < 18 else _("Good evening")
+
+    active = Order.objects.exclude(stage=Stage.DELIVERED).select_related("customer", "style", "current_worker")
+    due_today = list(active.filter(due_date=today).exclude(stage=Stage.READY))
+    delayed = active.filter(due_date__lt=today).exclude(stage=Stage.READY)
+    stage_counts = {r["stage"]: r["n"] for r in active.values("stage").annotate(n=Count("id")).order_by()}
+
+    name = request.user.first_name or request.user.get_username()
+    return render(request, "shop/dashboard.html", {
+        "greeting": _("%(greeting)s, %(name)s") % {"greeting": greeting, "name": name},
+        "date_line": ethiopian.format_date(today, "full"),
+        "due_today": due_today,
+        "priority_order": due_today[0] if due_today else delayed.first(),
+        "delayed_count": delayed.count(),
+        "tracker": [(s.value, s.label, stage_counts.get(s.value, 0)) for s in WORK_STAGES],
+        "ready_count": stage_counts.get(Stage.READY, 0),
+        "current_work": active.filter(current_worker__isnull=False).order_by("due_date")[:4],
+        "stock": FreeSizeItem.objects.order_by("quantity", "code")[:3],
+        "activities": Activity.objects.all()[:5],
+    })
 
 
 # --------------------------------------------------------------------------- accounts
@@ -210,8 +233,9 @@ def messenger_list(request):
         form = MessengerCreateForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Activity.log(f"Messenger account added · {user.first_name}")
-            messages.success(request, f"{user.first_name} can now sign in as “{user.username}”.")
+            Activity.log(gettext_noop("Messenger account added · %(name)s"), name=user.first_name)
+            messages.success(request, _("%(name)s can now sign in as “%(username)s”.")
+                             % {"name": user.first_name, "username": user.username})
             return redirect("shop:messenger_list")
     else:
         form = MessengerCreateForm()
@@ -229,7 +253,8 @@ def messenger_edit(request, pk):
         if password_form.is_valid():
             user.set_password(password_form.cleaned_data["password"])
             user.save(update_fields=["password"])
-            messages.success(request, f"New password saved for {user.first_name}. Give it to them in person.")
+            messages.success(request, _("New password saved for %(name)s. Give it to them in person.")
+                             % {"name": user.first_name})
             return redirect("shop:messenger_list")
     elif request.method == "POST":
         form = MessengerEditForm(request.POST)
@@ -241,10 +266,10 @@ def messenger_edit(request, pk):
             user.profile.phone = form.cleaned_data["phone"]
             user.profile.save(update_fields=["phone"])
             if was_active and not user.is_active:
-                Activity.log(f"Messenger account switched off · {user.first_name}")
-                messages.success(request, f"{user.first_name} can no longer sign in.")
+                Activity.log(gettext_noop("Messenger account switched off · %(name)s"), name=user.first_name)
+                messages.success(request, _("%(name)s can no longer sign in.") % {"name": user.first_name})
             else:
-                messages.success(request, f"Saved {user.first_name}.")
+                messages.success(request, _("Saved %(name)s.") % {"name": user.first_name})
             return redirect("shop:messenger_list")
     return render(request, "shop/messenger_edit.html", {"person": user, "form": form, "password_form": password_form})
 
@@ -255,7 +280,7 @@ def team(request):
         form = WorkerForm(request.POST)
         if form.is_valid():
             worker = form.save()
-            messages.success(request, f"Added {worker.name} to your team.")
+            messages.success(request, _("Added %(name)s to your team.") % {"name": worker.name})
             return redirect("shop:team")
     else:
         form = WorkerForm()
@@ -269,8 +294,8 @@ def team(request):
 def worker_edit(request, pk):
     worker = get_object_or_404(Worker, pk=pk)
     return _simple_form(
-        request, WorkerForm, instance=worker, title=f"Edit {worker.name}",
-        back="shop:team", submit="Save changes", success=lambda w: "shop:team",
+        request, WorkerForm, instance=worker, title=_("Edit %(name)s") % {"name": worker.name},
+        back="shop:team", submit=_("Save changes"), success=lambda w: "shop:team",
     )
 
 
@@ -294,16 +319,16 @@ def order_list(request):
     filters = []
     if stage in Stage.values and stage != Stage.DELIVERED:
         current = current.filter(stage=stage)
-        filters.append(Stage(stage).label)
+        filters.append(str(Stage(stage).label))
     if due == "today":
         current = current.filter(due_date=today)
-        filters.append("Due today")
+        filters.append(_("Due today"))
     elif due == "late":
         current = current.filter(due_date__lt=today).exclude(stage=Stage.READY)
-        filters.append("Delayed")
+        filters.append(_("Delayed"))
     if priority == "urgent":
         current = current.filter(priority=Order.Priority.URGENT)
-        filters.append("Urgent")
+        filters.append(_("Urgent"))
 
     return render(request, "shop/orders/list.html", {
         "tab": tab,
@@ -333,8 +358,10 @@ def order_create(request):
         if form.is_valid():
             with transaction.atomic():
                 order = form.save()
-                Activity.log(f"New order · {order.customer.name} ({order.title})")
-            messages.success(request, f"Created order {order.code} for {order.customer.name}.")
+                Activity.log(gettext_noop("New order · %(name)s (%(title)s)"),
+                             name=order.customer.name, title=str(order.title))
+            messages.success(request, _("Created order %(code)s for %(name)s.")
+                             % {"code": order.code, "name": order.customer.name})
             return redirect("shop:tracker_detail", pk=order.pk)
     else:
         initial = {}
@@ -352,7 +379,7 @@ def order_edit(request, pk):
         form = OrderForm(request.POST, request.FILES, instance=order)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Saved changes to {order.code}.")
+            messages.success(request, _("Saved changes to %(code)s.") % {"code": order.code})
             return redirect("shop:tracker_detail", pk=order.pk)
     else:
         form = OrderForm(instance=order)
@@ -364,8 +391,8 @@ def order_mark_ready(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     if order.stage != Stage.READY:
         _set_stage(order, Stage.READY)
-        Activity.log(f"{order.customer.name}'s order is ready for pickup")
-        messages.success(request, f"{order.customer.name}'s order is marked ready.")
+        Activity.log(gettext_noop("%(name)s's order is ready for pickup"), name=order.customer.name)
+        messages.success(request, _("%(name)s's order is marked ready.") % {"name": order.customer.name})
     return _redirect_back(request, "shop:order_list")
 
 
@@ -373,15 +400,28 @@ def order_mark_ready(request, pk):
 def order_deliver(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     _set_stage(order, Stage.DELIVERED)
-    Activity.log(f"{order.customer.name}'s order delivered")
-    msg = f"Delivered {order.code}."
+    Activity.log(gettext_noop("%(name)s's order delivered"), name=order.customer.name)
+    msg = _("Delivered %(code)s.") % {"code": order.code}
     if order.balance > 0:
-        msg += f" {format_etb(order.balance)} ETB is still unpaid."
+        msg += " " + _("%(amount)s is still unpaid.") % {"amount": _birr(order.balance)}
     messages.success(request, msg)
     return _redirect_back(request, "shop:order_list")
 
 
 # --------------------------------------------------------------------------- production tracker
+
+
+def _thread(order):
+    """Updates on an order, oldest first: notes and photos plus each hand-over."""
+    items = [{"kind": "note", "at": n.created_at, "note": n, "owner": bool(n.user) and is_owner(n.user)}
+             for n in order.notes.select_related("user", "user__profile")]
+    for t in order.tasks.select_related("worker", "created_by"):
+        at = t.created_at
+        if timezone.localtime(at).date() != t.started_on:
+            at = timezone.make_aware(datetime.combine(t.started_on, time(8)))
+        items.append({"kind": "handover", "at": at, "task": t})
+    items.sort(key=lambda i: i["at"])
+    return items[-40:]
 
 
 def tracker(request, pk=None):
@@ -398,20 +438,26 @@ def tracker(request, pk=None):
 
     today = _today()
     delayed = list(active.filter(due_date__lt=today).exclude(stage=Stage.READY))
-    context = {"q": q, "results": results, "order": order, "delayed": delayed}
+    context = {"q": q, "results": results, "order": order, "delayed": delayed, "searching": pk is None}
 
     if order:
         workers = Worker.objects.filter(is_active=True)
+        step, steps = order.step_position()
+        next_stage = order.next_stage()
         context.update({
             "timeline": order.timeline(),
-            "notes": order.notes.all()[:8],
-            "tasks": order.tasks.select_related("worker")[:8],
+            "step": step,
+            "steps": steps,
+            "next_stage": next_stage.label if next_stage and next_stage != Stage.DELIVERED else None,
+            "next_stage_value": next_stage.value if next_stage else "",
+            "thread": _thread(order),
             "roles": [
                 {"value": v, "label": label, "workers": [w for w in workers if w.role == v]}
                 for v, label in Worker.Role.choices
             ],
             "stage_choices": Stage.choices,
-            "default_finish": (today + timedelta(days=3)).isoformat(),
+            "default_finish": today + timedelta(days=3),
+            "transfer_form": TransferForm(initial={"expected_finish": today + timedelta(days=3)}),
         })
     return render(request, "shop/tracker.html", context)
 
@@ -421,7 +467,10 @@ def order_transfer(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     form = TransferForm(request.POST)
     if not form.is_valid():
-        messages.error(request, "Pick the worker who should receive this garment.")
+        if "expected_finish" in form.errors:
+            messages.error(request, form.errors["expected_finish"][0])
+        else:
+            messages.error(request, _("Pick the worker who should receive this garment."))
         return redirect("shop:tracker_detail", pk=pk)
     worker = form.cleaned_data["worker"]
     with transaction.atomic():
@@ -430,11 +479,15 @@ def order_transfer(request, pk):
         if form.cleaned_data.get("expected_finish"):
             order.expected_finish = form.cleaned_data["expected_finish"]
         order.save(update_fields=["current_worker", "expected_finish"])
-        WorkerTask.objects.create(worker=worker, order=order, stage=worker.role, amount=worker.rate_per_task)
+        WorkerTask.objects.create(worker=worker, order=order, stage=worker.role, amount=worker.rate_per_task,
+                                  created_by=request.user)
         if form.cleaned_data["note"]:
-            StageNote.objects.create(order=order, author=f"{_author(request)} → {worker.name}", text=form.cleaned_data["note"])
-        Activity.log(f"{order.customer.name}'s order moved to {order.get_stage_display().lower()} · {worker.name}")
-    messages.success(request, f"Transferred to {worker.name} ({worker.get_role_display().lower()}).")
+            StageNote.objects.create(order=order, user=request.user, author=_author(request),
+                                     text=form.cleaned_data["note"])
+        Activity.log(gettext_noop("%(name)s's order moved to %(stage)s · %(worker)s"),
+                     name=order.customer.name, stage=order.stage, worker=worker.name)
+    messages.success(request, _("Handed over to %(name)s (%(role)s).")
+                     % {"name": worker.name, "role": str(worker.get_role_display()).lower()})
     return redirect("shop:tracker_detail", pk=pk)
 
 
@@ -444,21 +497,23 @@ def order_update_stage(request, pk):
     form = StageForm(request.POST)
     if form.is_valid() and form.cleaned_data["stage"] != order.stage:
         _set_stage(order, form.cleaned_data["stage"])
-        Activity.log(f"{order.customer.name}'s order moved to {order.get_stage_display().lower()}")
-        messages.success(request, f"Stage updated to {order.get_stage_display().lower()}.")
+        Activity.log(gettext_noop("%(name)s's order moved to %(stage)s"), name=order.customer.name, stage=order.stage)
+        messages.success(request, _("Stage updated to %(stage)s.") % {"stage": str(order.get_stage_display()).lower()})
     return redirect("shop:tracker_detail", pk=pk)
 
 
 @require_POST
 def order_add_note(request, pk):
     order = get_object_or_404(Order, pk=pk)
-    form = NoteForm(request.POST)
+    form = NoteForm(request.POST, request.FILES)
     if form.is_valid():
-        StageNote.objects.create(order=order, author=_author(request), text=form.cleaned_data["text"])
-        messages.success(request, "Note added.")
+        StageNote.objects.create(order=order, user=request.user, author=_author(request),
+                                 text=form.cleaned_data["text"].strip(), photo=form.cleaned_data["photo"] or "")
+        messages.success(request, _("Update posted."))
     else:
-        messages.error(request, "Write a note first (up to 300 characters).")
-    return redirect("shop:tracker_detail", pk=pk)
+        errors = form.errors.get("photo") or form.non_field_errors() or form.errors.get("text")
+        messages.error(request, errors[0] if errors else _("Write an update or add a photo."))
+    return redirect(reverse("shop:tracker_detail", args=[pk]) + "#updates")
 
 
 @require_POST
@@ -466,17 +521,31 @@ def order_add_payment(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     form = PaymentForm(request.POST)
     if not form.is_valid():
-        messages.error(request, "Enter the amount the customer paid.")
+        messages.error(request, _("Enter the amount the customer paid."))
     elif form.cleaned_data["amount"] > order.balance:
-        messages.error(request, f"That's more than the remaining balance of {format_etb(order.balance)} ETB.")
+        messages.error(request, _("That's more than the remaining balance of %(amount)s.")
+                       % {"amount": _birr(order.balance)})
     else:
-        Payment.objects.create(order=order, amount=form.cleaned_data["amount"], note="Balance")
-        Activity.log(f"Payment recorded · {order.customer.name}")
-        messages.success(request, f"Recorded {format_etb(form.cleaned_data['amount'])} ETB from {order.customer.name}.")
+        Payment.objects.create(order=order, amount=form.cleaned_data["amount"], note=Payment.Kind.BALANCE)
+        Activity.log(gettext_noop("Payment recorded · %(name)s"), name=order.customer.name)
+        messages.success(request, _("Recorded %(amount)s from %(name)s.")
+                         % {"amount": _birr(form.cleaned_data["amount"]), "name": order.customer.name})
     return _redirect_back(request, "shop:tracker_detail", pk=pk)
 
 
-# --------------------------------------------------------------------------- free-size sales
+# --------------------------------------------------------------------------- ready-made clothes and sales
+
+
+def readymade(request):
+    today = _today()
+    todays = Sale.objects.filter(created_at__date=today)
+    return render(request, "shop/readymade/list.html", {
+        "items": FreeSizeItem.objects.order_by("quantity", "code"),
+        "today_count": todays.count(),
+        "today_items": todays.aggregate(n=Sum("quantity"))["n"] or 0,
+        "today_received": todays.filter(status=Sale.Status.PAID).aggregate(t=Sum("amount"))["t"] or 0,
+        "pending": Sale.objects.filter(status=Sale.Status.PENDING).count(),
+    })
 
 
 def sale_create(request):
@@ -493,10 +562,11 @@ def sale_create(request):
                     sale.save()
                     item.quantity -= qty
                     item.save(update_fields=["quantity"])
-                    Activity.log(f"Sale recorded · {item.code}")
-                    messages.success(request, f"Recorded sale of {qty} × {item.name}. {item.quantity} left.")
+                    Activity.log(gettext_noop("Sale recorded · %(code)s"), code=item.code)
+                    messages.success(request, _("Recorded sale of %(qty)s × %(name)s. %(left)s left.")
+                                     % {"qty": qty, "name": item.name, "left": item.quantity})
                     return redirect("shop:sales_history")
-            form.add_error("quantity", f"Only {item.quantity} left in stock.")
+            form.add_error("quantity", _("Only %(n)s left in stock.") % {"n": item.quantity})
     else:
         item_id = request.GET.get("item", "")
         item = items.filter(pk=item_id).first() if item_id.isdigit() else items.filter(quantity__gt=0).first()
@@ -509,7 +579,7 @@ def sale_mark_paid(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     sale.status = Sale.Status.PAID
     sale.save(update_fields=["status"])
-    messages.success(request, f"Marked {sale.item.code} sale as paid.")
+    messages.success(request, _("Marked the %(code)s sale as paid.") % {"code": sale.item.code})
     return _redirect_back(request, "shop:sales_history")
 
 
@@ -549,16 +619,12 @@ def sales_history(request):
     })
 
 
-def freesize_list(request):
-    return render(request, "shop/inventory/freesize.html", {"items": FreeSizeItem.objects.order_by("quantity", "code")})
-
-
 @owner_required
 def freesize_create(request):
     return _simple_form(
-        request, FreeSizeItemForm, title="Add free-size item", back="shop:freesize_list",
-        submit="Add item", success=lambda o: "shop:freesize_list",
-        intro="Ready-made clothes you sell off the rack.",
+        request, FreeSizeItemForm, title=_("Add ready-made item"), back="shop:readymade",
+        submit=_("Add item"), success=lambda o: "shop:readymade",
+        intro=_("Ready-made clothes you sell off the rack."),
     )
 
 
@@ -566,33 +632,39 @@ def freesize_create(request):
 def freesize_edit(request, pk):
     item = get_object_or_404(FreeSizeItem, pk=pk)
     return _simple_form(
-        request, FreeSizeItemForm, instance=item, title=f"Edit {item.code}", back="shop:freesize_list",
-        submit="Save changes", success=lambda o: "shop:freesize_list",
+        request, FreeSizeItemForm, instance=item, title=_("Edit %(name)s") % {"name": item.code}, back="shop:readymade",
+        submit=_("Save changes"), success=lambda o: "shop:readymade",
     )
 
 
 # --------------------------------------------------------------------------- finance
 
 
+def _month_from_request(request):
+    """Ethiopian month chosen with ?month=YYYY-MM (Ethiopian year and month 1–13)."""
+    current = ethiopian.today()
+    try:
+        year, month = (int(p) for p in request.GET.get("month", "").split("-"))
+        ethiopian.to_gregorian(year, month, 1)
+    except ValueError:
+        year, month = current.year, current.month
+    return year, month
+
+
 @owner_required
 def finance(request):
     today = _today()
-    try:
-        year, month = (int(p) for p in request.GET.get("month", "").split("-"))
-        first = date(year, month, 1)
-    except ValueError:
-        first = today.replace(day=1)
-    last_day = calendar.monthrange(first.year, first.month)[1]
-    last = first.replace(day=last_day)
+    year, month = _month_from_request(request)
+    first, last = ethiopian.month_bounds(year, month)
 
-    # The month is split into 4 weeks (W1 = 1–7, W2 = 8–14, W3 = 15–21, W4 = 22–end of month).
+    # Weeks of the Ethiopian month: 1–7, 8–14, 15–21, 22–30. Pagume (5 or 6 days) is one week.
+    spans = [(1, ethiopian.month_length(year, month))] if month == 13 else [(1, 7), (8, 14), (15, 21), (22, 30)]
     weeks = []
-    for n, day in enumerate((1, 8, 15, 22), start=1):
-        start = first.replace(day=day)
-        end = first.replace(day=day + 6) if n < 4 else last
+    for n, (a, b) in enumerate(spans, start=1):
+        start, end = ethiopian.to_gregorian(year, month, a), ethiopian.to_gregorian(year, month, b)
         amount, count = _income(start, end)
-        weeks.append({"label": f"W{n}", "start": start, "end": end, "amount": amount, "count": count,
-                      "is_future": start > today})
+        weeks.append({"label": _("W%(n)s") % {"n": n}, "start": start, "end": end, "amount": amount,
+                      "count": count, "is_future": start > today})
 
     if first <= today <= last:
         idx = next(i for i, w in enumerate(weeks) if w["start"] <= today <= w["end"])
@@ -605,7 +677,7 @@ def finance(request):
     if idx > 0:
         prev_amount = weeks[idx - 1]["amount"]
     else:
-        prev_amount, _ = _income(selected["start"] - timedelta(days=7), selected["start"] - timedelta(days=1))
+        prev_amount, _count = _income(selected["start"] - timedelta(days=7), selected["start"] - timedelta(days=1))
     change = round((selected["amount"] - prev_amount) / prev_amount * 100) if prev_amount else None
 
     peak = max((w["amount"] for w in weeks), default=0) or 1
@@ -616,21 +688,21 @@ def finance(request):
     while i > 0 and weeks[i]["amount"] > weeks[i - 1]["amount"]:
         streak, i = streak + 1, i - 1
     if streak >= 2:
-        trend = f"Your income went up each week for the last {streak} weeks."
+        trend = _("Your income went up each week for the last %(n)s weeks.") % {"n": streak}
     elif streak == 1:
-        trend = "Income is up compared with the week before."
+        trend = _("Income is up compared with the week before.")
     elif change is not None and change < 0:
-        trend = "Income is lower than the week before. Check unpaid balances on orders that are ready."
+        trend = _("Income is lower than the week before. Check unpaid balances on orders that are ready.")
     else:
-        trend = "Income is steady this month."
+        trend = _("Income is steady this month.")
 
     recent = []
     for p in Payment.objects.select_related("order__customer", "order__style").filter(paid_on__range=(first, last))[:8]:
         recent.append({"name": p.order.customer.name, "detail": f"{p.order.title} · {p.order.ref}",
-                       "amount": p.amount, "date": p.paid_on, "kind": p.note or "Payment"})
+                       "amount": p.amount, "date": p.paid_on, "kind": p.kind_label})
     for s in Sale.objects.select_related("item").filter(status=Sale.Status.PAID, created_at__date__range=(first, last))[:8]:
-        recent.append({"name": s.customer_name or "Walk-in customer", "detail": f"{s.item.name} · {s.item.code}",
-                       "amount": s.amount, "date": timezone.localtime(s.created_at).date(), "kind": "Sale"})
+        recent.append({"name": s.customer_name or _("Walk-in customer"), "detail": f"{s.item.name} · {s.item.code}",
+                       "amount": s.amount, "date": timezone.localtime(s.created_at).date(), "kind": _("Sale")})
     recent.sort(key=lambda r: r["date"], reverse=True)
 
     open_orders = Order.objects.exclude(stage=Stage.DELIVERED).annotate(paid=Sum("payments__amount"))
@@ -638,16 +710,16 @@ def finance(request):
     owed_workers = WorkerTask.objects.filter(finished_on__isnull=False, paid_on__isnull=True).aggregate(t=Sum("amount"))["t"] or 0
     month_total = sum((w["amount"] for w in weeks), Decimal("0"))
 
-    prev_month = (first - timedelta(days=1)).replace(day=1)
-    next_month = last + timedelta(days=1)
+    prev_year, prev_month = ethiopian.add_months(year, month, -1)
+    next_year, next_month = ethiopian.add_months(year, month, 1)
     return render(request, "shop/finance/index.html", {
-        "month_label": f"{first:%B %Y}",
+        "month_label": f"{ethiopian.month_name(month)} {year}",
         "is_current_month": first <= today <= last,
-        "prev_month": f"{prev_month:%Y-%m}",
-        "next_month": f"{next_month:%Y-%m}",
+        "prev_month": f"{prev_year}-{prev_month}",
+        "next_month": f"{next_year}-{next_month}",
         "weeks": weeks,
         "selected": selected,
-        "selected_label": _range_label(selected["start"], selected["end"]),
+        "selected_label": ethiopian.format_range(selected["start"], selected["end"]),
         "change": change,
         "change_abs": abs(change) if change is not None else None,
         "trend": trend,
@@ -677,13 +749,13 @@ def income_detail(request):
         entry["count"] += row["n"]
     for row in (Sale.objects.filter(status=Sale.Status.PAID, created_at__date__range=(start, end))
                 .values("customer_name").annotate(t=Sum("amount"), n=Count("id"))):
-        entry = people.setdefault(row["customer_name"] or "Walk-in sales", {"amount": Decimal("0"), "count": 0})
+        entry = people.setdefault(row["customer_name"] or _("Walk-in sales"), {"amount": Decimal("0"), "count": 0})
         entry["amount"] += row["t"]
         entry["count"] += row["n"]
     rows = sorted(people.items(), key=lambda kv: kv[1]["amount"], reverse=True)
     total, count = _income(start, end)
     return render(request, "shop/finance/income.html", {
-        "label": _range_label(start, end), "rows": rows, "total": total, "count": count,
+        "label": ethiopian.format_range(start, end), "rows": rows, "total": total, "count": count,
     })
 
 
@@ -721,18 +793,23 @@ def worker_payments(request):
 def task_mark_paid(request, pk):
     task = get_object_or_404(WorkerTask.objects.select_related("worker"), pk=pk)
     if task.finished_on is None:
-        messages.error(request, "This task isn't finished yet.")
+        messages.error(request, _("This task isn't finished yet."))
     else:
         task.paid_on = _today()
         task.save(update_fields=["paid_on"])
-        Activity.log(f"Payment recorded · {task.worker.name}")
-        messages.success(request, f"Marked {task.worker.name}'s task as paid.")
+        Activity.log(gettext_noop("Payment recorded · %(name)s"), name=task.worker.name)
+        messages.success(request, _("Marked %(name)s's task as paid.") % {"name": task.worker.name})
     return _redirect_back(request, "shop:worker_payments")
 
 
-# --------------------------------------------------------------------------- inventory: clothing styles
+# --------------------------------------------------------------------------- stock: clothing styles
 
+# Stored in English in the style's fabric field; labels are translated.
 FABRIC_OPTIONS = ["Cotton", "Lace", "Wool", "Chiffon"]
+
+
+def _fabric_label(value):
+    return {"Cotton": _("Cotton"), "Lace": _("Lace"), "Wool": _("Wool"), "Chiffon": _("Chiffon")}.get(value, value)
 
 
 def clothing_list(request):
@@ -763,8 +840,8 @@ def clothing_list(request):
         "filter_count": len(occasions) + len(genders) + len(fabrics) + len(quick),
         "occasion_options": [(v, label, v in occasions) for v, label in Category.choices],
         "gender_options": [(v, label, v in genders) for v, label in Style.Gender.choices],
-        "fabric_options": [(f, f, f in fabrics) for f in FABRIC_OPTIONS],
-        "quick_options": [("popular", "Popular", "popular" in quick), ("recent", "Recently added", "recent" in quick)],
+        "fabric_options": [(f, _fabric_label(f), f in fabrics) for f in FABRIC_OPTIONS],
+        "quick_options": [("popular", _("Popular"), "popular" in quick), ("recent", _("Recently added"), "recent" in quick)],
     })
 
 
@@ -774,10 +851,10 @@ def style_detail(request, pk):
     codes = list(Style.objects.values_list("pk", flat=True))
     index = codes.index(style.pk)
     details = [
-        ("Category", style.get_category_display()), ("For", style.get_gender_display()),
-        ("Fabric", style.fabric), ("Color", style.color), ("Fit", style.fit),
-        ("Dress length", style.length), ("Sleeve length", style.sleeve_length),
-        ("Sizes", ", ".join(style.size_list)),
+        (_("Category"), style.get_category_display()), (_("For"), style.get_gender_display()),
+        (_("Fabric"), style.fabric), (_("Color"), style.color), (_("Fit"), style.fit),
+        (_("Dress length"), style.length), (_("Sleeve length"), style.sleeve_length),
+        (_("Sizes"), ", ".join(style.size_list)),
     ]
     return render(request, "shop/inventory/style_detail.html", {
         "style": style,
@@ -795,7 +872,7 @@ def style_detail(request, pk):
 @owner_required
 def style_create(request):
     return _simple_form(
-        request, StyleForm, title="Add style", back="shop:clothing_list", submit="Add style",
+        request, StyleForm, title=_("Add style"), back="shop:clothing_list", submit=_("Add style"),
         success=lambda s: reverse("shop:style_detail", args=[s.pk]),
     )
 
@@ -804,12 +881,12 @@ def style_create(request):
 def style_edit(request, pk):
     style = get_object_or_404(Style, pk=pk)
     return _simple_form(
-        request, StyleForm, instance=style, title=f"Edit {style.code}", back="shop:clothing_list",
-        submit="Save changes", success=lambda s: reverse("shop:style_detail", args=[s.pk]),
+        request, StyleForm, instance=style, title=_("Edit %(name)s") % {"name": style.code}, back="shop:clothing_list",
+        submit=_("Save changes"), success=lambda s: reverse("shop:style_detail", args=[s.pk]),
     )
 
 
-# --------------------------------------------------------------------------- inventory: raw materials
+# --------------------------------------------------------------------------- stock: raw materials
 
 
 def material_list(request):
@@ -837,7 +914,7 @@ def material_list(request):
         "total": everything.count(),
         "low": everything.filter(quantity__gt=0, quantity__lte=F("low_stock_at")).count(),
         "out": everything.filter(quantity__lte=0).count(),
-        "sort_options": [("recent", "Recently added"), ("used", "Most used"), ("name", "Name"), ("price", "Price")],
+        "sort_options": [("recent", _("Recently added")), ("used", _("Most used")), ("name", _("Name")), ("price", _("Price"))],
     })
 
 
@@ -854,7 +931,7 @@ def material_detail(request, pk):
 @owner_required
 def material_create(request):
     return _simple_form(
-        request, MaterialForm, title="Add material", back="shop:material_list", submit="Add material",
+        request, MaterialForm, title=_("Add material"), back="shop:material_list", submit=_("Add material"),
         success=lambda m: reverse("shop:material_detail", args=[m.pk]),
     )
 
@@ -863,8 +940,9 @@ def material_create(request):
 def material_edit(request, pk):
     material = get_object_or_404(Material, pk=pk)
     return _simple_form(
-        request, MaterialForm, instance=material, title=f"Edit {material.name}", back="shop:material_list",
-        submit="Save changes", success=lambda m: reverse("shop:material_detail", args=[m.pk]),
+        request, MaterialForm, instance=material, title=_("Edit %(name)s") % {"name": material.name},
+        back="shop:material_list", submit=_("Save changes"),
+        success=lambda m: reverse("shop:material_detail", args=[m.pk]),
     )
 
 
@@ -875,10 +953,13 @@ def material_add_stock(request, pk):
     if form.is_valid():
         material.quantity += form.cleaned_data["quantity"]
         material.save(update_fields=["quantity"])
-        Activity.log(f"Stock added · {material.name}")
-        messages.success(request, f"Added {plain_number(form.cleaned_data['quantity'])} {material.unit}. Now {material.availability.lower()}.")
+        Activity.log(gettext_noop("Stock added · %(name)s"), name=material.name)
+        messages.success(request, _("Added %(amount)s %(unit)s. Now %(status)s.") % {
+            "amount": plain_number(form.cleaned_data["quantity"]),
+            "unit": str(material.get_unit_display()).lower(), "status": material.availability.lower(),
+        })
     else:
-        messages.error(request, "Enter how much stock to add.")
+        messages.error(request, _("Enter how much stock to add."))
     return redirect("shop:material_detail", pk=pk)
 
 
@@ -887,10 +968,12 @@ def material_use(request, pk):
     form = UseMaterialForm(request.POST)
     with transaction.atomic():
         material = get_object_or_404(Material.objects.select_for_update(), pk=pk)
+        unit = str(material.get_unit_display()).lower()
         if not form.is_valid():
-            messages.error(request, "Enter how much you used.")
+            messages.error(request, _("Enter how much you used."))
         elif form.cleaned_data["quantity"] > material.quantity:
-            messages.error(request, f"Only {plain_number(material.quantity)} {material.unit} in stock.")
+            messages.error(request, _("Only %(amount)s %(unit)s in stock.")
+                           % {"amount": plain_number(material.quantity), "unit": unit})
         else:
             qty, order = form.cleaned_data["quantity"], form.cleaned_data["order"]
             material.quantity -= qty
@@ -898,13 +981,20 @@ def material_use(request, pk):
             MaterialUsage.objects.create(material=material, quantity=qty, order=order)
             if order and order.style_id:
                 material.used_for.add(order.style)
-            who = f" for {order.customer.name}" if order else ""
-            Activity.log(f"Used {plain_number(qty)} {material.unit} of {material.name}{who}")
-            messages.success(request, f"Recorded {plain_number(qty)} {material.unit} used{who}.")
+            amount = plain_number(qty)
+            if order:
+                Activity.log(gettext_noop("Used %(amount)s %(unit)s of %(material)s for %(name)s"),
+                             amount=amount, unit=material.unit, material=material.name, name=order.customer.name)
+                messages.success(request, _("Recorded %(amount)s %(unit)s used for %(name)s.")
+                                 % {"amount": amount, "unit": unit, "name": order.customer.name})
+            else:
+                Activity.log(gettext_noop("Used %(amount)s %(unit)s of %(material)s"),
+                             amount=amount, unit=material.unit, material=material.name)
+                messages.success(request, _("Recorded %(amount)s %(unit)s used.") % {"amount": amount, "unit": unit})
     return redirect("shop:material_detail", pk=pk)
 
 
-# --------------------------------------------------------------------------- inventory: tibebe
+# --------------------------------------------------------------------------- stock: tibebe
 
 
 def tibebe_list(request):
@@ -919,7 +1009,7 @@ def tibebe_list(request):
     tibebes = tibebes.order_by({"name": "name", "recent": "-created_at"}.get(sort, "code"))
     return render(request, "shop/inventory/tibebe.html", {
         "tibebes": tibebes, "q": q, "size": size, "sort": sort, "sizes": Tibebe.Size.choices,
-        "sort_options": [("code", "Code"), ("name", "Name"), ("recent", "Recently added")],
+        "sort_options": [("code", _("Code")), ("name", _("Name")), ("recent", _("Recently added"))],
     })
 
 
@@ -930,7 +1020,7 @@ def tibebe_detail(request, pk):
 @owner_required
 def tibebe_create(request):
     return _simple_form(
-        request, TibebeForm, title="Add tibebe style", back="shop:tibebe_list", submit="Add tibebe",
+        request, TibebeForm, title=_("Add tibebe style"), back="shop:tibebe_list", submit=_("Add tibebe"),
         success=lambda t: reverse("shop:tibebe_detail", args=[t.pk]),
     )
 
@@ -939,6 +1029,6 @@ def tibebe_create(request):
 def tibebe_edit(request, pk):
     tibebe = get_object_or_404(Tibebe, pk=pk)
     return _simple_form(
-        request, TibebeForm, instance=tibebe, title=f"Edit {tibebe.code}", back="shop:tibebe_list",
-        submit="Save changes", success=lambda t: reverse("shop:tibebe_detail", args=[t.pk]),
+        request, TibebeForm, instance=tibebe, title=_("Edit %(name)s") % {"name": tibebe.code}, back="shop:tibebe_list",
+        submit=_("Save changes"), success=lambda t: reverse("shop:tibebe_detail", args=[t.pk]),
     )

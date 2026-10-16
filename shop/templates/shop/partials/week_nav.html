@@ -1,6 +1,6 @@
-{% load shop_extras %}
+{% load i18n shop_extras %}
 <div class="week-nav">
-  <a class="icon-btn" href="?week={{ week.prev }}" aria-label="Previous week">{% icon "chev-left" %}</a>
-  <span>{{ week.label }}{% if week.is_current %} · this week{% endif %}</span>
-  <a class="icon-btn" href="?week={{ week.next }}" aria-label="Next week">{% icon "chev-right" %}</a>
+  <a class="icon-btn" href="?week={{ week.prev }}" aria-label="{% translate 'Previous week' %}">{% icon "chev-left" %}</a>
+  <span>{{ week.label }}{% if week.is_current %} · {% translate "this week" %}{% endif %}</span>
+  <a class="icon-btn" href="?week={{ week.next }}" aria-label="{% translate 'Next week' %}">{% icon "chev-right" %}</a>
 </div>

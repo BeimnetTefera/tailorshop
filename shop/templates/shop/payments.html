@@ -1,56 +1,54 @@
-{% extends "shop/base.html" %}{% load shop_extras %}
-{% block title %}Worker payments{% endblock %}
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Worker payments" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
-  <h1>Worker payments<div class="sub">Check which finished tasks have been paid.</div></h1>
+  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{% translate "Worker payments" %}<div class="sub">{% translate "Check which finished tasks have been paid." %}</div></h1>
 </header>
 
 {% include "shop/partials/week_nav.html" %}
 
-<h2 style="font-size:17px;font-weight:500;margin-bottom:8px">{% if week.is_current %}This week{% else %}That week{% endif %}</h2>
 <div class="stats-3">
-  <div class="stat"><b>{{ stats.completed }}</b><span>Completed</span></div>
-  <div class="stat"><b>{{ stats.unpaid }}</b><span>Unpaid</span></div>
-  <div class="stat"><b>{{ stats.paid }}</b><span>Paid</span></div>
+  <div class="stat"><b>{{ stats.completed }}</b><span>{% translate "Finished" %}</span></div>
+  <div class="stat"><b>{{ stats.unpaid }}</b><span>{% translate "Unpaid" %}</span></div>
+  <div class="stat"><b>{{ stats.paid }}</b><span>{% translate "Paid" %}</span></div>
 </div>
-{% if stats.owed %}<p class="small mt" style="margin-top:8px">{{ stats.owed|etb }} ETB still to pay for this week's tasks.</p>{% endif %}
+{% if stats.owed %}<p class="small gold" style="margin-top:10px">{% blocktranslate with amount=stats.owed|birr %}{{ amount }} still to pay for this week's tasks.{% endblocktranslate %}</p>{% endif %}
 
 <form method="get" class="mt">
   <input type="hidden" name="week" value="{{ week.start|date:'Y-m-d' }}">
   <input type="hidden" name="status" value="{{ status }}">
-  <label class="label" for="w-select">Worker</label>
+  <label class="label" for="w-select">{% translate "Worker" %}</label>
   <select id="w-select" name="worker" class="input" style="margin-top:6px" onchange="this.form.submit()">
-    <option value="">All workers</option>
+    <option value="">{% translate "All workers" %}</option>
     {% for w in workers %}<option value="{{ w.pk }}" {% if worker_id == w.pk|stringformat:"s" %}selected{% endif %}>{{ w.name }} · {{ w.get_role_display }}</option>{% endfor %}
   </select>
 </form>
 
 <div class="chips mt">
-  <a class="chip {% if status == 'all' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=all">All</a>
-  <a class="chip {% if status == 'unpaid' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=unpaid">Unpaid</a>
-  <a class="chip {% if status == 'paid' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=paid">Paid</a>
+  <a class="chip {% if status == 'all' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=all">{% translate "All" %}</a>
+  <a class="chip {% if status == 'unpaid' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=unpaid">{% translate "Unpaid" %}</a>
+  <a class="chip {% if status == 'paid' %}active{% endif %}" href="?week={{ week.start|date:'Y-m-d' }}&worker={{ worker_id }}&status=paid">{% translate "Paid" %}</a>
 </div>
 
 <div class="stack mt">
 {% for t in tasks %}
   <article class="task-card">
-    <div class="row-between"><h3>{{ t.worker.name }} – {{ t.get_stage_display }}</h3><span class="pill {% if t.is_paid %}pill-ok{% else %}pill-danger{% endif %}">{% if t.is_paid %}Paid{% else %}Unpaid{% endif %}</span></div>
+    <div class="row-between"><h3>{{ t.worker.name }} · {{ t.get_stage_display }}</h3><span class="pill {% if t.is_paid %}pill-ok{% else %}pill-danger{% endif %}">{% if t.is_paid %}{% translate "Paid" %}{% else %}{% translate "Unpaid" %}{% endif %}</span></div>
     <p class="who">{{ t.order.customer.name }}</p>
-    <p class="what">{{ t.order.title }} · {{ t.amount|etb }} ETB</p>
+    <p class="what">{{ t.order.title }} · <span class="gold">{{ t.amount|birr }}</span></p>
     <div class="dates">
-      <div><small>Started</small>{{ t.started_on|date:"M j" }}</div>
-      <div class="right"><small>Finished</small>{{ t.finished_on|date:"M j" }}</div>
+      <div><small>{% translate "Started" %}</small>{{ t.started_on|ethdate:"short" }}</div>
+      <div class="right"><small>{% translate "Finished" %}</small>{{ t.finished_on|ethdate:"short" }}</div>
     </div>
     {% if t.is_paid %}
-      <p class="paid">Paid {{ t.paid_on|date:"M j" }}</p>
+      <p class="paid">{% blocktranslate with d=t.paid_on|ethdate:"short" %}Paid {{ d }}{% endblocktranslate %}</p>
     {% else %}
-      <p class="small">Payment not recorded</p>
-      <form method="post" action="{% url 'shop:task_mark_paid' t.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn">Mark as paid</button></form>
+      <form method="post" action="{% url 'shop:task_mark_paid' t.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-primary btn-block">{% translate "Mark as paid" %}</button></form>
     {% endif %}
   </article>
 {% empty %}
-  <div class="empty"><b>No finished tasks{% if status != "all" %} with that status{% endif %}</b><p>Tasks show up here when a garment moves on from a worker.{% if in_progress %} {{ in_progress }} task{{ in_progress|pluralize }} {{ in_progress|pluralize:"is,are" }} still in progress.{% endif %}</p></div>
+  <div class="empty"><b>{% if status != "all" %}{% translate "No finished tasks with that status" %}{% else %}{% translate "No finished tasks" %}{% endif %}</b><p>{% translate "Tasks show up here when a garment moves on from a worker." %}{% if in_progress %} {% blocktranslate count n=in_progress %}{{ n }} task is still in progress.{% plural %}{{ n }} tasks are still in progress.{% endblocktranslate %}{% endif %}</p></div>
 {% endfor %}
 </div>
 {% endblock %}

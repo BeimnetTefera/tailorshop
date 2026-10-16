@@ -15,34 +15,6 @@
   });
   document.querySelectorAll("dialog[data-autoopen]").forEach(function (d) { d.showModal(); });
 
-  // ---- Light / dark mode -------------------------------------------------------
-  var root = document.documentElement;
-  var themeMeta = document.querySelector('meta[name="theme-color"]');
-  function applyTheme(theme) {
-    root.setAttribute("data-theme", theme);
-    if (themeMeta) themeMeta.content = theme === "dark" ? "#121413" : "#F3F3F3";
-    document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
-      btn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-    });
-  }
-  applyTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
-  document.addEventListener("click", function (e) {
-    if (!e.target.closest("[data-theme-toggle]")) return;
-    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    applyTheme(next);
-    try { localStorage.setItem("theme", next); } catch (err) {}
-  });
-  if (window.matchMedia) {
-    // Follow the device setting until the user picks a mode themselves.
-    var media = matchMedia("(prefers-color-scheme: dark)");
-    var onChange = function (ev) {
-      var saved = null;
-      try { saved = localStorage.getItem("theme"); } catch (err) {}
-      if (!saved) applyTheme(ev.matches ? "dark" : "light");
-    };
-    if (media.addEventListener) media.addEventListener("change", onChange);
-  }
-
   // ---- Toasts fade out ---------------------------------------------------------
   document.querySelectorAll(".toast").forEach(function (t) {
     setTimeout(function () { t.classList.add("hide"); }, 3500);
@@ -56,10 +28,17 @@
       var text = zone.querySelector("[data-file-label]");
       var file = input.files && input.files[0];
       if (!file) return;
-      if (text) text.textContent = input.files.length > 1 ? input.files.length + " photos chosen" : file.name;
+      if (text) text.textContent = input.files.length > 1 ? input.files.length + " " + (text.dataset.many || "") : file.name;
       var img = zone.querySelector("img");
       if (!img) { img = document.createElement("img"); img.alt = "Selected photo"; zone.insertBefore(img, zone.firstChild); }
       img.src = URL.createObjectURL(file);
+    });
+  });
+
+  // ---- Update thread: show that a photo is attached -----------------------------
+  document.querySelectorAll("input[data-attach]").forEach(function (input) {
+    input.addEventListener("change", function () {
+      input.closest(".attach").classList.toggle("has-file", !!(input.files && input.files.length));
     });
   });
 
@@ -219,12 +198,13 @@
       qty.max = stock;
       if (!amountEdited) amount.value = (price * n).toFixed(0);
       var fmt = function (v) { return Number(v || 0).toLocaleString("en-US"); };
+      var words = saleForm.dataset;
       saleForm.querySelector("[data-sum-item]").textContent = opt.dataset.label;
       saleForm.querySelector("[data-sum-qty]").textContent = n;
-      saleForm.querySelector("[data-sum-amount]").textContent = fmt(amount.value) + " ETB";
+      saleForm.querySelector("[data-sum-amount]").textContent = fmt(amount.value) + " " + words.currency;
       var after = stock - n;
-      saleForm.querySelector("[data-sum-stock]").textContent = stock + " → " + (after < 0 ? "not enough" : after + " available");
-      saleForm.querySelector("[data-stock-note]").textContent = stock + " available";
+      saleForm.querySelector("[data-sum-stock]").textContent = stock + " → " + (after < 0 ? words.notEnough : after + " " + words.available);
+      saleForm.querySelector("[data-stock-note]").textContent = stock + " " + words.available;
     }
     saleForm.querySelectorAll("[data-step-qty]").forEach(function (btn) {
       btn.addEventListener("click", function () {

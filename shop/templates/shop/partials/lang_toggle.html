@@ -1,0 +1,7 @@
+{% load i18n shop_extras %}{% get_current_language as LANG %}{% other_language as OTHER %}
+<form method="post" action="{% url 'shop:set_language' %}">
+  {% csrf_token %}
+  <input type="hidden" name="language" value="{{ OTHER }}">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <button class="lang-toggle" aria-label="{% if OTHER == 'en' %}Switch to English{% else %}ወደ አማርኛ ቀይር{% endif %}">{% if LANG == "am" %}<b>አማ</b> · EN{% else %}አማ · <b>EN</b>{% endif %}</button>
+</form>

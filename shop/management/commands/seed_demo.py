@@ -58,6 +58,8 @@ class Command(BaseCommand):
         if not User.objects.filter(username="dawit").exists():
             messenger = User.objects.create_user("dawit", password="dawit1234", first_name="Dawit")
             StaffProfile.objects.create(user=messenger, role=StaffProfile.Role.MESSENGER, phone="0918223344")
+        self.owner = User.objects.get(username="selam")
+        self.messenger = User.objects.get(username="dawit")
 
         workers = self._workers()
         styles = self._styles()
@@ -172,7 +174,12 @@ class Command(BaseCommand):
             started_on=self.today - timedelta(days=start_ago),
             finished_on=self.today - timedelta(days=end_ago) if end_ago is not None else None,
             paid_on=self.today - timedelta(days=paid_ago) if paid_ago is not None else None,
+            created_by=self.messenger, created_at=self._ago(start_ago, hour=9),
         )
+
+    def _note(self, order, user, text, ago, hour=11):
+        StageNote.objects.create(order=order, user=user, author=user.first_name, text=text,
+                                 created_at=self._ago(ago, hour=hour))
 
     def _orders(self, w, s):
         # Delivered orders spread over the past two months (fills the finance chart).
@@ -201,10 +208,11 @@ class Command(BaseCommand):
                            stage=Stage.SEWING, worker=w["Almaz"], total=8000, deposit=3500)
         self._task(hana, w["Kebede"], 8, 4, paid_ago=3)
         self._task(hana, w["Almaz"], 2)
-        for text, who, ago in [("Waiting for repair approval.", "Patch repairer", 9),
-                               ("Embroidery pattern chosen.", "Decoration specialist", 7),
-                               ("Need sleeve adjustment.", "Almaz · tailor", 1)]:
-            StageNote.objects.create(order=hana, text=text, author=who, created_at=self._ago(ago))
+        self._note(hana, self.messenger, "Hana chose the gold embroidery pattern for all three dresses.", 7)
+        self._note(hana, self.messenger, "Picked up the cut pieces from Kebede and took them to Almaz. "
+                                         "She says the gold thread is running short — needs 2 more spools.", 2, hour=10)
+        self._note(hana, self.owner, "Take 2 spools of Gold Thread from stock. Same shade as before.", 2, hour=12)
+        self._note(hana, self.messenger, "Almaz asks to adjust the sleeves on the bride's dress. Hana agreed by phone.", 1, hour=15)
 
         sara = self._order("Sara Kebede", "0912345678", s["HK-012"], created_ago=9, due_in=0,
                            stage=Stage.CUTTING, worker=w["Kebede"], total=6000, deposit=3000)
@@ -225,8 +233,7 @@ class Command(BaseCommand):
         self._task(beti, w["Kebede"], 19, 16, paid_ago=15)
         self._task(beti, w["Almaz"], 16, 5)
         self._task(beti, w["Mimi"], 5)
-        StageNote.objects.create(order=beti, text="Hem too long on two dresses.", author="Hiwot · quality check",
-                                 created_at=self._ago(5))
+        self._note(beti, self.messenger, "Hiwot found the hem too long on two dresses. Took them to Mimi for repair.", 5)
 
         mesi = self._order("Meseret Alemayehu", "0916789012", s["HK-024"], created_ago=15, due_in=0,
                            stage=Stage.QUALITY, worker=w["Hiwot"], total=7000, deposit=2500)
@@ -265,9 +272,11 @@ class Command(BaseCommand):
         Sale.objects.create(item=items[3], quantity=1, amount=D(1200), status="paid", created_at=self._ago(0, 9, 10))
 
     def _activity(self):
-        for text, days, hour, minute in [
-            ("Payment recorded · Almaz", 1, 17, 30),
-            ("Hana Tesfaye's order moved to sewing · Almaz", 0, 8, 20),
-            ("Sale recorded · FS-024", 0, 9, 21),
+        # Message templates match the ones the app logs, so they show in each reader's language.
+        for text, params, days, hour, minute in [
+            ("Payment recorded · %(name)s", {"name": "Almaz"}, 1, 17, 30),
+            ("%(name)s's order moved to %(stage)s · %(worker)s",
+             {"name": "Hana Tesfaye", "stage": "sewing", "worker": "Almaz"}, 0, 8, 20),
+            ("Sale recorded · %(code)s", {"code": "FS-024"}, 0, 9, 21),
         ]:
-            Activity.objects.create(text=text, created_at=self._ago(days, hour, minute))
+            Activity.objects.create(text=text, params=params, created_at=self._ago(days, hour, minute))

@@ -1,31 +1,34 @@
-{% load shop_extras %}{% with wt=field.widget_type %}
+{% load i18n shop_extras %}{% with wt=field.widget_type %}
 <div class="field{% if field.errors %} has-error{% endif %}">
   {% if wt == "checkbox" %}
     <label class="check">{{ field }}<span>{{ field.label }}</span></label>
   {% elif wt == "radioselect" or wt == "checkboxselectmultiple" %}
     <span class="label">{{ field.label }}</span>
-    <div class="chips">{% for opt in field %}<label class="chip-opt">{{ opt.tag }}<span>{{ opt.choice_label }}</span></label>{% empty %}<span class="help">Nothing to choose yet.</span>{% endfor %}</div>
+    <div class="chips">{% for opt in field %}<label class="chip-opt">{{ opt.tag }}<span>{{ opt.choice_label }}</span></label>{% empty %}<span class="help">{% translate "Nothing to choose yet." %}</span>{% endfor %}</div>
+  {% elif wt == "ethiopiandate" %}
+    <span class="label" id="{{ field.auto_id }}_label">{{ field.label }}</span>
+    <div role="group" aria-labelledby="{{ field.auto_id }}_label">{{ field }}</div>
   {% elif wt == "file" %}
     <span class="label">{{ field.label }}</span>
     <label class="dropzone">
-      {% if field.value and field.value.url %}<img src="{{ field.value.url }}" alt="Current photo">{% endif %}
+      {% if field.value and field.value.url %}<img src="{{ field.value.url }}" alt="{% translate 'Current photo' %}">{% endif %}
       {% icon "camera" 24 %}
-      <span data-file-label>{% if field.value %}Tap to replace the photo{% else %}Upload a photo{% endif %}</span>
+      <span data-file-label>{% if field.value %}{% translate "Tap to replace the photo" %}{% else %}{% translate "Take or upload a photo" %}{% endif %}</span>
       {{ field }}
     </label>
   {% elif wt == "multiplephoto" %}
     <span class="label">{{ field.label }}</span>
     <label class="dropzone" data-multi>
       {% icon "camera" 24 %}
-      <span data-file-label>Add photos</span>
+      <span data-file-label data-many="{% translate 'photos chosen' %}">{% translate "Add photos" %}</span>
       {{ field }}
     </label>
   {% elif wt == "photochoices" %}
     <span class="label">{{ field.label }}</span>
-    <div class="photo-picks">{% for opt in field %}<label class="photo-pick">{{ opt.tag }}<img src="{{ opt.choice_label }}" alt="Extra photo {{ forloop.counter }}"><span class="photo-pick-mark">{% icon "x" 16 %}</span></label>{% endfor %}</div>
+    <div class="photo-picks">{% for opt in field %}<label class="photo-pick">{{ opt.tag }}<img src="{{ opt.choice_label }}" alt="{% blocktranslate with n=forloop.counter %}Extra photo {{ n }}{% endblocktranslate %}"><span class="photo-pick-mark">{% icon "x" 16 %}</span></label>{% endfor %}</div>
   {% elif unit %}
     <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-    <div class="unit-wrap">{{ field }}</div>
+    <div class="unit-wrap" data-unit="{% translate 'cm' %}">{{ field }}</div>
   {% else %}
     <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
     {{ field }}

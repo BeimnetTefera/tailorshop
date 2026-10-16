@@ -27,7 +27,8 @@ _RULES = [
 
 
 def demo(request):
-    return {"demo_mode": settings.DEMO_MODE}
+    # The login page shows the demo accounts while demo data is in use.
+    return {"demo_mode": settings.DEMO_MODE or settings.DEMO_DATA}
 
 
 def roles(request):

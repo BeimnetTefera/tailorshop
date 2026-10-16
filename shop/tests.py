@@ -729,6 +729,60 @@ class DemoInstanceTests(TestCase):
         self.assertEqual(self.client.get(reverse("media_file", args=["demo/missing.jpg"])).status_code, 404)
 
 
+@override_settings(STORAGES={
+    "default": {"BACKEND": "shop.storage.DatabaseStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+})
+class DatabaseStorageTests(TestCase):
+    """With a shared database and no file storage, photos live in the database too."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.client.force_login(self.messenger)
+        self.order = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)
+
+    def _big_photo(self):
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buf = BytesIO()
+        Image.new("RGB", (3000, 2000), "purple").save(buf, "JPEG", quality=95)
+        return SimpleUploadedFile("dress.jpg", buf.getvalue(), content_type="image/jpeg")
+
+    def test_update_photo_is_kept_in_the_database_and_shrunk(self):
+        from io import BytesIO
+
+        from PIL import Image
+
+        from .models import StoredFile
+
+        self.client.post(reverse("shop:order_add_note", args=[self.order.pk]),
+                         {"text": "Fabric is here", "photo": self._big_photo()})
+        note = StageNote.objects.get(order=self.order, text="Fabric is here")
+        stored = StoredFile.objects.get(name=note.photo.name)
+        self.assertEqual(Image.open(BytesIO(bytes(stored.data))).size, (1600, 1067))
+        response = self.client.get(note.photo.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        # Still there on the next visit (and on any other server reading the same database).
+        self.assertContains(self.client.get(reverse("shop:tracker_detail", args=[self.order.pk])), note.photo.url)
+
+    def test_demo_photos_still_come_from_the_app(self):
+        item = FreeSizeItem.objects.get(code="FS-024")
+        self.assertEqual(self.client.get(item.photo.url).status_code, 200)
+
+    def test_loading_demo_data_twice_adds_nothing(self):
+        before = (Order.objects.count(), FreeSizeItem.objects.count(), get_user_model().objects.count())
+        call_command("seed_demo", verbosity=0)
+        self.assertEqual((Order.objects.count(), FreeSizeItem.objects.count(), get_user_model().objects.count()), before)
+
+
 class MediaTests(TempMediaMixin, TestCase):
     def setUp(self):
         self.use_temp_media()

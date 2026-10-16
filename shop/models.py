@@ -595,6 +595,19 @@ class Sale(models.Model):
         return f"{self.item.code} × {self.quantity}"
 
 
+class StoredFile(models.Model):
+    """An uploaded photo kept in the database (see shop.storage.DatabaseStorage)."""
+
+    name = models.CharField(max_length=255, unique=True)
+    data = models.BinaryField()
+    size = models.PositiveIntegerField(default=0)
+    content_type = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.name
+
+
 class Activity(models.Model):
     """The home page feed. `text` is an English message template; it is translated
     when shown, so each person reads it in their own language."""

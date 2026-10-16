@@ -93,8 +93,16 @@ does the same job with polib.)
 
 ## Hosting
 
-On Vercel the app runs from `api/index.py`. With no database configured it is a **demo**:
-SQLite in `/tmp`, reloaded with demo data whenever an instance starts.
+On Vercel the app runs from `api/index.py`. With no database configured it is a
+**throwaway demo**: SQLite in `/tmp`, reloaded with demo data whenever an instance starts,
+so anything added there can vanish on the next click.
+
+**Keeping data (quickest):** in Vercel, open the project → **Storage** → **Create
+Database** → **Neon (Postgres)** → connect it to this project. That adds `DATABASE_URL`
+(or `POSTGRES_URL`) by itself. Add `DEMO_DATA=1` under Settings → Environment Variables to
+load the demo data once, then redeploy. Everything people add is kept and shared by every
+instance; photos are stored in the database, shrunk to 1600 px on upload. Remove
+`DEMO_DATA` (and the demo accounts) before real use.
 
 For real use, add these environment variables in Vercel (Project → Settings →
 Environment Variables) and redeploy; migrations run on start-up:

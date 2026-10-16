@@ -9,11 +9,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Running on Vercel (set by Vercel itself, and by api/index.py). Only /tmp is writable there.
 ON_VERCEL = os.environ.get("VERCEL") == "1" or os.environ.get("ON_VERCEL") == "1"
-# Supabase (or any PostgreSQL) connection string. Without it the app uses SQLite.
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
-# Public demo: on Vercel without a real database. The SQLite file lives in /tmp, is
+# PostgreSQL connection string (Supabase, or Vercel's Neon Postgres, which may name it
+# POSTGRES_URL). Without it the app uses SQLite.
+DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL", "")
+# Throwaway demo: on Vercel without a real database. The SQLite file lives in /tmp, is
 # wiped whenever an instance restarts, and is re-seeded with demo data.
 DEMO_MODE = ON_VERCEL and not DATABASE_URL
+# DEMO_DATA=1 with a real database: load the demo data once (if the database is empty)
+# and keep everything people add, shared by every server instance.
+DEMO_DATA = os.environ.get("DEMO_DATA") == "1"
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
 DEBUG = os.environ.get("DJANGO_DEBUG", "0" if ON_VERCEL else "1") == "1"
@@ -73,7 +77,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 if DATABASE_URL:
     # Serverless functions open a fresh connection per request; use Supabase's pooler
     # (port 6543, transaction mode), which doesn't support server-side cursors.
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0, ssl_require=True)}
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0,
+                                                  ssl_require=DATABASE_URL.startswith("postgres"))}
     DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     DATABASES = {
@@ -124,6 +129,13 @@ if STORAGE_BUCKET:
                 "file_overwrite": False,
             },
         },
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+elif DATABASE_URL and ON_VERCEL:
+    # A database but no file storage: keep photos in the database (shrunk on upload), so
+    # every server instance sees them. Fine for one shop; Supabase Storage scales further.
+    STORAGES = {
+        "default": {"BACKEND": "shop.storage.DatabaseStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 

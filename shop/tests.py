@@ -555,10 +555,14 @@ class RoleTests(TestCase):
         self.assertContains(response, "ይህ የተጠቃሚ ስም ተይዟል።")
         self.assertContains(response, "በጣም አጭር ነው")
 
-    def test_owner_has_a_team_tab_for_accounts(self):
+    def test_owner_reaches_team_from_the_avatar_menu(self):
         self.client.force_login(self.owner)
         home = self.client.get(reverse("shop:dashboard"))
-        self.assertContains(home, f'href="{reverse("shop:manage")}"')
+        html = home.content.decode()
+        nav = re.search(r'<nav class="bottom-nav".*?</nav>', html, re.S).group(0)
+        menu = re.search(r'<dialog class="sheet" id="account-sheet".*?</dialog>', html, re.S).group(0)
+        self.assertNotIn(reverse("shop:manage"), nav)  # not in the bottom bar any more
+        self.assertIn(f'href="{reverse("shop:manage")}"', menu)
         self.assertRedirects(self.client.get(reverse("shop:account")), reverse("shop:manage"))
         page = self.client.get(reverse("shop:manage"))
         self.assertContains(page, reverse("shop:messenger_list"))

@@ -19,6 +19,7 @@ override_settings(MEDIA_ROOT=_TEST_MEDIA).enable()
 override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"]).enable()
 
 from . import ethiopian
+from .templatetags.shop_extras import format_etb
 from .models import (
     Activity, FreeSizeItem, Material, MaterialCategory, Order, Payment, Sale, StaffProfile, Stage, StageNote, Style,
     Worker, WorkerTask,
@@ -580,8 +581,12 @@ class RoleTests(TestCase):
         self.assertContains(page, 'class="bars"')
         self.assertNotContains(page, "linechart")
         self.assertNotContains(page, "data-chart-type")
-        self.assertContains(page, "data-tip=")  # hover / focus shows each week's amount
+        self.assertContains(page, "data-tip=")  # hover / focus shows each week's dates too
         self.assertContains(page, "<caption>")  # table view for screen readers
+        html = page.content.decode()
+        tags = re.findall(r'<span class="tag">([^<]*)</span>', html)
+        for week, tag in zip(page.context["weeks"], tags):  # an amount on every bar except weeks to come
+            self.assertEqual(tag, "" if week["is_future"] else format_etb(week["amount"]))
 
     def test_owner_cannot_be_edited_as_a_messenger(self):
         self.client.force_login(self.owner)

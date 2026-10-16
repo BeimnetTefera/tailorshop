@@ -415,7 +415,7 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .gold-card > a, .gold-card > div { display: block; background: var(--surface); border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink); }
 .gold-card .big { font-family: var(--display); font-size: 34px; font-weight: 600; color: var(--gold); margin: 6px 0; line-height: 1.15; }
 /* weekly income chart: one series in gold (--chart passes the palette checks on the
-   card surface); the selected week is brighter and the only one with a printed value */
+   card surface); every past week shows its amount, the selected week brighter and bold */
 .chart-wrap { position: relative; --chart: #B88A38; }
 .chart-tip {
   position: absolute; transform: translate(-50%, calc(-100% - 8px)); z-index: 3; pointer-events: none; white-space: nowrap;
@@ -431,7 +431,8 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .bar.is-future i { background: var(--line); }
 .bar small { position: absolute; bottom: -22px; font-size: 12px; }
 .bars { padding-bottom: 34px; }
-.bar .tag { font-size: 12px; font-weight: 600; color: var(--ink); min-height: 16px; white-space: nowrap; }
+.bar .tag { font-size: 11px; font-weight: 500; color: var(--muted); min-height: 16px; white-space: nowrap; }
+.bar.is-selected .tag { font-size: 12px; font-weight: 700; color: var(--ink); }
 .trend { display: flex; gap: 10px; align-items: flex-start; background: var(--gold-soft); border-radius: 12px; padding: 12px 14px; margin-top: 10px; font-size: 13px; }
 .trend .diamond { margin-top: 6px; }
 .income-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }

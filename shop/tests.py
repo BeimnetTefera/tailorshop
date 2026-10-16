@@ -301,8 +301,10 @@ class ReadyMadePageTests(TestCase):
         self.assertContains(page, "በእጅ የተሠራ")
 
     def test_every_demo_piece_has_its_photo(self):
-        self.assertEqual(FreeSizeItem.objects.count(), 7)
+        self.assertEqual(FreeSizeItem.objects.count(), 10)
         self.assertFalse(FreeSizeItem.objects.filter(photo="").exists())
+        for code, category in [("FS-042", "wedding"), ("FS-044", "children"), ("FS-046", "men")]:
+            self.assertEqual(FreeSizeItem.objects.get(code=code).category, category)
 
     def test_previous_and_next_walk_the_rack(self):
         items = list(FreeSizeItem.objects.all())

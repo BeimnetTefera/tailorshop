@@ -170,6 +170,17 @@ class Command(BaseCommand):
             ("FS-040", "Purple and gold kemis", "formal", 7500, 5, "purple-gold-kemis.jpg",
              dict(pattern_type="Purple and gold embroidery", sleeve_length="Long, embroidered cuffs", length="145 cm",
                   waist="70 cm", fit="Fitted waist", fabric="Chiffon", color="White, purple and gold", made=hand)),
+            ("FS-042", "Green and gold wedding dress", "wedding", 12000, 2, "wedding-green-gold.jpg",
+             dict(pattern_type="Gold tibeb rings on a green hem", sleeve_length="Short cape sleeve", length="155 cm",
+                  waist="64 cm", fit="Fitted bodice, full skirt", fabric="Cotton with gold thread",
+                  color="White, green and gold", made=hand)),
+            ("FS-044", "Children's festive kemis", "children", 2800, 5, "childrens-festive-kemis.jpg",
+             dict(pattern_type="Colourful tibeb down the front, with netela", sleeve_length="Long sleeve",
+                  length="90 cm", fit="Loose", fabric="Hand-woven cotton", color="White with colourful tibeb",
+                  made=hand)),
+            ("FS-046", "Men's gold-trim shirt", "men", 3500, 8, "mens-gold-trim-shirt.jpg",
+             dict(pattern_type="Gold tibeb trim on collar, placket and pocket", sleeve_length="Long sleeve",
+                  length="75 cm", fit="Regular fit", fabric="Cotton", color="White and gold", made=both)),
         ]
         items = []
         for code, name, category, price, qty, photo, extra in data:

@@ -1295,6 +1295,9 @@ msgstr "ሁሉንም አሳይ"
 msgid "Swipe a card right to mark it ready, left to edit."
 msgstr "ዝግጁ ለማድረግ ካርዱን ወደ ቀኝ፣ ለማስተካከል ወደ ግራ ይጎትቱ።"
 
+msgid "Urgent order"
+msgstr "አስቸኳይ ትዕዛዝ"
+
 msgid "Waiting for pickup"
 msgstr "መረከብ በመጠበቅ ላይ"
 

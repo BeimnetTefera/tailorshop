@@ -242,6 +242,16 @@ class ShopFlowTests(TestCase):
         response = self.client.post(reverse("shop:task_mark_paid", args=[task.pk]), {"next": "https://evil.example", **_pin(self.owner)})
         self.assertEqual(response["Location"], reverse("shop:worker_payments"))
 
+    def test_urgent_orders_stand_out_in_the_list(self):
+        page = self.client.get(reverse("shop:order_list"))
+        html = page.content.decode()
+        urgent = Order.objects.filter(priority=Order.Priority.URGENT).exclude(stage=Stage.DELIVERED)
+        self.assertTrue(urgent.exists())
+        self.assertEqual(html.count("order-card swipe-card urgent"), urgent.count())
+        self.assertEqual(html.count("pill pill-urgent"), urgent.count())
+        normal = Order.objects.filter(priority=Order.Priority.STANDARD).exclude(stage=Stage.DELIVERED).first()
+        self.assertRegex(html, rf'order-card swipe-card"[^>]*data-left="{reverse("shop:order_edit", args=[normal.pk])}"')
+
     def test_finance_follows_ethiopian_months(self):
         response = self.client.get(reverse("shop:finance") + "?month=2019-2")
         self.assertContains(response, "Tikimt 2019")

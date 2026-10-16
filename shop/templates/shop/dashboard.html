@@ -60,7 +60,7 @@
   {% for o in current_work %}
   <a class="row-item" href="{% url 'shop:tracker_detail' o.pk %}">
     <span class="avatar{% if o.urgency == 'danger' %} danger{% endif %}">{{ o.customer.name|slice:":1" }}</span>
-    <span class="grow"><span class="title">{{ o.customer.name }}</span><span class="meta">{{ o.title }} · {{ o.get_stage_display }} · {{ o.current_worker.name }}</span></span>
+    <span class="grow"><span class="title">{{ o.customer.name }}{% if o.priority == "urgent" %} <span class="pill pill-urgent">{% icon "alert" 12 %} {% translate "Urgent" %}</span>{% endif %}</span><span class="meta">{{ o.title }} · {{ o.get_stage_display }} · {{ o.current_worker.name }}</span></span>
     <span class="end{% if o.urgency == 'danger' %} status-out{% endif %}">{% if o.days_left == 0 %}{% translate "Today" %}{% else %}{{ o.due_date|ethdate:"short" }}{% endif %}</span>
   </a>
   {% endfor %}

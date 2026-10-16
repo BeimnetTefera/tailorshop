@@ -263,7 +263,17 @@ textarea.input { min-height: 88px; resize: vertical; }
 .filter-note { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 
 .order-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; touch-action: pan-y; transition: transform .2s ease; }
-.order-card.urgent { border-color: var(--danger); }
+/* Urgent orders stand out from the list: thicker red border, a soft glow and a faint red tint. */
+.order-card.urgent, .result-link.urgent {
+  border: 2px solid var(--danger);
+  background: var(--surface);
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  box-shadow: 0 0 0 4px var(--danger-soft);
+}
+.order-card.urgent { padding: 13px 15px; }  /* keeps the card the same size despite the thicker border */
+.pill-urgent { background: var(--danger); color: var(--on-gold); font-weight: 700; letter-spacing: .02em; }
+.pill-urgent .ic { stroke-width: 2.4; }
+.order-card .name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
 .order-card a { text-decoration: none; color: inherit; display: block; }
 .order-card h3 { font-size: 17px; }
 .order-card small { font-size: 12px; color: var(--muted); }

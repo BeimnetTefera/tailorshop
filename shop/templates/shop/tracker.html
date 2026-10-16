@@ -23,7 +23,7 @@
   {% if q and not order %}
     <div class="stack-sm mt">
       {% for r in results %}
-        <a class="result-link" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b><br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small gold">{{ r.status_label }}</span></a>
+        <a class="result-link{% if r.priority == 'urgent' %} urgent{% endif %}" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b>{% if r.priority == "urgent" %} <span class="pill pill-urgent">{% icon "alert" 13 %} {% translate "Urgent" %}</span>{% endif %}<br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small gold">{{ r.status_label }}</span></a>
       {% empty %}
         <div class="empty"><b>{% blocktranslate %}No active order matches “{{ q }}”{% endblocktranslate %}</b><p>{% translate "Delivered orders are on the Delivered tab of the orders list." %}</p></div>
       {% endfor %}
@@ -36,7 +36,7 @@
 <section>
   <h2 class="ticket-name">{{ order.customer.name }}</h2>
   <p class="ticket-meta">{{ order.title }} · {{ order.ref }}{% if order.people_count > 1 %} · {% blocktranslate with n=order.people_count %}for {{ n }} people{% endblocktranslate %}{% endif %} · <a href="tel:{{ order.customer.phone }}">{{ order.customer.phone }}</a></p>
-  {% if order.priority == "urgent" or order.is_delayed %}<p class="mt" style="margin-top:8px">{% if order.priority == "urgent" %}<span class="pill pill-danger">{% translate "Urgent" %}</span>{% endif %} {% if order.is_delayed %}<span class="pill pill-danger">{% translate "Delayed" %} · {{ order.days_left_label }}</span>{% endif %}</p>{% endif %}
+  {% if order.priority == "urgent" or order.is_delayed %}<p class="mt" style="margin-top:8px">{% if order.priority == "urgent" %}<span class="pill pill-urgent">{% icon "alert" 13 %} {% translate "Urgent" %}</span>{% endif %} {% if order.is_delayed %}<span class="pill pill-danger">{% translate "Delayed" %} · {{ order.days_left_label }}</span>{% endif %}</p>{% endif %}
 
   <div class="meta-grid">
     <div><span>{% translate "Due" %}</span><b>{{ order.due_date|ethdate }}</b>{% if order.is_active and order.stage != "ready" %}<small class="muted">{{ order.days_left_label }}</small>{% endif %}</div>

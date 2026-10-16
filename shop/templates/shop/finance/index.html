@@ -4,6 +4,7 @@
 <header class="topbar">
   <h1>{% translate "Money" %}<div class="sub">{% translate "How the shop is doing." %}</div></h1>
   <a class="btn btn-outline btn-sm" href="{% url 'shop:worker_payments' %}">{% translate "Worker pay" %}</a>
+  {% include "shop/partials/account_button.html" %}
 </header>
 
 <div class="week-nav">

@@ -758,24 +758,6 @@ msgstr "የተጠቃሚ ስሙ እና የይለፍ ቃሉ አይመሳሰሉም�
 msgid "Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. The PIN for both is <b>1234</b>. Changes reset from time to time."
 msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>selam</b> / <b>selam1234</b>፣ መልእክተኛ <b>dawit</b> / <b>dawit1234</b>። የሁለቱም ፒን <b>1234</b> ነው። ለውጦች አልፎ አልፎ ይሰረዛሉ።"
 
-msgid "Account"
-msgstr "መለያ"
-
-msgid "Back"
-msgstr "ተመለስ"
-
-msgid "Language"
-msgstr "ቋንቋ"
-
-msgid "Choose the language you read the app in."
-msgstr "መተግበሪያውን የሚያነቡበትን ቋንቋ ይምረጡ።"
-
-msgid "Sign out"
-msgstr "ውጣ"
-
-msgid "Signed in as %(username)s"
-msgstr "በ%(username)s ገብተዋል"
-
 msgid "Home"
 msgstr "መነሻ"
 
@@ -865,6 +847,9 @@ msgstr "%(n)s ቀርቷል"
 
 msgid "Income"
 msgstr "ገቢ"
+
+msgid "Back"
+msgstr "ተመለስ"
 
 msgid "Income for the week"
 msgstr "የሳምንቱ ገቢ"
@@ -1149,9 +1134,6 @@ msgstr "የሠራተኛ ክፍያዎች"
 msgid "Finished tasks and what is still owed."
 msgstr "የተጠናቀቁ ሥራዎች እና ገና የሚከፈለው።"
 
-msgid "Your account"
-msgstr "የእርስዎ መለያ"
-
 msgid "%(n)s can sign in"
 msgid_plural "%(n)s can sign in"
 msgstr[0] "%(n)s መግባት ይችላል"
@@ -1355,6 +1337,39 @@ msgstr "የሚደርሰው %(d)s"
 msgid "Delivered %(d)s"
 msgstr "%(d)s ተረክቧል"
 
+msgid "Your account"
+msgstr "የእርስዎ መለያ"
+
+msgid "Language"
+msgstr "ቋንቋ"
+
+msgid "Choose the language you read the app in."
+msgstr "መተግበሪያውን የሚያነቡበትን ቋንቋ ይምረጡ።"
+
+msgid "Change PIN"
+msgstr "ፒን ቀይር"
+
+msgid "Create PIN"
+msgstr "ፒን ፍጠር"
+
+msgid "Asked before changes to money, orders and accounts, and before deleting."
+msgstr "በገንዘብ፣ በትዕዛዝ እና በመለያ ለውጦች እንዲሁም ከመሰረዝ በፊት ይጠየቃል።"
+
+msgid "Sign out every other phone and computer that uses this account? This one stays signed in."
+msgstr "ይህን መለያ የሚጠቀሙ ሌሎች ስልኮች እና ኮምፒውተሮች በሙሉ ይውጡ? ይኼኛው እንደገባ ይቆያል።"
+
+msgid "Lost your phone?"
+msgstr "ስልክዎ ጠፋ?"
+
+msgid "Sign out every other device. Your data is safe on the server."
+msgstr "ሌሎች መሣሪያዎችን በሙሉ ያስወጡ። መረጃዎ በሰርቨሩ ላይ ደህና ነው።"
+
+msgid "Sign out"
+msgstr "ውጣ"
+
+msgid "Signed in as %(username)s"
+msgstr "በ%(username)s ገብተዋል"
+
 msgid "Ready-made"
 msgstr "ዝግጁ ልብስ"
 
@@ -1411,30 +1426,6 @@ msgstr "አረጋግጥ"
 
 msgid "Forgot your PIN? Set a new one with your password"
 msgstr "ፒንዎን ረሱ? በይለፍ ቃልዎ አዲስ ያስቀምጡ"
-
-msgid "Asked before changes to money, orders and accounts, and before deleting."
-msgstr "በገንዘብ፣ በትዕዛዝ እና በመለያ ለውጦች እንዲሁም ከመሰረዝ በፊት ይጠየቃል።"
-
-msgid "Not set yet. You'll be asked to create one the first time you make a protected change."
-msgstr "ገና አልተቀመጠም። የተጠበቀ ለውጥ ለመጀመሪያ ጊዜ ሲያደርጉ እንዲፈጥሩ ይጠየቃሉ።"
-
-msgid "Change PIN"
-msgstr "ፒን ቀይር"
-
-msgid "Create PIN"
-msgstr "ፒን ፍጠር"
-
-msgid "Sign out every other phone and computer that uses this account? This one stays signed in."
-msgstr "ይህን መለያ የሚጠቀሙ ሌሎች ስልኮች እና ኮምፒውተሮች በሙሉ ይውጡ? ይኼኛው እንደገባ ይቆያል።"
-
-msgid "Lost your phone?"
-msgstr "ስልክዎ ጠፋ?"
-
-msgid "Sign out every other device. Your data is safe on the server."
-msgstr "ሌሎች መሣሪያዎችን በሙሉ ያስወጡ። መረጃዎ በሰርቨሩ ላይ ደህና ነው።"
-
-msgid "Sign out others"
-msgstr "ሌሎችን አስወጣ"
 
 msgid "Previous week"
 msgstr "ያለፈው ሳምንት"

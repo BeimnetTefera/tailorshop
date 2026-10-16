@@ -4,6 +4,7 @@
 <header class="topbar">
   <h1>{% translate "Collection" %}<div class="sub">{% translate "Finished pieces you sell off the rack." %}</div></h1>
   <a class="btn btn-primary btn-sm" href="{% url 'shop:sale_create' %}">{% icon "receipt" 16 %} {% translate "Record sale" %}</a>
+  {% include "shop/partials/account_button.html" %}
 </header>
 {% include "shop/partials/collection_tabs.html" with current="readymade" %}
 

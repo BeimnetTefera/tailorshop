@@ -4,6 +4,7 @@
 <header class="topbar">
   <h1>{% translate "Collection" %}<div class="sub">{% translate "Designs customers can choose to have made to order." %}</div></h1>
   <button class="icon-btn" data-open="style-filter" aria-label="{% translate 'Filter' %}">{% icon "filter" 20 %}{% if filter_count %}<span class="dot">{{ filter_count }}</span>{% endif %}</button>
+  {% include "shop/partials/account_button.html" %}
 </header>
 {% include "shop/partials/collection_tabs.html" with current="gallery" %}
 

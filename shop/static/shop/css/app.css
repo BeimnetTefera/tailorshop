@@ -554,6 +554,28 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .tag-box { border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ink); }
 .tag-box:hover { border-color: var(--gold); }
 
+/* avatar button at the top of the main screens, and the account menu it opens */
+.avatar-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--gold);
+  background: var(--gold); color: var(--on-gold); font-family: var(--display); font-size: 18px; font-weight: 700;
+  display: grid; place-items: center; box-shadow: 0 0 0 3px var(--gold-soft);
+}
+.avatar-btn:hover { background: var(--gold-strong); }
+.avatar.lg { width: 52px; height: 52px; border-radius: 26px; font-family: var(--display); font-size: 22px; }
+.menu-list { display: flex; flex-direction: column; background: var(--sunken); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.menu-list > form { margin: 0; }
+.menu-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 14px;
+  border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink);
+  text-align: left; text-decoration: none; font: inherit;
+}
+.menu-list > :last-child, .menu-list > :last-child .menu-row { border-bottom: 0; }
+button.menu-row:hover, a.menu-row:hover { background: var(--surface); }
+.menu-row .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.menu-row b { font-size: 15px; font-weight: 600; }
+.menu-row > .ic { color: var(--gold); }
+.menu-ic { width: 38px; height: 38px; border-radius: 19px; border: 1px solid var(--line-strong); color: var(--gold); display: grid; place-items: center; flex: none; }
+
 .manage-card { display: flex; align-items: center; gap: 14px; }
 .manage-card:hover { border-color: var(--gold); }
 .manage-card .ring { width: 48px; height: 48px; border-radius: 24px; border: 1px solid var(--line-strong); color: var(--gold); display: grid; place-items: center; flex: none; }

@@ -6,8 +6,8 @@
     <h1>{{ greeting }}</h1>
   </div>
   <div class="tools">
-    {% include "shop/partials/lang_toggle.html" %}
     <a href="{% url 'shop:order_list' %}?due=late" class="icon-btn" aria-label="{% blocktranslate count n=delayed_count %}{{ n }} delayed order{% plural %}{{ n }} delayed orders{% endblocktranslate %}">{% icon "bell" 20 %}{% if delayed_count %}<span class="dot">{{ delayed_count }}</span>{% endif %}</a>
+    {% include "shop/partials/account_button.html" %}
   </div>
 </header>
 
@@ -87,5 +87,4 @@
   {% endfor %}
 </ul>
 
-{% if not is_owner %}<p class="mt-lg"><a class="btn btn-outline btn-block" href="{% url 'shop:account' %}">{% icon "user" 18 %} {% translate "Account" %}</a></p>{% endif %}
 {% endblock %}

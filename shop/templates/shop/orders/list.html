@@ -5,6 +5,7 @@
   <h1>{% translate "Orders" %}</h1>
   <a class="icon-btn" href="{% url 'shop:tracker' %}" aria-label="{% translate 'Find a garment' %}">{% icon "search" 20 %}</a>
   {% if tab == "current" %}<button class="icon-btn" data-open="order-filter" aria-label="{% translate 'Filter orders' %}">{% icon "filter" 20 %}</button>{% endif %}
+  {% include "shop/partials/account_button.html" %}
 </header>
 
 <form class="search" method="get" role="search">

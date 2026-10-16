@@ -1,0 +1,49 @@
+{% load i18n shop_extras %}
+{# Opened by the avatar button at the top of Home and Team (partials/account_button.html). #}
+<dialog class="sheet" id="account-sheet" aria-labelledby="account-sheet-title">
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <div class="row" style="gap:14px">
+        <span class="avatar filled lg" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+        <div><h2 id="account-sheet-title">{{ user.first_name|default:user.username }}</h2>
+          <div class="small muted">{% blocktranslate with username=user.username %}Signed in as {{ username }}{% endblocktranslate %} · {% if is_owner %}{% translate "Owner" %}{% else %}{% translate "Messenger" %}{% endif %}</div></div>
+      </div>
+      <button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button>
+    </div>
+
+    <div class="menu-list">
+      <div class="menu-row">
+        <span class="menu-ic">{% icon "globe" 20 %}</span>
+        <span class="grow"><b>{% translate "Language" %}</b><span class="small muted">{% translate "Choose the language you read the app in." %}</span></span>
+        {% include "shop/partials/lang_toggle.html" %}
+      </div>
+      <button type="button" class="menu-row" data-pin-change>
+        <span class="menu-ic">{% icon "check" 20 %}</span>
+        <span class="grow"><b>{% if has_pin %}{% translate "Change PIN" %}{% else %}{% translate "Create PIN" %}{% endif %}</b><span class="small muted">{% translate "Asked before changes to money, orders and accounts, and before deleting." %}</span></span>
+        {% icon "chev-right" 18 %}
+      </button>
+      <form method="post" action="{% url 'shop:sign_out_everywhere' %}" data-protect
+            data-confirm="{% translate 'Sign out every other phone and computer that uses this account? This one stays signed in.' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="menu-row">
+          <span class="menu-ic">{% icon "alert" 20 %}</span>
+          <span class="grow"><b>{% translate "Lost your phone?" %}</b><span class="small muted">{% translate "Sign out every other device. Your data is safe on the server." %}</span></span>
+          {% icon "chev-right" 18 %}
+        </button>
+      </form>
+      {% if is_owner %}
+      <a class="menu-row" href="{% url 'shop:manage' %}">
+        <span class="menu-ic">{% icon "team" 20 %}</span>
+        <span class="grow"><b>{% translate "Team" %}</b><span class="small muted">{% translate "Who can sign in, and who makes the garments." %}</span></span>
+        {% icon "chev-right" 18 %}
+      </a>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'logout' %}" class="mt">
+      {% csrf_token %}
+      <button class="btn btn-outline btn-block">{% icon "logout" 18 %} {% translate "Sign out" %}</button>
+    </form>
+  </div>
+</dialog>

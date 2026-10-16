@@ -503,7 +503,7 @@ class RoleTests(TestCase):
         self.client.force_login(self.messenger)
         for url in [reverse("shop:dashboard"), reverse("shop:order_list"), reverse("shop:order_create"),
                     reverse("shop:readymade"), reverse("shop:sale_create"), reverse("shop:sales_history"),
-                    reverse("shop:material_list"), reverse("shop:account")]:
+                    reverse("shop:material_list")]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
         home = self.client.get(reverse("shop:dashboard"))
@@ -571,9 +571,28 @@ class RoleTests(TestCase):
         self.client.force_login(self.messenger)
         home = self.client.get(reverse("shop:dashboard"))
         self.assertNotContains(home, reverse("shop:manage"))
-        self.assertContains(home, reverse("shop:account"))
         self.assertRedirects(self.client.get(reverse("shop:manage")), reverse("shop:dashboard"))
-        self.assertEqual(self.client.get(reverse("shop:account")).status_code, 200)
+        self.assertRedirects(self.client.get(reverse("shop:account")), reverse("shop:dashboard"))
+
+    def test_account_menu_opens_from_the_avatar_on_every_main_screen(self):
+        for user in (self.owner, self.messenger):
+            self.client.force_login(user)
+            screens = [reverse("shop:dashboard"), reverse("shop:order_list"), reverse("shop:readymade"),
+                       reverse("shop:clothing_list"), reverse("shop:material_list")]
+            if user == self.owner:
+                screens += [reverse("shop:finance"), reverse("shop:manage")]
+            for url in screens:
+                with self.subTest(user=user.username, url=url):
+                    page = self.client.get(url)
+                    self.assertContains(page, 'class="avatar-btn" data-open="account-sheet"', count=1)
+                    self.assertContains(page, 'id="account-sheet"', count=1)
+            menu = self.client.get(reverse("shop:dashboard"))
+            for item in ("Language", "Change PIN", "Lost your phone?", "Sign out"):
+                self.assertContains(menu, item)
+            self.assertEqual("Who can sign in" in menu.content.decode(), user == self.owner)  # Team link: owner only
+        # The Team page no longer repeats the account block at the bottom.
+        self.client.force_login(self.owner)
+        self.assertNotContains(self.client.get(reverse("shop:manage")), "Your account</h2>")
 
     def test_money_chart_is_bars_only(self):
         self.client.force_login(self.owner)

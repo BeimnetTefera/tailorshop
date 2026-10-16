@@ -230,9 +230,8 @@ def dashboard(request):
 
 
 def account(request):
-    if is_owner(request.user):
-        return redirect("shop:manage")
-    return render(request, "shop/account.html")
+    """Old address: account settings now live in the avatar menu at the top of every main screen."""
+    return redirect("shop:manage" if is_owner(request.user) else "shop:dashboard")
 
 
 @owner_required

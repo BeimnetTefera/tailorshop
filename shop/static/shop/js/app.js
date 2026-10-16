@@ -75,7 +75,11 @@
   if (pinForm) {
     pinSheet.querySelector("[data-pin-forgot]").addEventListener("click", function () { setPinMode(true); });
     document.querySelectorAll("[data-pin-change]").forEach(function (b) {
-      b.addEventListener("click", function () { openPin(null, true); });
+      b.addEventListener("click", function () {
+        var menu = b.closest("dialog");  // e.g. the account menu: close it first
+        if (menu) menu.close();
+        openPin(null, true);
+      });
     });
     pinSheet.addEventListener("close", function () {
       // Cancelled: the next try asks again and the "Are you sure?" too.

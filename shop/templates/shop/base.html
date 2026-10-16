@@ -22,7 +22,7 @@
     {% block content %}{% endblock %}
   </main>
   {% block nav %}{% include "shop/partials/nav.html" %}{% endblock %}
-  {% if user.is_authenticated %}{% include "shop/partials/pin_sheet.html" %}{% endif %}
+  {% if user.is_authenticated %}{% include "shop/partials/account_sheet.html" %}{% include "shop/partials/pin_sheet.html" %}{% endif %}
   <script src="{% static 'shop/js/app.js' %}" defer></script>
 </body>
 </html>

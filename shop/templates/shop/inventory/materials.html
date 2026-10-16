@@ -4,6 +4,7 @@
 <header class="topbar">
   <h1>{% translate "Stock" %}<div class="sub">{% translate "Raw materials: fabric, thread, buttons and everything you sew with." %}</div></h1>
   <button class="icon-btn" data-open="mat-sort" aria-label="{% translate 'Sort' %}">{% icon "sort" 20 %}</button>
+  {% include "shop/partials/account_button.html" %}
 </header>
 
 <form class="search" method="get" role="search">

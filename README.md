@@ -10,7 +10,7 @@ browser (iPhone and Android alike) and is backed by Django.
   including Pagume.
 - **Two roles.** The owner sees everything and manages logins; messengers take orders,
   record money and stock, and carry garments between production steps.
-- **"Velvet" look:** night plum and gold, Playfair Display / Jost with Noto Ethiopic.
+- **"Cotton & Emerald" look:** white cotton ground with emerald accents, Playfair Display / Jost with Noto Ethiopic.
 
 ## What it does
 
@@ -71,8 +71,8 @@ python manage.py seed_demo         # optional demo data
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000 and sign in as **selam / selam1234** (owner) or
-**dawit / dawit1234** (messenger). Without demo data, create the owner with
+Open http://127.0.0.1:8000 and sign in as **mary / mary1234** (owner) or
+**beimnet / beimnet1234** (messenger). Without demo data, create the owner with
 `python manage.py createsuperuser`. The Django admin is at `/admin/`.
 
 Run the tests with `python manage.py test shop`.
@@ -99,10 +99,10 @@ so anything added there can vanish on the next click.
 
 **Keeping data (quickest):** in Vercel, open the project → **Storage** → **Create
 Database** → **Neon (Postgres)** → connect it to this project. That adds `DATABASE_URL`
-(or `POSTGRES_URL`) by itself. Add `DEMO_DATA=1` under Settings → Environment Variables to
-load the demo data once, then redeploy. Everything people add is kept and shared by every
-instance; photos are stored in the database, shrunk to 1600 px on upload. Remove
-`DEMO_DATA` (and the demo accounts) before real use.
+(or `POSTGRES_URL`) by itself. Redeploy: the demo data loads once into
+the empty database and the demo accounts are kept working. Everything people add is kept and shared by every
+instance; photos are stored in the database, shrunk to 1600 px on upload. Set
+`DEMO_DATA=0` (and remove the demo accounts) before real use.
 
 For real use, add these environment variables in Vercel (Project → Settings →
 Environment Variables) and redeploy; migrations run on start-up:
@@ -130,7 +130,7 @@ shop/forms.py      validation, Ethiopian date picker, messenger accounts
 shop/views.py      all screens; shop/roles.py decides what is owner-only
 shop/middleware.py picks each person's language
 shop/templates/    one template per screen; bottom sheets use <dialog>
-shop/static/       app.css (Velvet design tokens), app.js (sheets, swipe, live totals)
+shop/static/       app.css (Cotton & Emerald design tokens), app.js (sheets, swipe, live totals)
 locale/am/         Amharic translations
 ```
 

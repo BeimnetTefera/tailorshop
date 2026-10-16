@@ -118,7 +118,7 @@ class ShopFlowTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
         self.client.force_login(self.owner)
 
     def test_every_page_renders(self):
@@ -144,7 +144,7 @@ class ShopFlowTests(TestCase):
             reverse("shop:material_categories"), reverse("shop:freesize_create"),
         ]
         for language in ("en", "am"):
-            StaffProfile.objects.filter(user__username="selam").update(language=language)
+            StaffProfile.objects.filter(user__username="mary").update(language=language)
             for url in urls:
                 with self.subTest(url=url, language=language):
                     self.assertEqual(self.client.get(url).status_code, 200)
@@ -198,10 +198,10 @@ class ShopFlowTests(TestCase):
         self.assertEqual(order.expected_finish, back)
         self.assertTrue(WorkerTask.objects.filter(order=order, worker__name="Kebede", finished_on__isnull=False).exists())
         task = WorkerTask.objects.get(order=order, worker=sewer, finished_on__isnull=True)
-        self.assertEqual(task.created_by.username, "selam")
+        self.assertEqual(task.created_by.username, "mary")
         self.assertEqual(order.notes.first().text, "Short sleeves")
         page = self.client.get(reverse("shop:tracker_detail", args=[order.pk]))
-        self.assertContains(page, "Selam handed it to Abebe for sewing")
+        self.assertContains(page, "Mary handed it to Abebe for sewing")
 
     def test_sale_reduces_stock_and_blocks_overselling(self):
         item = FreeSizeItem.objects.get(code="FS-035")
@@ -283,7 +283,7 @@ class UpdateThreadTests(TempMediaMixin, TestCase):
 
     def setUp(self):
         self.use_temp_media()
-        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.messenger = _english(get_user_model().objects.get(username="beimnet"))
         self.client.force_login(self.messenger)
         self.order = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)
 
@@ -319,7 +319,7 @@ class ReadyMadePageTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
         self.client.force_login(self.owner)
 
     def test_title_is_the_type_of_clothing(self):
@@ -368,7 +368,7 @@ class ReadyMadePageTests(TestCase):
         self.assertNotContains(page, "Waist")  # empty details are left out
 
     def test_messenger_can_sell_but_not_edit(self):
-        self.client.force_login(_english(get_user_model().objects.get(username="dawit")))
+        self.client.force_login(_english(get_user_model().objects.get(username="beimnet")))
         item = FreeSizeItem.objects.get(code="FS-024")
         page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
         self.assertContains(page, f"{reverse('shop:sale_create')}?item={item.pk}")
@@ -381,7 +381,7 @@ class CollectionAndStockTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
         self.client.force_login(self.owner)
 
     def test_collection_has_ready_made_and_gallery_tabs(self):
@@ -427,7 +427,7 @@ class CollectionAndStockTests(TestCase):
         self.assertContains(self.client.get(reverse("shop:material_list")), "No category")
 
     def test_messenger_cannot_manage_categories(self):
-        self.client.force_login(_english(get_user_model().objects.get(username="dawit")))
+        self.client.force_login(_english(get_user_model().objects.get(username="beimnet")))
         url = reverse("shop:material_categories")
         self.assertRedirects(self.client.get(url), reverse("shop:dashboard"))
         self.client.post(url, {"action": "add", "name": "Sneaky"})
@@ -448,7 +448,7 @@ class LanguageTests(TestCase):
         self.assertContains(self.client.get(reverse("login")), "እንኳን በደህና ተመለሱ")
 
     def test_choice_is_saved_on_the_profile(self):
-        user = get_user_model().objects.get(username="dawit")
+        user = get_user_model().objects.get(username="beimnet")
         self.assertEqual(user.profile.language, "en")
         self.client.force_login(user)
         home = self.client.get(reverse("shop:dashboard"))
@@ -484,8 +484,8 @@ class RoleTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = _english(get_user_model().objects.get(username="selam"))
-        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
+        self.messenger = _english(get_user_model().objects.get(username="beimnet"))
 
     def test_messenger_cannot_open_owner_pages(self):
         self.client.force_login(self.messenger)
@@ -541,17 +541,17 @@ class RoleTests(TestCase):
     def test_owner_resets_a_password(self):
         self.client.force_login(self.owner)
         self.client.post(reverse("shop:messenger_edit", args=[self.messenger.pk]), {"password": "new-pass-2019", **_pin(self.owner)})
-        self.assertTrue(self.client_class().login(username="dawit", password="new-pass-2019"))
+        self.assertTrue(self.client_class().login(username="beimnet", password="new-pass-2019"))
 
     def test_weak_password_and_taken_username_are_rejected(self):
         self.client.force_login(self.owner)
         response = self.client.post(reverse("shop:messenger_list"), {
-            "name": "X", "username": "dawit", "password": "123", **_pin(self.owner),
+            "name": "X", "username": "beimnet", "password": "123", **_pin(self.owner),
         })
         self.assertContains(response, "already taken")
         self.assertContains(response, "too short")
         StaffProfile.objects.filter(user=self.owner).update(language="am")
-        response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "dawit", "password": "123", **_pin(self.owner)})
+        response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "beimnet", "password": "123", **_pin(self.owner)})
         self.assertContains(response, "ይህ የተጠቃሚ ስም ተይዟል።")
         self.assertContains(response, "በጣም አጭር ነው")
 
@@ -620,8 +620,8 @@ class PinTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.owner = _english(get_user_model().objects.get(username="selam"))
-        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
+        self.messenger = _english(get_user_model().objects.get(username="beimnet"))
         self.client.force_login(self.messenger)
         self.order = Order.objects.get(customer__name="Liya Bekele", stage=Stage.DECORATION)
 
@@ -667,9 +667,9 @@ class PinTests(TestCase):
     def test_setting_a_pin_needs_the_sign_in_password(self):
         url = reverse("shop:pin_set")
         self.assertFalse(self.client.post(url, {"password": "wrong", "pin": "4321", "pin2": "4321"}).json()["ok"])
-        self.assertFalse(self.client.post(url, {"password": "dawit1234", "pin": "12", "pin2": "12"}).json()["ok"])
-        self.assertFalse(self.client.post(url, {"password": "dawit1234", "pin": "4321", "pin2": "4322"}).json()["ok"])
-        reply = self.client.post(url, {"password": "dawit1234", "pin": "4321", "pin2": "4321"}).json()
+        self.assertFalse(self.client.post(url, {"password": "beimnet1234", "pin": "12", "pin2": "12"}).json()["ok"])
+        self.assertFalse(self.client.post(url, {"password": "beimnet1234", "pin": "4321", "pin2": "4322"}).json()["ok"])
+        reply = self.client.post(url, {"password": "beimnet1234", "pin": "4321", "pin2": "4321"}).json()
         self.assertTrue(reply["ok"])
         self.assertFalse(self.client.post(reverse("shop:pin_verify"), {"pin": "1234"}).json()["ok"])
         self.assertTrue(self.client.post(reverse("shop:pin_verify"), {"pin": "4321"}).json()["ok"])
@@ -704,7 +704,7 @@ class PinTests(TestCase):
         self.assertIn(reverse("login"), lost_phone.get(reverse("shop:dashboard"))["Location"])
         self.assertEqual(self.client.get(reverse("shop:dashboard")).status_code, 200)  # this device stays in
         # Signing in again on the found phone works as normal.
-        self.assertTrue(lost_phone.login(username="dawit", password="dawit1234"))
+        self.assertTrue(lost_phone.login(username="beimnet", password="beimnet1234"))
         self.assertEqual(lost_phone.get(reverse("shop:dashboard")).status_code, 200)
 
 
@@ -720,19 +720,35 @@ class DemoInstanceTests(TestCase):
 
         from .demo import demo_password
 
-        selam = get_user_model().objects.get(username="selam")
-        self.assertEqual(selam.password, demo_password("selam1234"))
-        self.assertFalse(get_hasher().must_update(selam.password))  # not re-hashed (re-salted) on login
-        self.assertTrue(self.client.login(username="selam", password="selam1234"))
-        selam.refresh_from_db()
-        self.assertEqual(selam.password, demo_password("selam1234"))
+        mary = get_user_model().objects.get(username="mary")
+        self.assertEqual(mary.password, demo_password("mary1234"))
+        self.assertFalse(get_hasher().must_update(mary.password))  # not re-hashed (re-salted) on login
+        self.assertTrue(self.client.login(username="mary", password="mary1234"))
+        mary.refresh_from_db()
+        self.assertEqual(mary.password, demo_password("mary1234"))
+
+    def test_demo_accounts_are_repaired_on_every_start(self):
+        User = get_user_model()
+        # A database from an older demo: the owner is still "selam" with another password,
+        # and the messenger account is missing; the demo data itself is already there.
+        User.objects.filter(username="mary").update(username="selam", password="!")
+        User.objects.filter(username="beimnet").delete()
+        call_command("seed_demo", verbosity=0)
+        self.assertFalse(User.objects.filter(username="selam").exists())
+        mary = User.objects.get(username="mary")
+        self.assertTrue(mary.is_superuser)
+        self.assertEqual(mary.profile.role, StaffProfile.Role.OWNER)
+        self.assertTrue(self.client_class().login(username="mary", password="mary1234"))
+        self.assertTrue(self.client_class().login(username="beimnet", password="beimnet1234"))
+        self.assertEqual(User.objects.get(username="beimnet").profile.role, StaffProfile.Role.MESSENGER)
+        self.assertEqual(Style.objects.count(), 7)  # the rest of the data wasn't loaded twice
 
     def test_signed_in_session_survives_another_instance(self):
         from .demo import demo_password
 
-        self.client.login(username="dawit", password="dawit1234")
+        self.client.login(username="beimnet", password="beimnet1234")
         # Another instance builds the account again from scratch: the hash comes out identical.
-        get_user_model().objects.filter(username="dawit").update(password=demo_password("dawit1234"))
+        get_user_model().objects.filter(username="beimnet").update(password=demo_password("beimnet1234"))
         self.assertEqual(self.client.get(reverse("shop:dashboard")).status_code, 200)
 
     def test_demo_photos_come_from_the_app_not_storage(self):
@@ -740,7 +756,7 @@ class DemoInstanceTests(TestCase):
 
         item = FreeSizeItem.objects.get(code="FS-024")
         self.assertEqual(item.photo.name, "demo/white-cotton-kemis.jpg")
-        self.client.login(username="dawit", password="dawit1234")
+        self.client.login(username="beimnet", password="beimnet1234")
         response = self.client.get(item.photo.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "image/jpeg")
@@ -760,7 +776,7 @@ class DatabaseStorageTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.messenger = _english(get_user_model().objects.get(username="beimnet"))
         self.client.force_login(self.messenger)
         self.order = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)
 
@@ -825,7 +841,7 @@ class StyleGalleryTests(TempMediaMixin, TestCase):
 
     def setUp(self):
         self.use_temp_media()
-        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.owner = _english(get_user_model().objects.get(username="mary"))
         self.client.force_login(self.owner)
 
     def _post_edit(self, style, **extra):

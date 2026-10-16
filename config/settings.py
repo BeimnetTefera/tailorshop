@@ -15,9 +15,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL", 
 # Throwaway demo: on Vercel without a real database. The SQLite file lives in /tmp, is
 # wiped whenever an instance restarts, and is re-seeded with demo data.
 DEMO_MODE = ON_VERCEL and not DATABASE_URL
-# DEMO_DATA=1 with a real database: load the demo data once (if the database is empty)
-# and keep everything people add, shared by every server instance.
-DEMO_DATA = os.environ.get("DEMO_DATA") == "1"
+# With a real database on Vercel the demo data is loaded once into an empty database,
+# and the demo accounts are kept working; set DEMO_DATA=0 when the shop goes live.
+DEMO_DATA = os.environ.get("DEMO_DATA", "1") == "1"
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
 DEBUG = os.environ.get("DJANGO_DEBUG", "0" if ON_VERCEL else "1") == "1"

@@ -755,8 +755,8 @@ msgstr "ትዕዛዞችን፣ ክምችትን እና ክፍያዎችን ለማ�
 msgid "That username and password don't match. Try again."
 msgstr "የተጠቃሚ ስሙ እና የይለፍ ቃሉ አይመሳሰሉም። እንደገና ይሞክሩ።"
 
-msgid "Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. The PIN for both is <b>1234</b>. Changes reset from time to time."
-msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>selam</b> / <b>selam1234</b>፣ መልእክተኛ <b>dawit</b> / <b>dawit1234</b>። የሁለቱም ፒን <b>1234</b> ነው። ለውጦች አልፎ አልፎ ይሰረዛሉ።"
+msgid "Demo logins: owner <b>mary</b> / <b>mary1234</b>, messenger <b>beimnet</b> / <b>beimnet1234</b>. The PIN for both is <b>1234</b>."
+msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>mary</b> / <b>mary1234</b>፣ መልእክተኛ <b>beimnet</b> / <b>beimnet1234</b>። የሁለቱም ፒን <b>1234</b> ነው።"
 
 msgid "Home"
 msgstr "መነሻ"

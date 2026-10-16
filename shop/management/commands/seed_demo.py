@@ -19,6 +19,12 @@ from shop.models import (
 
 D = Decimal
 
+# (username, username in older demos, first name, role, phone). Password: <username>1234, PIN 1234.
+DEMO_ACCOUNTS = [
+    ("mary", "selam", "Mary", StaffProfile.Role.OWNER, ""),
+    ("beimnet", "dawit", "Beimnet", StaffProfile.Role.MESSENGER, "0918223344"),
+]
+
 # Color, fit and lengths shown in the style page's details grid.
 STYLE_DETAILS = {
     "HK-024": {"color": "White and gold", "fit": "Flowing", "length": "Floor length", "sleeve_length": "Long sleeve"},
@@ -43,13 +49,16 @@ STYLE_PHOTOS = {
 
 
 class Command(BaseCommand):
-    help = "Load demo data for the tailor shop (owner selam / selam1234, messenger dawit / dawit1234)."
+    help = "Load demo data for the tailor shop (owner mary / mary1234, messenger beimnet / beimnet1234, PIN 1234)."
 
     def add_arguments(self, parser):
         parser.add_argument("--reset", action="store_true", help="Delete existing shop data first.")
 
     @transaction.atomic
     def handle(self, *args, **options):
+        # The demo accounts are checked every time, even when the rest of the data is
+        # already there, so the sign-ins on the login page always work.
+        self._accounts()
         if options["reset"]:
             for model in (Activity, Sale, MaterialUsage, Payment, WorkerTask, StageNote, Order,
                           Customer, Material, MaterialCategory, FreeSizeItem, Style, Worker):
@@ -62,23 +71,6 @@ class Command(BaseCommand):
         self.today = timezone.localdate()
         self.now = timezone.now()
 
-        User = get_user_model()
-        # Same password hash on every server instance, so a sign-in stays valid on all of them.
-        if not User.objects.filter(username="selam").exists():
-            owner = User.objects.create_superuser("selam", "selam@example.com", None, first_name="Selam")
-            owner.password = demo_password("selam1234")
-            owner.save(update_fields=["password"])
-            StaffProfile.objects.create(user=owner, role=StaffProfile.Role.OWNER)
-        if not User.objects.filter(username="dawit").exists():
-            messenger = User.objects.create_user("dawit", first_name="Dawit")
-            messenger.password = demo_password("dawit1234")
-            messenger.save(update_fields=["password"])
-            StaffProfile.objects.create(user=messenger, role=StaffProfile.Role.MESSENGER, phone="0918223344")
-        self.owner = User.objects.get(username="selam")
-        self.messenger = User.objects.get(username="dawit")
-        # Demo PIN 1234 for both, hashed the same way on every server instance.
-        StaffProfile.objects.filter(user__in=[self.owner, self.messenger]).update(pin_hash=demo_password("1234"))
-
         workers = self._workers()
         styles = self._styles()
         self._materials(styles)
@@ -86,9 +78,35 @@ class Command(BaseCommand):
         self._orders(workers, styles)
         self._sales(items)
         self._activity()
-        self.stdout.write(self.style.SUCCESS("Demo data loaded. Sign in as selam / selam1234 (owner) or dawit / dawit1234 (messenger)."))
+        self.stdout.write(self.style.SUCCESS("Demo data loaded. Sign in as mary / mary1234 (owner) "
+                                             "or beimnet / beimnet1234 (messenger)."))
 
     # ------------------------------------------------------------------ helpers
+    def _accounts(self):
+        """Create (or repair) the demo owner and messenger.
+
+        Accounts from earlier versions of the demo (selam, dawit) are renamed, so the
+        orders and updates already linked to them stay theirs. Passwords and PINs use a
+        fixed salt, so every server instance stores the same hash.
+        """
+        User = get_user_model()
+        for username, old, first_name, role, phone in DEMO_ACCOUNTS:
+            user = User.objects.filter(username=username).first()
+            if user is None:
+                user = User.objects.filter(username=old).first()
+            if user is None:
+                user = User(username=username)
+            user.username, user.first_name, user.is_active = username, first_name, True
+            user.is_staff = user.is_superuser = role == StaffProfile.Role.OWNER
+            user.password = demo_password(f"{username}1234")
+            user.save()
+            profile, _ = StaffProfile.objects.get_or_create(user=user, defaults={"role": role, "phone": phone})
+            profile.role = role
+            profile.pin_hash = demo_password("1234")
+            profile.pin_failures, profile.pin_locked_until = 0, None
+            profile.save()
+        self.owner = User.objects.get(username=DEMO_ACCOUNTS[0][0])
+        self.messenger = User.objects.get(username=DEMO_ACCOUNTS[1][0])
     def _ago(self, days, hour=10, minute=0):
         moment = timezone.localtime(self.now) - timedelta(days=days)
         return moment.replace(hour=hour, minute=minute, second=0, microsecond=0)

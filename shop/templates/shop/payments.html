@@ -44,7 +44,7 @@
     {% if t.is_paid %}
       <p class="paid">{% blocktranslate with d=t.paid_on|ethdate:"short" %}Paid {{ d }}{% endblocktranslate %}</p>
     {% else %}
-      <form method="post" action="{% url 'shop:task_mark_paid' t.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-primary btn-block">{% translate "Mark as paid" %}</button></form>
+      <form method="post" action="{% url 'shop:task_mark_paid' t.pk %}" data-protect>{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-primary btn-block">{% translate "Mark as paid" %}</button></form>
     {% endif %}
   </article>
 {% empty %}

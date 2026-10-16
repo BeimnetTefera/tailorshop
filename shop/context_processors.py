@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from .pin import has_pin
 from .roles import is_owner
 
 # Maps URL names to the bottom-nav tab that should be highlighted.
@@ -30,7 +31,7 @@ def demo(request):
 
 
 def roles(request):
-    return {"is_owner": is_owner(request.user)}
+    return {"is_owner": is_owner(request.user), "has_pin": has_pin(request.user)}
 
 
 def navigation(request):

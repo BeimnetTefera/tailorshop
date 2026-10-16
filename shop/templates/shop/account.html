@@ -12,6 +12,7 @@
     {% include "shop/partials/lang_toggle.html" %}
   </div>
 </section>
+{% include "shop/partials/security.html" %}
 
 <form method="post" action="{% url 'logout' %}" class="mt-lg">
   {% csrf_token %}

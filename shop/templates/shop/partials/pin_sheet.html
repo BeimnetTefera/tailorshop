@@ -1,0 +1,28 @@
+{% load i18n shop_extras %}
+{# Asked before protected changes (forms with data-protect). app.js opens it and submits the form after the PIN checks out. #}
+<dialog class="sheet" id="pin-sheet" data-has-pin="{% if has_pin %}1{% else %}0{% endif %}"
+        data-verify-url="{% url 'shop:pin_verify' %}" data-set-url="{% url 'shop:pin_set' %}"
+        data-title-enter="{% translate 'Enter your PIN' %}" data-title-create="{% translate 'Create your PIN' %}"
+        data-intro-enter="{% translate 'This change is protected so nothing is changed by accident. Enter your PIN to save it.' %}"
+        data-intro-create="{% translate 'Choose a 4–6 digit PIN. It is asked before changes to money, orders and accounts, and before deleting. Confirm with your sign-in password.' %}"
+        data-error-network="{% translate 'Could not check the PIN. Check the connection and try again.' %}">
+  <form class="sheet-body" data-pin-form novalidate>
+    {% csrf_token %}
+    <div class="sheet-head"><h2 data-pin-title>{% translate "Enter your PIN" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
+    <p class="muted small" data-pin-intro style="margin-bottom:14px"></p>
+    <div class="field" data-pin-enter>
+      <label class="label" for="pin-code">{% translate "PIN" %}</label>
+      <input class="input pin-input" id="pin-code" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+    </div>
+    <div data-pin-create hidden>
+      <div class="field"><label class="label" for="pin-password">{% translate "Sign-in password" %}</label><input class="input" id="pin-password" name="password" type="password" autocomplete="current-password"></div>
+      <div class="grid-2 mt">
+        <div class="field"><label class="label" for="pin-new">{% translate "New PIN" %}</label><input class="input pin-input" id="pin-new" name="new_pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div>
+        <div class="field"><label class="label" for="pin-again">{% translate "PIN again" %}</label><input class="input pin-input" id="pin-again" name="pin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div>
+      </div>
+    </div>
+    <p class="error mt" data-pin-error role="alert"></p>
+    <button class="btn btn-primary btn-block mt">{% icon "check" 18 %} {% translate "Confirm" %}</button>
+    <button type="button" class="btn btn-ghost btn-block" data-pin-forgot>{% translate "Forgot your PIN? Set a new one with your password" %}</button>
+  </form>
+</dialog>

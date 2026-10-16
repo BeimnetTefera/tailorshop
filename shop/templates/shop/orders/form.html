@@ -14,7 +14,7 @@
 </nav>
 
 {{ style_categories|json_script:"style-categories" }}
-<form method="post" enctype="multipart/form-data" class="stack" novalidate>
+<form method="post" enctype="multipart/form-data" class="stack" novalidate{% if order %} data-protect{% endif %}>
   {% csrf_token %}
   {% if form.errors %}<div class="form-errors">{% translate "Some details need fixing. They're marked below." %}</div>{% endif %}
 

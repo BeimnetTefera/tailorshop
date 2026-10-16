@@ -14,6 +14,8 @@ from django.utils import timezone, translation
 _TEST_MEDIA = tempfile.mkdtemp(prefix="tailorshop-test-media-")
 atexit.register(shutil.rmtree, _TEST_MEDIA, ignore_errors=True)
 override_settings(MEDIA_ROOT=_TEST_MEDIA).enable()
+# Passwords and PINs are hashed with a deliberately slow hasher; tests don't need that.
+override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"]).enable()
 
 from . import ethiopian
 from .models import (
@@ -26,6 +28,13 @@ def _english(user):
     """Most tests read English text; Amharic is the default for new profiles."""
     StaffProfile.objects.filter(user=user).update(language="en")
     return user
+
+
+def _pin(user):
+    """What a protected form carries after the PIN sheet said yes."""
+    from .pin import _token_for
+
+    return {"pin_token": _token_for(user)}
 
 
 def _eth_date(name, value):
@@ -107,7 +116,8 @@ class ShopFlowTests(TestCase):
         call_command("seed_demo", verbosity=0)
 
     def setUp(self):
-        self.client.force_login(_english(get_user_model().objects.get(username="selam")))
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.client.force_login(self.owner)
 
     def test_every_page_renders(self):
         order = Order.objects.exclude(stage=Stage.DELIVERED).first()
@@ -205,9 +215,9 @@ class ShopFlowTests(TestCase):
     def test_payment_cannot_exceed_balance(self):
         order = Order.objects.exclude(stage=Stage.DELIVERED).first()
         count = Payment.objects.count()
-        self.client.post(reverse("shop:order_add_payment", args=[order.pk]), {"amount": str(order.balance + 1)})
+        self.client.post(reverse("shop:order_add_payment", args=[order.pk]), {"amount": str(order.balance + 1), **_pin(self.owner)})
         self.assertEqual(Payment.objects.count(), count)
-        self.client.post(reverse("shop:order_add_payment", args=[order.pk]), {"amount": str(order.balance)})
+        self.client.post(reverse("shop:order_add_payment", args=[order.pk]), {"amount": str(order.balance), **_pin(self.owner)})
         self.assertEqual(order.balance, 0)
 
     def test_use_material_reduces_stock(self):
@@ -218,18 +228,18 @@ class ShopFlowTests(TestCase):
 
     def test_mark_ready_then_deliver(self):
         order = Order.objects.get(customer__name="Liya Bekele", stage=Stage.DECORATION)
-        self.client.post(reverse("shop:order_mark_ready", args=[order.pk]))
+        self.client.post(reverse("shop:order_mark_ready", args=[order.pk]), _pin(self.owner))
         order.refresh_from_db()
         self.assertEqual(order.stage, Stage.READY)
         self.assertIsNone(order.current_worker)
-        self.client.post(reverse("shop:order_deliver", args=[order.pk]))
+        self.client.post(reverse("shop:order_deliver", args=[order.pk]), _pin(self.owner))
         order.refresh_from_db()
         self.assertEqual(order.stage, Stage.DELIVERED)
         self.assertEqual(order.delivered_at, timezone.localdate())
 
     def test_redirect_back_rejects_external_urls(self):
         task = WorkerTask.objects.filter(finished_on__isnull=False, paid_on__isnull=True).first()
-        response = self.client.post(reverse("shop:task_mark_paid", args=[task.pk]), {"next": "https://evil.example"})
+        response = self.client.post(reverse("shop:task_mark_paid", args=[task.pk]), {"next": "https://evil.example", **_pin(self.owner)})
         self.assertEqual(response["Location"], reverse("shop:worker_payments"))
 
     def test_finance_follows_ethiopian_months(self):
@@ -386,7 +396,7 @@ class CollectionAndStockTests(TestCase):
 
         lace = MaterialCategory.objects.get(name="Lace")
         material = lace.materials.get()
-        self.client.post(url, {"action": "delete", "pk": lace.pk})
+        self.client.post(url, {"action": "delete", "pk": lace.pk, **_pin(self.owner)})
         self.assertFalse(MaterialCategory.objects.filter(pk=lace.pk).exists())
         material.refresh_from_db()
         self.assertIsNone(material.category)  # the material is kept
@@ -485,7 +495,7 @@ class RoleTests(TestCase):
     def test_owner_creates_then_switches_off_a_messenger(self):
         self.client.force_login(self.owner)
         response = self.client.post(reverse("shop:messenger_list"), {
-            "name": "Meron Haile", "phone": "0912 000 111", "username": "Meron", "password": "kemis-2019-ok",
+            "name": "Meron Haile", "phone": "0912 000 111", "username": "Meron", "password": "kemis-2019-ok", **_pin(self.owner),
         })
         self.assertRedirects(response, reverse("shop:messenger_list"))
         meron = get_user_model().objects.get(username="meron")
@@ -497,7 +507,7 @@ class RoleTests(TestCase):
         self.assertTrue(other.login(username="meron", password="kemis-2019-ok"))
         self.assertEqual(other.get(reverse("shop:dashboard")).status_code, 200)
 
-        self.client.post(reverse("shop:messenger_edit", args=[meron.pk]), {"name": "Meron Haile", "phone": ""})
+        self.client.post(reverse("shop:messenger_edit", args=[meron.pk]), {"name": "Meron Haile", "phone": "", **_pin(self.owner)})
         meron.refresh_from_db()
         self.assertFalse(meron.is_active)
         # Already signed in on a phone? The next page sends them back to the login screen.
@@ -506,18 +516,18 @@ class RoleTests(TestCase):
 
     def test_owner_resets_a_password(self):
         self.client.force_login(self.owner)
-        self.client.post(reverse("shop:messenger_edit", args=[self.messenger.pk]), {"password": "new-pass-2019"})
+        self.client.post(reverse("shop:messenger_edit", args=[self.messenger.pk]), {"password": "new-pass-2019", **_pin(self.owner)})
         self.assertTrue(self.client_class().login(username="dawit", password="new-pass-2019"))
 
     def test_weak_password_and_taken_username_are_rejected(self):
         self.client.force_login(self.owner)
         response = self.client.post(reverse("shop:messenger_list"), {
-            "name": "X", "username": "dawit", "password": "123",
+            "name": "X", "username": "dawit", "password": "123", **_pin(self.owner),
         })
         self.assertContains(response, "already taken")
         self.assertContains(response, "too short")
         StaffProfile.objects.filter(user=self.owner).update(language="am")
-        response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "dawit", "password": "123"})
+        response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "dawit", "password": "123", **_pin(self.owner)})
         self.assertContains(response, "ይህ የተጠቃሚ ስም ተይዟል።")
         self.assertContains(response, "በጣም አጭር ነው")
 
@@ -564,6 +574,102 @@ class RoleTests(TestCase):
     def test_owner_cannot_be_edited_as_a_messenger(self):
         self.client.force_login(self.owner)
         self.assertEqual(self.client.get(reverse("shop:messenger_edit", args=[self.owner.pk])).status_code, 404)
+
+
+class PinTests(TestCase):
+    """Changes to money, orders and accounts, and deletions, need the PIN."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.messenger = _english(get_user_model().objects.get(username="dawit"))
+        self.client.force_login(self.messenger)
+        self.order = Order.objects.get(customer__name="Liya Bekele", stage=Stage.DECORATION)
+
+    def test_protected_change_without_pin_changes_nothing(self):
+        response = self.client.post(reverse("shop:order_mark_ready", args=[self.order.pk]), follow=True)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.stage, Stage.DECORATION)
+        self.assertEqual(response.redirect_chain[-1][0], reverse("shop:dashboard"))
+        self.assertContains(response, "Nothing was changed")
+
+    def test_correct_pin_gives_a_token_that_saves_the_change(self):
+        reply = self.client.post(reverse("shop:pin_verify"), {"pin": "1234"}).json()
+        self.assertTrue(reply["ok"])
+        self.client.post(reverse("shop:order_mark_ready", args=[self.order.pk]), {"pin_token": reply["token"]})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.stage, Stage.READY)
+
+    def test_someone_elses_or_old_token_is_refused(self):
+        self.client.post(reverse("shop:order_mark_ready", args=[self.order.pk]), _pin(self.owner))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.stage, Stage.DECORATION)
+        from django.core import signing
+
+        from . import pin
+        from unittest import mock
+
+        old = signing.TimestampSigner(salt="shop.pin").sign(str(self.messenger.pk))
+        with mock.patch.object(pin, "TOKEN_SECONDS", -1):  # as if the two minutes had passed
+            self.client.post(reverse("shop:order_mark_ready", args=[self.order.pk]), {"pin_token": old})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.stage, Stage.DECORATION)
+
+    def test_wrong_pins_lock_for_a_while(self):
+        for left in (4, 3, 2, 1):
+            reply = self.client.post(reverse("shop:pin_verify"), {"pin": "9999"}).json()
+            self.assertFalse(reply["ok"])
+            self.assertIn(f"{left} tr", reply["error"])
+        reply = self.client.post(reverse("shop:pin_verify"), {"pin": "9999"})
+        self.assertEqual(reply.status_code, 429)
+        # Even the right PIN waits until the lock ends.
+        self.assertEqual(self.client.post(reverse("shop:pin_verify"), {"pin": "1234"}).status_code, 429)
+
+    def test_setting_a_pin_needs_the_sign_in_password(self):
+        url = reverse("shop:pin_set")
+        self.assertFalse(self.client.post(url, {"password": "wrong", "pin": "4321", "pin2": "4321"}).json()["ok"])
+        self.assertFalse(self.client.post(url, {"password": "dawit1234", "pin": "12", "pin2": "12"}).json()["ok"])
+        self.assertFalse(self.client.post(url, {"password": "dawit1234", "pin": "4321", "pin2": "4322"}).json()["ok"])
+        reply = self.client.post(url, {"password": "dawit1234", "pin": "4321", "pin2": "4321"}).json()
+        self.assertTrue(reply["ok"])
+        self.assertFalse(self.client.post(reverse("shop:pin_verify"), {"pin": "1234"}).json()["ok"])
+        self.assertTrue(self.client.post(reverse("shop:pin_verify"), {"pin": "4321"}).json()["ok"])
+
+    def test_no_pin_yet_asks_to_create_one(self):
+        StaffProfile.objects.filter(user=self.messenger).update(pin_hash="")
+        reply = self.client.post(reverse("shop:pin_verify"), {"pin": "1234"}).json()
+        self.assertTrue(reply["needs_pin"])
+
+    def test_protected_forms_are_marked_and_everyday_ones_are_not(self):
+        page = self.client.get(reverse("shop:tracker_detail", args=[self.order.pk]))
+        html = page.content.decode()
+        for action in ("order_mark_ready", "order_update_stage", "order_add_payment"):
+            url = reverse(f"shop:{action}", args=[self.order.pk])
+            self.assertRegex(html, rf'action="{url}"[^>]*data-protect')
+        transfer = reverse("shop:order_transfer", args=[self.order.pk])
+        self.assertNotRegex(html, rf'action="{transfer}"[^>]*data-protect')
+        self.assertContains(page, 'id="pin-sheet"')
+
+    def test_owner_clears_a_messengers_pin(self):
+        self.client.force_login(self.owner)
+        self.client.post(reverse("shop:messenger_edit", args=[self.messenger.pk]), {"reset_pin": "1", **_pin(self.owner)})
+        self.messenger.profile.refresh_from_db()
+        self.assertEqual(self.messenger.profile.pin_hash, "")
+
+    def test_sign_out_all_other_devices(self):
+        lost_phone = self.client_class()
+        lost_phone.force_login(self.messenger)
+        self.assertEqual(lost_phone.get(reverse("shop:dashboard")).status_code, 200)
+        self.client.get(reverse("shop:dashboard"))
+        self.client.post(reverse("shop:sign_out_everywhere"), _pin(self.messenger))
+        self.assertIn(reverse("login"), lost_phone.get(reverse("shop:dashboard"))["Location"])
+        self.assertEqual(self.client.get(reverse("shop:dashboard")).status_code, 200)  # this device stays in
+        # Signing in again on the found phone works as normal.
+        self.assertTrue(lost_phone.login(username="dawit", password="dawit1234"))
+        self.assertEqual(lost_phone.get(reverse("shop:dashboard")).status_code, 200)
 
 
 class DemoInstanceTests(TestCase):
@@ -629,7 +735,8 @@ class StyleGalleryTests(TempMediaMixin, TestCase):
 
     def setUp(self):
         self.use_temp_media()
-        self.client.force_login(_english(get_user_model().objects.get(username="selam")))
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.client.force_login(self.owner)
 
     def _post_edit(self, style, **extra):
         data = {
@@ -639,7 +746,7 @@ class StyleGalleryTests(TempMediaMixin, TestCase):
             "description": style.description,
         }
         data.update(extra)
-        return self.client.post(reverse("shop:style_edit", args=[style.pk]), data)
+        return self.client.post(reverse("shop:style_edit", args=[style.pk]), {**data, **_pin(self.owner)})
 
     def test_upload_several_photos_then_remove_one(self):
         style = Style.objects.get(code="WD-015")

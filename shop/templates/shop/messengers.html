@@ -19,7 +19,7 @@
 {% endfor %}
 </div>
 
-<form method="post" class="fieldset mt-lg" novalidate>
+<form method="post" class="fieldset mt-lg" novalidate data-protect>
   {% csrf_token %}
   <h2>{% translate "Add a messenger" %}</h2>
   {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}

@@ -95,6 +95,12 @@ class StaffProfile(models.Model):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.MESSENGER)
     phone = models.CharField(max_length=20, blank=True)
     language = models.CharField(max_length=5, choices=Language.choices, default=Language.ENGLISH)
+    # PIN asked before money, order, account and delete changes (see shop/pin.py).
+    pin_hash = models.CharField(max_length=128, blank=True)
+    pin_failures = models.PositiveSmallIntegerField(default=0)
+    pin_locked_until = models.DateTimeField(null=True, blank=True)
+    # Raised by "sign out all other devices"; sessions remember the value they started with.
+    session_version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

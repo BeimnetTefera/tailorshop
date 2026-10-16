@@ -23,7 +23,7 @@
       </div>
       <button class="btn btn-primary btn-sm">{% translate "Save" %}</button>
     </form>
-    <form method="post" class="mt" data-confirm="{% if c.n %}{% blocktranslate with name=c.label count n=c.n %}Delete “{{ name }}”? {{ n }} material will be kept but have no category.{% plural %}Delete “{{ name }}”? {{ n }} materials will be kept but have no category.{% endblocktranslate %}{% else %}{% blocktranslate with name=c.label %}Delete “{{ name }}”?{% endblocktranslate %}{% endif %}">
+    <form method="post" class="mt" data-protect data-confirm="{% if c.n %}{% blocktranslate with name=c.label count n=c.n %}Delete “{{ name }}”? {{ n }} material will be kept but have no category.{% plural %}Delete “{{ name }}”? {{ n }} materials will be kept but have no category.{% endblocktranslate %}{% else %}{% blocktranslate with name=c.label %}Delete “{{ name }}”?{% endblocktranslate %}{% endif %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ c.pk }}">
       <button class="btn btn-ghost btn-sm status-out" style="padding-left:0">{% icon "x" 16 %} {% translate "Delete category" %}</button>

@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from . import views
+from . import pin, views
 
 app_name = "shop"
 
@@ -22,6 +22,9 @@ urlpatterns = [
     path("language/", views.set_language, name="set_language"),
     path("account/", views.account, name="account"),
     path("manage/", views.manage, name="manage"),
+    path("pin/verify/", pin.verify, name="pin_verify"),
+    path("pin/set/", pin.set_pin, name="pin_set"),
+    path("sign-out-everywhere/", pin.sign_out_everywhere, name="sign_out_everywhere"),
     path("messengers/", views.messenger_list, name="messenger_list"),
     path("messengers/<int:pk>/", views.messenger_edit, name="messenger_edit"),
     path("team/", views.team, name="team"),

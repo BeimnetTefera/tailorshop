@@ -15,11 +15,118 @@
   });
   document.querySelectorAll("dialog[data-autoopen]").forEach(function (d) { d.showModal(); });
 
-  // ---- Ask before destructive actions (<form data-confirm="Delete …?">) ----------
+  // ---- Protected changes: "Are you sure?" (data-confirm) and the PIN (data-protect) ----
+  // A protected form is held back, the PIN sheet checks the PIN with the server and gets
+  // a short-lived token, then the form is sent again with that token attached.
+  var pinSheet = document.getElementById("pin-sheet");
+  var pinForm = pinSheet && pinSheet.querySelector("[data-pin-form]");
+  var pendingForm = null;
+  var pinCreating = false;
+
+  function setPinMode(create) {
+    pinCreating = create;
+    pinSheet.querySelector("[data-pin-title]").textContent = create ? pinSheet.dataset.titleCreate : pinSheet.dataset.titleEnter;
+    pinSheet.querySelector("[data-pin-intro]").textContent = create ? pinSheet.dataset.introCreate : pinSheet.dataset.introEnter;
+    pinSheet.querySelector("[data-pin-enter]").hidden = create;
+    pinSheet.querySelector("[data-pin-create]").hidden = !create;
+    pinSheet.querySelector("[data-pin-forgot]").hidden = create;
+    pinSheet.querySelector("[data-pin-error]").textContent = "";
+    var first = pinSheet.querySelector(create ? "#pin-password" : "#pin-code");
+    setTimeout(function () { first.focus(); }, 50);
+  }
+
+  function openPin(form, create) {
+    pendingForm = form;
+    pinForm.reset();
+    if (!pinSheet.open) pinSheet.showModal();
+    setPinMode(create || pinSheet.dataset.hasPin !== "1");
+  }
+
+  function sendPending(token) {
+    var form = pendingForm;
+    var field = form.querySelector("input[name=pin_token]");
+    if (!field) {
+      field = document.createElement("input");
+      field.type = "hidden";
+      field.name = "pin_token";
+      form.appendChild(field);
+    }
+    field.value = token;
+    form.dataset.pinOk = "1";
+    pinSheet.close();
+    if (form.requestSubmit) form.requestSubmit(); else form.submit();
+  }
+
   document.addEventListener("submit", function (e) {
-    var form = e.target.closest("form[data-confirm]");
-    if (form && !window.confirm(form.dataset.confirm)) e.preventDefault();
+    var form = e.target;
+    if (form === pinForm) return;
+    if (form.dataset.confirm && !form.dataset.confirmed) {
+      if (!window.confirm(form.dataset.confirm)) { e.preventDefault(); return; }
+      form.dataset.confirmed = "1";
+    }
+    if (pinSheet && form.hasAttribute("data-protect") && !form.dataset.pinOk) {
+      e.preventDefault();
+      var sheet = form.closest("dialog");
+      if (sheet && sheet !== pinSheet) sheet.close();
+      openPin(form);
+    }
   });
+
+  if (pinForm) {
+    pinSheet.querySelector("[data-pin-forgot]").addEventListener("click", function () { setPinMode(true); });
+    document.querySelectorAll("[data-pin-change]").forEach(function (b) {
+      b.addEventListener("click", function () { openPin(null, true); });
+    });
+    pinSheet.addEventListener("close", function () {
+      // Cancelled: the next try asks again and the "Are you sure?" too.
+      if (pendingForm && !pendingForm.dataset.pinOk) delete pendingForm.dataset.confirmed;
+      pendingForm = null;
+    });
+    pinForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var error = pinSheet.querySelector("[data-pin-error]");
+      var data = new FormData();
+      data.append("csrfmiddlewaretoken", pinForm.querySelector("[name=csrfmiddlewaretoken]").value);
+      if (pinCreating) {
+        data.append("password", pinForm.querySelector("#pin-password").value);
+        data.append("pin", pinForm.querySelector("#pin-new").value);
+        data.append("pin2", pinForm.querySelector("#pin-again").value);
+      } else {
+        data.append("pin", pinForm.querySelector("#pin-code").value);
+      }
+      var button = pinForm.querySelector("button:not([type=button])");
+      button.disabled = true;
+      fetch(pinCreating ? pinSheet.dataset.setUrl : pinSheet.dataset.verifyUrl, {
+        method: "POST", body: data, credentials: "same-origin", headers: { "X-Requested-With": "fetch" }
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        button.disabled = false;
+        if (res.ok) {
+          pinSheet.dataset.hasPin = "1";
+          if (pendingForm) { sendPending(res.token); return; }
+          pinSheet.close();  // "Change PIN" with nothing waiting: just say it's saved
+          var toast = document.createElement("div");
+          toast.className = "toast";
+          toast.textContent = res.message || "";
+          var holder = document.querySelector(".toasts") || document.body.appendChild(document.createElement("div"));
+          holder.className = "toasts";
+          holder.appendChild(toast);
+          setTimeout(function () { toast.classList.add("hide"); }, 3500);
+          setTimeout(function () { toast.remove(); }, 4000);
+        } else if (res.needs_pin) {
+          setPinMode(true);
+          error.textContent = res.error;
+        } else {
+          error.textContent = res.error;
+          var input = pinForm.querySelector(pinCreating ? "#pin-new" : "#pin-code");
+          input.value = "";
+          input.focus();
+        }
+      }).catch(function () {
+        button.disabled = false;
+        error.textContent = pinSheet.dataset.errorNetwork;
+      });
+    });
+  }
 
   // ---- Money chart: bars or line (remembered on this phone), hover tooltips ----
   var chartViews = document.querySelectorAll("[data-chart]");
@@ -167,7 +274,10 @@
       card.style.transform = "";
       if (dx > 90 && card.dataset.right) {
         var form = document.getElementById(card.dataset.right);
-        if (form && !form.querySelector("button[disabled]")) form.submit();
+        // requestSubmit (unlike submit) lets the PIN check step in.
+        if (form && !form.querySelector("button[disabled]")) {
+          if (form.requestSubmit) form.requestSubmit(); else form.submit();
+        }
       } else if (dx < -90 && card.dataset.left) {
         window.location.href = card.dataset.left;
       }

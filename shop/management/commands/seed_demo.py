@@ -76,6 +76,8 @@ class Command(BaseCommand):
             StaffProfile.objects.create(user=messenger, role=StaffProfile.Role.MESSENGER, phone="0918223344")
         self.owner = User.objects.get(username="selam")
         self.messenger = User.objects.get(username="dawit")
+        # Demo PIN 1234 for both, hashed the same way on every server instance.
+        StaffProfile.objects.filter(user__in=[self.owner, self.messenger]).update(pin_hash=demo_password("1234"))
 
         workers = self._workers()
         styles = self._styles()

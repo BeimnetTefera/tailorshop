@@ -42,6 +42,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Every page needs a signed-in user except the login page (Django 5.1+).
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    "shop.pin.SessionGuardMiddleware",
     "shop.middleware.UserLanguageMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

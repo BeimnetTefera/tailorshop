@@ -59,9 +59,9 @@
     {% if order.stage != "ready" %}<button class="btn btn-primary btn-block" data-open="transfer-sheet">{% translate "Hand over to next step" %} {% icon "arrow-right" 18 %}</button>{% endif %}
     <div class="btn-row">
       {% if order.stage == "ready" %}
-        <form method="post" action="{% url 'shop:order_deliver' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary btn-block">{% translate "Mark delivered" %}</button></form>
+        <form method="post" action="{% url 'shop:order_deliver' order.pk %}" data-protect>{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-primary btn-block">{% translate "Mark delivered" %}</button></form>
       {% else %}
-        <form method="post" action="{% url 'shop:order_mark_ready' order.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-outline">{% translate "Mark ready" %}</button></form>
+        <form method="post" action="{% url 'shop:order_mark_ready' order.pk %}" data-protect>{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-outline">{% translate "Mark ready" %}</button></form>
       {% endif %}
       <button class="btn btn-outline" data-open="stage-sheet">{% translate "Change stage" %}</button>
     </div>
@@ -142,7 +142,7 @@
 </dialog>
 
 <dialog class="sheet" id="stage-sheet">
-  <form method="post" action="{% url 'shop:order_update_stage' order.pk %}" class="sheet-body">
+  <form method="post" action="{% url 'shop:order_update_stage' order.pk %}" class="sheet-body" data-protect>
     {% csrf_token %}
     <div class="sheet-head"><h2>{% translate "Change stage" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     <div class="panel">
@@ -156,7 +156,7 @@
 </dialog>
 
 <dialog class="sheet" id="payment-sheet">
-  <form method="post" action="{% url 'shop:order_add_payment' order.pk %}" class="sheet-body">
+  <form method="post" action="{% url 'shop:order_add_payment' order.pk %}" class="sheet-body" data-protect>
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">
     <div class="sheet-head"><h2>{% translate "Record payment" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>

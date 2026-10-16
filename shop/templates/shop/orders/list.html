@@ -40,10 +40,10 @@
       </div>
       <div class="order-actions">
         {% if o.stage == "ready" %}
-        <form method="post" action="{% url 'shop:order_deliver' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark delivered" %}</button></form>
+        <form method="post" action="{% url 'shop:order_deliver' o.pk %}" data-protect>{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark delivered" %}</button></form>
         <form id="ready-{{ o.pk }}" hidden><button disabled></button></form>
         {% else %}
-        <form id="ready-{{ o.pk }}" method="post" action="{% url 'shop:order_mark_ready' o.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark ready" %}</button></form>
+        <form id="ready-{{ o.pk }}" method="post" action="{% url 'shop:order_mark_ready' o.pk %}" data-protect>{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn-mini">{% translate "Mark ready" %}</button></form>
         {% endif %}
         <a class="btn-mini" href="{% url 'shop:order_edit' o.pk %}">{% translate "Edit order" %}</a>
       </div>

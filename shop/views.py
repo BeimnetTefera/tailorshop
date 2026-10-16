@@ -57,6 +57,7 @@ from .models import (
     WorkerTask,
     plain_number,
 )
+from .pin import pin_required, token_ok
 from .roles import is_owner, owner_required
 from .templatetags.shop_extras import format_etb
 
@@ -156,6 +157,8 @@ def _simple_form(request, form_class, *, title, back, submit, success, instance=
         form = form_class(instance=instance, initial=initial)
     return render(request, "shop/simple_form.html", {
         "form": form, "title": title, "back": back, "submit": submit, "intro": intro,
+        # Editing something that exists (prices, pay rates, designs) asks for the PIN; adding new doesn't.
+        "protect": instance is not None,
     })
 
 
@@ -251,6 +254,7 @@ def _messengers():
 
 
 @owner_required
+@pin_required
 def messenger_list(request):
     if request.method == "POST":
         form = MessengerCreateForm(request.POST)
@@ -267,10 +271,17 @@ def messenger_list(request):
 
 
 @owner_required
+@pin_required
 def messenger_edit(request, pk):
     user = get_object_or_404(_messengers(), pk=pk)
     form = MessengerEditForm(initial={"name": user.first_name, "phone": user.profile.phone, "is_active": user.is_active})
     password_form = SetPasswordForm(user)
+    if request.method == "POST" and "reset_pin" in request.POST:
+        user.profile.pin_hash = ""
+        user.profile.save(update_fields=["pin_hash"])
+        messages.success(request, _("%(name)s's PIN is cleared. They'll create a new one with their password.")
+                         % {"name": user.first_name})
+        return redirect("shop:messenger_edit", pk=user.pk)
     if request.method == "POST" and "password" in request.POST:
         password_form = SetPasswordForm(user, request.POST)
         if password_form.is_valid():
@@ -314,6 +325,7 @@ def team(request):
 
 
 @owner_required
+@pin_required
 def worker_edit(request, pk):
     worker = get_object_or_404(Worker, pk=pk)
     return _simple_form(
@@ -396,6 +408,7 @@ def order_create(request):
     return _order_form_page(request, form, None)
 
 
+@pin_required
 def order_edit(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     if request.method == "POST":
@@ -409,6 +422,7 @@ def order_edit(request, pk):
     return _order_form_page(request, form, order)
 
 
+@pin_required
 @require_POST
 def order_mark_ready(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
@@ -419,6 +433,7 @@ def order_mark_ready(request, pk):
     return _redirect_back(request, "shop:order_list")
 
 
+@pin_required
 @require_POST
 def order_deliver(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
@@ -514,6 +529,7 @@ def order_transfer(request, pk):
     return redirect("shop:tracker_detail", pk=pk)
 
 
+@pin_required
 @require_POST
 def order_update_stage(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
@@ -539,6 +555,7 @@ def order_add_note(request, pk):
     return redirect(reverse("shop:tracker_detail", args=[pk]) + "#updates")
 
 
+@pin_required
 @require_POST
 def order_add_payment(request, pk):
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
@@ -613,6 +630,7 @@ def sale_create(request):
     return render(request, "shop/sales/form.html", {"form": form, "items": items})
 
 
+@pin_required
 @require_POST
 def sale_mark_paid(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
@@ -668,6 +686,7 @@ def freesize_create(request):
 
 
 @owner_required
+@pin_required
 def freesize_edit(request, pk):
     item = get_object_or_404(FreeSizeItem, pk=pk)
     return _simple_form(
@@ -866,6 +885,7 @@ def worker_payments(request):
 
 
 @owner_required
+@pin_required
 @require_POST
 def task_mark_paid(request, pk):
     task = get_object_or_404(WorkerTask.objects.select_related("worker"), pk=pk)
@@ -955,6 +975,7 @@ def style_create(request):
 
 
 @owner_required
+@pin_required
 def style_edit(request, pk):
     style = get_object_or_404(Style, pk=pk)
     return _simple_form(
@@ -1017,6 +1038,7 @@ def material_create(request):
 
 
 @owner_required
+@pin_required
 def material_edit(request, pk):
     material = get_object_or_404(Material, pk=pk)
     return _simple_form(
@@ -1083,6 +1105,9 @@ def material_categories(request):
         category = None
         if action in ("rename", "delete"):
             category = get_object_or_404(MaterialCategory, pk=request.POST.get("pk"))
+        if action == "delete" and not token_ok(request):
+            messages.error(request, _("Nothing was changed. Enter your PIN to confirm changes like this."))
+            return redirect("shop:material_categories")
         if action == "delete":
             count = category.materials.count()
             name = category.label

@@ -5,7 +5,7 @@
   <a href="{% url back %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
   <h1>{{ title }}{% if intro %}<div class="sub">{{ intro }}</div>{% endif %}</h1>
 </header>
-<form method="post" enctype="multipart/form-data" class="stack" novalidate>
+<form method="post" enctype="multipart/form-data" class="stack" novalidate{% if protect %} data-protect{% endif %}>
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors|join:" " }}</div>{% endif %}
   <div class="fieldset">

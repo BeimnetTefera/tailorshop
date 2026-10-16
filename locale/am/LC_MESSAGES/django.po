@@ -469,6 +469,35 @@ msgstr "ቅድሚያ ክፍያ"
 msgid "Balance"
 msgstr "ቀሪ ክፍያ"
 
+msgid "All other devices are signed out."
+msgstr "ሌሎች መሣሪያዎች በሙሉ ወጥተዋል።"
+
+msgid "Your PIN is saved."
+msgstr "ፒንዎ ተቀምጧል።"
+
+msgid "Nothing was changed. Enter your PIN to confirm changes like this."
+msgstr "ምንም አልተቀየረም። እንደዚህ ያሉ ለውጦችን ለማረጋገጥ ፒንዎን ያስገቡ።"
+
+msgid "Create your PIN first."
+msgstr "መጀመሪያ ፒንዎን ይፍጠሩ።"
+
+msgid "That PIN is wrong. %(n)s try left."
+msgid_plural "That PIN is wrong. %(n)s tries left."
+msgstr[0] "ፒኑ ትክክል አይደለም። %(n)s ሙከራ ቀርቷል።"
+msgstr[1] "ፒኑ ትክክል አይደለም። %(n)s ሙከራዎች ቀርተዋል።"
+
+msgid "That password is wrong."
+msgstr "የይለፍ ቃሉ ትክክል አይደለም።"
+
+msgid "Use 4 to 6 digits."
+msgstr "ከ4 እስከ 6 አሃዝ ይጠቀሙ።"
+
+msgid "The two PINs don't match."
+msgstr "ሁለቱ ፒኖች አይመሳሰሉም።"
+
+msgid "Too many wrong tries. Wait %(n)s minutes and try again."
+msgstr "ብዙ የተሳሳቱ ሙከራዎች። %(n)s ደቂቃ ቆይተው እንደገና ይሞክሩ።"
+
 msgid "Only the owner can open that page."
 msgstr "ይህን ገጽ መክፈት የሚችለው ባለቤቱ ብቻ ነው።"
 
@@ -570,6 +599,9 @@ msgstr "%(greeting)s፣ %(name)s"
 
 msgid "Messenger account added · %(name)s"
 msgstr "የመልእክተኛ መለያ ተከፍቷል · %(name)s"
+
+msgid "%(name)s's PIN is cleared. They'll create a new one with their password."
+msgstr "የ%(name)s ፒን ተሰርዟል። በይለፍ ቃላቸው አዲስ ይፈጥራሉ።"
 
 msgid "Edit %(name)s"
 msgstr "%(name)s አስተካክል"
@@ -723,8 +755,8 @@ msgstr "ትዕዛዞችን፣ ክምችትን እና ክፍያዎችን ለማ�
 msgid "That username and password don't match. Try again."
 msgstr "የተጠቃሚ ስሙ እና የይለፍ ቃሉ አይመሳሰሉም። እንደገና ይሞክሩ።"
 
-msgid "Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. Changes reset from time to time."
-msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>selam</b> / <b>selam1234</b>፣ መልእክተኛ <b>dawit</b> / <b>dawit1234</b>። ለውጦች አልፎ አልፎ ይሰረዛሉ።"
+msgid "Demo logins: owner <b>selam</b> / <b>selam1234</b>, messenger <b>dawit</b> / <b>dawit1234</b>. The PIN for both is <b>1234</b>. Changes reset from time to time."
+msgstr "የሙከራ መግቢያዎች፦ ባለቤት <b>selam</b> / <b>selam1234</b>፣ መልእክተኛ <b>dawit</b> / <b>dawit1234</b>። የሁለቱም ፒን <b>1234</b> ነው። ለውጦች አልፎ አልፎ ይሰረዛሉ።"
 
 msgid "Account"
 msgstr "መለያ"
@@ -1164,6 +1196,18 @@ msgstr "ከረሱት ይህን ይጠቀሙ። አዲሱን በአካል ይን�
 msgid "Set new password"
 msgstr "አዲስ የይለፍ ቃል አስቀምጥ"
 
+msgid "PIN"
+msgstr "ፒን"
+
+msgid "If they forget their PIN, clear it. They'll create a new one with their password the next time they need it."
+msgstr "ፒናቸውን ከረሱ ይሰርዙት። በሚቀጥለው ሲያስፈልጋቸው በይለፍ ቃላቸው አዲስ ይፈጥራሉ።"
+
+msgid "They haven't set a PIN yet."
+msgstr "ገና ፒን አላስቀመጡም።"
+
+msgid "Clear their PIN"
+msgstr "ፒናቸውን ሰርዝ"
+
 msgid "Signs in as “%(u)s”"
 msgstr "በ“%(u)s” ይገባሉ"
 
@@ -1343,6 +1387,60 @@ msgstr "ተጨማሪ ፎቶ %(n)s"
 
 msgid "Main"
 msgstr "ዋና"
+
+msgid "Enter your PIN"
+msgstr "ፒንዎን ያስገቡ"
+
+msgid "Create your PIN"
+msgstr "ፒንዎን ይፍጠሩ"
+
+msgid "This change is protected so nothing is changed by accident. Enter your PIN to save it."
+msgstr "ምንም ነገር በስህተት እንዳይቀየር ይህ ለውጥ የተጠበቀ ነው። ለማስቀመጥ ፒንዎን ያስገቡ።"
+
+msgid "Choose a 4–6 digit PIN. It is asked before changes to money, orders and accounts, and before deleting. Confirm with your sign-in password."
+msgstr "ከ4–6 አሃዝ ያለው ፒን ይምረጡ። በገንዘብ፣ በትዕዛዝ እና በመለያ ለውጦች እንዲሁም ከመሰረዝ በፊት ይጠየቃል። በመግቢያ የይለፍ ቃልዎ ያረጋግጡ።"
+
+msgid "Could not check the PIN. Check the connection and try again."
+msgstr "ፒኑን ማረጋገጥ አልተቻለም። ግንኙነቱን አይተው እንደገና ይሞክሩ።"
+
+msgid "Sign-in password"
+msgstr "የመግቢያ የይለፍ ቃል"
+
+msgid "New PIN"
+msgstr "አዲስ ፒን"
+
+msgid "PIN again"
+msgstr "ፒኑን እንደገና"
+
+msgid "Confirm"
+msgstr "አረጋግጥ"
+
+msgid "Forgot your PIN? Set a new one with your password"
+msgstr "ፒንዎን ረሱ? በይለፍ ቃልዎ አዲስ ያስቀምጡ"
+
+msgid "Asked before changes to money, orders and accounts, and before deleting."
+msgstr "በገንዘብ፣ በትዕዛዝ እና በመለያ ለውጦች እንዲሁም ከመሰረዝ በፊት ይጠየቃል።"
+
+msgid "Not set yet. You'll be asked to create one the first time you make a protected change."
+msgstr "ገና አልተቀመጠም። የተጠበቀ ለውጥ ለመጀመሪያ ጊዜ ሲያደርጉ እንዲፈጥሩ ይጠየቃሉ።"
+
+msgid "Change PIN"
+msgstr "ፒን ቀይር"
+
+msgid "Create PIN"
+msgstr "ፒን ፍጠር"
+
+msgid "Sign out every other phone and computer that uses this account? This one stays signed in."
+msgstr "ይህን መለያ የሚጠቀሙ ሌሎች ስልኮች እና ኮምፒውተሮች በሙሉ ይውጡ? ይኼኛው እንደገባ ይቆያል።"
+
+msgid "Lost your phone?"
+msgstr "ስልክዎ ጠፋ?"
+
+msgid "Sign out every other device. Your data is safe on the server."
+msgstr "ሌሎች መሣሪያዎችን በሙሉ ያስወጡ። መረጃዎ በሰርቨሩ ላይ ደህና ነው።"
+
+msgid "Sign out others"
+msgstr "ሌሎችን አስወጣ"
 
 msgid "Previous week"
 msgstr "ያለፈው ሳምንት"

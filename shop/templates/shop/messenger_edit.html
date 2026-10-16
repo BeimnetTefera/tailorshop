@@ -6,18 +6,26 @@
   <h1>{{ person.first_name|default:person.username }}<div class="sub">{% blocktranslate with u=person.username %}Signs in as “{{ u }}”{% endblocktranslate %}</div></h1>
 </header>
 
-<form method="post" class="fieldset" novalidate>
+<form method="post" class="fieldset" novalidate data-protect>
   {% csrf_token %}
   <h2>{% translate "Details" %}</h2>
   {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
   <button class="btn btn-primary btn-block mt">{% translate "Save" %}</button>
 </form>
 
-<form method="post" class="fieldset mt-lg" novalidate>
+<form method="post" class="fieldset mt-lg" novalidate data-protect>
   {% csrf_token %}
   <h2>{% translate "Reset password" %}</h2>
   <p class="muted small" style="margin-bottom:12px">{% translate "Use this if they forget it. Tell them the new one in person." %}</p>
   {% for field in password_form %}{% include "shop/partials/field.html" %}{% endfor %}
   <button class="btn btn-outline btn-block mt">{% translate "Set new password" %}</button>
+</form>
+
+<form method="post" class="fieldset mt" novalidate data-protect>
+  {% csrf_token %}
+  <input type="hidden" name="reset_pin" value="1">
+  <h2>{% translate "PIN" %}</h2>
+  <p class="muted small" style="margin-bottom:12px">{% if person.profile.pin_hash %}{% translate "If they forget their PIN, clear it. They'll create a new one with their password the next time they need it." %}{% else %}{% translate "They haven't set a PIN yet." %}{% endif %}</p>
+  {% if person.profile.pin_hash %}<button class="btn btn-outline btn-block">{% translate "Clear their PIN" %}</button>{% endif %}
 </form>
 {% endblock %}

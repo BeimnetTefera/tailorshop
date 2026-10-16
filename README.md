@@ -46,6 +46,20 @@ a photo, or both. Hand-overs appear in the same thread.
 Production workers don't log in. A messenger who leaves is switched off (untick
 "Can sign in"); their past work stays in the records.
 
+### Protected changes (PIN)
+
+Each person has a 4–6 digit PIN (demo: **1234**). It is asked every time before:
+money changes (recording a payment, marking a sale or worker pay as paid, editing
+prices and pay rates), order changes (editing an order, changing its stage, mark ready,
+mark delivered), account changes (adding, editing or switching off messengers,
+resetting passwords or PINs) and deleting (categories, photos). Handing over a garment,
+new orders, sales, stock and updates don't ask.
+
+Setting or changing a PIN needs the sign-in password, so a phone left signed in can't
+be used to make one. Five wrong PINs lock it for five minutes. The owner can clear a
+messenger's PIN. If a phone is lost, **Sign out others** (Team or Account page) signs
+out every other device; the data itself lives on the server, never on the phone.
+
 ## Run it locally
 
 ```bash

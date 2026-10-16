@@ -1,36 +1,35 @@
 {% extends "shop/base.html" %}{% load i18n shop_extras %}
-{% block title %}{% translate "Stock" %}{% endblock %}
+{% block title %}{% translate "Gallery" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <h1>{% translate "Stock" %}<div class="sub">{% translate "Styles, materials and tibebe designs." %}</div></h1>
+  <h1>{% translate "Collection" %}<div class="sub">{% translate "Designs customers can choose to have made to order." %}</div></h1>
   <button class="icon-btn" data-open="style-filter" aria-label="{% translate 'Filter' %}">{% icon "filter" 20 %}{% if filter_count %}<span class="dot">{{ filter_count }}</span>{% endif %}</button>
 </header>
+{% include "shop/partials/collection_tabs.html" with current="gallery" %}
 
 <form class="search" method="get" role="search">
-  {% icon "search" 20 %}<label class="sr-only" for="style-q">{% translate "Search styles" %}</label>
-  <input id="style-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Style name, code or fabric…' %}">
+  {% icon "search" 20 %}<label class="sr-only" for="style-q">{% translate "Search designs" %}</label>
+  <input id="style-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Design name, code or fabric…' %}">
 </form>
-{% include "shop/partials/inventory_tabs.html" with current="clothing" %}
-<p class="legend mt">{% translate "HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion" %}</p>
 
 <div class="tile-grid">
   {% for s in styles %}
     <a class="tile" href="{% url 'shop:style_detail' s.pk %}">
-      {% include "shop/partials/thumb.html" with photo=s.photo alt=s.name code=s.code %}
-      <div class="tile-body"><small>{{ s.code }}</small><strong>{{ s.name }}</strong><span class="tag">{{ s.get_category_display }}</span></div>
+      {% include "shop/partials/thumb.html" with photo=s.photo alt=s.get_category_display code=s.code %}
+      <div class="tile-body"><small>{{ s.code }} · {{ s.name }}</small><strong>{{ s.get_category_display }}</strong>{% if s.is_popular %}<span class="tag">{% translate "Popular" %}</span>{% endif %}</div>
     </a>
   {% empty %}
-    <div class="empty" style="grid-column:1/-1"><b>{% if q or filter_count %}{% translate "No styles match" %}{% else %}{% translate "Your style library is empty" %}{% endif %}</b><p>{% if q or filter_count %}{% translate "Try fewer filters." %}{% else %}{% translate "Add the designs you make so customers can pick from them." %}{% endif %}</p></div>
+    <div class="empty" style="grid-column:1/-1"><b>{% if q or filter_count %}{% translate "No designs match" %}{% else %}{% translate "The gallery is empty" %}{% endif %}</b><p>{% if q or filter_count %}{% translate "Try fewer filters." %}{% else %}{% translate "Add the designs you make so customers can pick from them." %}{% endif %}</p></div>
   {% endfor %}
 </div>
 
-{% if is_owner %}<a class="fab" href="{% url 'shop:style_create' %}" aria-label="{% translate 'Add style' %}">{% icon "plus" 26 %}</a>{% endif %}
+{% if is_owner %}<a class="fab" href="{% url 'shop:style_create' %}" aria-label="{% translate 'Add design' %}">{% icon "plus" 26 %}</a>{% endif %}
 
 <dialog class="sheet" id="style-filter">
   <form method="get" class="sheet-body">
-    <div class="sheet-head"><h2>{% translate "Filter styles" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
+    <div class="sheet-head"><h2>{% translate "Filter designs" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
     {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
-    <p class="label">{% translate "Occasion" %}</p>
+    <p class="label">{% translate "Clothing type" %}</p>
     <div class="chips" style="margin:10px 0 18px">{% for v, l, on in occasion_options %}<label class="chip-opt"><input type="checkbox" name="occasion" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>
     <p class="label">{% translate "For" %}</p>
     <div class="chips" style="margin:10px 0 18px">{% for v, l, on in gender_options %}<label class="chip-opt"><input type="checkbox" name="gender" value="{{ v }}" {% if on %}checked{% endif %}><span>{{ l }}</span></label>{% endfor %}</div>

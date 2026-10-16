@@ -1,0 +1,5 @@
+{% load i18n %}
+<nav class="tabs" aria-label="{% translate 'Collection' %}">
+  <a href="{% url 'shop:readymade' %}" class="{% if current == 'readymade' %}active{% endif %}"{% if current == 'readymade' %} aria-current="page"{% endif %}>{% translate "Ready-made" %}</a>
+  <a href="{% url 'shop:clothing_list' %}" class="{% if current == 'gallery' %}active{% endif %}"{% if current == 'gallery' %} aria-current="page"{% endif %}>{% translate "Gallery" %}</a>
+</nav>

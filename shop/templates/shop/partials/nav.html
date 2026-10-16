@@ -2,8 +2,8 @@
 <nav class="bottom-nav" aria-label="{% translate 'Main' %}">
   <a href="{% url 'shop:dashboard' %}" class="{% if nav_section == 'home' %}active{% endif %}"{% if nav_section == 'home' %} aria-current="page"{% endif %}>{% icon "home" %}{% translate "Home" %}</a>
   <a href="{% url 'shop:order_list' %}" class="{% if nav_section == 'orders' %}active{% endif %}"{% if nav_section == 'orders' %} aria-current="page"{% endif %}>{% icon "orders" %}{% translate "Orders" %}</a>
-  <a href="{% url 'shop:readymade' %}" class="{% if nav_section == 'readymade' %}active{% endif %}"{% if nav_section == 'readymade' %} aria-current="page"{% endif %}>{% icon "hanger" %}{% translate "Ready-made" %}</a>
-  <a href="{% url 'shop:clothing_list' %}" class="{% if nav_section == 'stock' %}active{% endif %}"{% if nav_section == 'stock' %} aria-current="page"{% endif %}>{% icon "box" %}{% translate "Stock" %}</a>
+  <a href="{% url 'shop:readymade' %}" class="{% if nav_section == 'collection' %}active{% endif %}"{% if nav_section == 'collection' %} aria-current="page"{% endif %}>{% icon "hanger" %}{% translate "Collection" %}</a>
+  <a href="{% url 'shop:material_list' %}" class="{% if nav_section == 'stock' %}active{% endif %}"{% if nav_section == 'stock' %} aria-current="page"{% endif %}>{% icon "box" %}{% translate "Stock" %}</a>
   {% if is_owner %}
   <a href="{% url 'shop:finance' %}" class="{% if nav_section == 'money' %}active{% endif %}"{% if nav_section == 'money' %} aria-current="page"{% endif %}>{% icon "wallet" %}{% translate "Money" %}</a>
   {% endif %}

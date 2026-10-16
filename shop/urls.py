@@ -11,9 +11,10 @@ def _moved(name):
 
 
 urlpatterns = [
-    # Old addresses from the first demo, kept so bookmarks still work.
+    # Old addresses from earlier versions of the demo, kept so bookmarks still work.
     path("inventory/", _moved("shop:clothing_list")),
     path("inventory/free-size/", _moved("shop:readymade")),
+    path("stock/materials/", _moved("shop:material_list")),
     path("finance/", _moved("shop:finance")),
     path("payments/", _moved("shop:worker_payments")),
 
@@ -38,10 +39,15 @@ urlpatterns = [
     path("tracker/<int:pk>/note/", views.order_add_note, name="order_add_note"),
     path("tracker/<int:pk>/payment/", views.order_add_payment, name="order_add_payment"),
 
+    # Collection: ready-made pieces and the design gallery.
     path("ready-made/", views.readymade, name="readymade"),
     path("ready-made/new/", views.freesize_create, name="freesize_create"),
     path("ready-made/<int:pk>/", views.readymade_detail, name="readymade_detail"),
     path("ready-made/<int:pk>/edit/", views.freesize_edit, name="freesize_edit"),
+    path("gallery/", views.clothing_list, name="clothing_list"),
+    path("gallery/new/", views.style_create, name="style_create"),
+    path("gallery/<int:pk>/", views.style_detail, name="style_detail"),
+    path("gallery/<int:pk>/edit/", views.style_edit, name="style_edit"),
     path("sales/", views.sales_history, name="sales_history"),
     path("sales/new/", views.sale_create, name="sale_create"),
     path("sales/<int:pk>/paid/", views.sale_mark_paid, name="sale_mark_paid"),
@@ -51,18 +57,12 @@ urlpatterns = [
     path("money/workers/", views.worker_payments, name="worker_payments"),
     path("money/workers/<int:pk>/paid/", views.task_mark_paid, name="task_mark_paid"),
 
-    path("stock/", views.clothing_list, name="clothing_list"),
-    path("stock/styles/new/", views.style_create, name="style_create"),
-    path("stock/styles/<int:pk>/", views.style_detail, name="style_detail"),
-    path("stock/styles/<int:pk>/edit/", views.style_edit, name="style_edit"),
-    path("stock/materials/", views.material_list, name="material_list"),
-    path("stock/materials/new/", views.material_create, name="material_create"),
-    path("stock/materials/<int:pk>/", views.material_detail, name="material_detail"),
-    path("stock/materials/<int:pk>/edit/", views.material_edit, name="material_edit"),
-    path("stock/materials/<int:pk>/add-stock/", views.material_add_stock, name="material_add_stock"),
-    path("stock/materials/<int:pk>/use/", views.material_use, name="material_use"),
-    path("stock/tibebe/", views.tibebe_list, name="tibebe_list"),
-    path("stock/tibebe/new/", views.tibebe_create, name="tibebe_create"),
-    path("stock/tibebe/<int:pk>/", views.tibebe_detail, name="tibebe_detail"),
-    path("stock/tibebe/<int:pk>/edit/", views.tibebe_edit, name="tibebe_edit"),
+    # Stock: raw materials.
+    path("stock/", views.material_list, name="material_list"),
+    path("stock/new/", views.material_create, name="material_create"),
+    path("stock/categories/", views.material_categories, name="material_categories"),
+    path("stock/<int:pk>/", views.material_detail, name="material_detail"),
+    path("stock/<int:pk>/edit/", views.material_edit, name="material_edit"),
+    path("stock/<int:pk>/add-stock/", views.material_add_stock, name="material_add_stock"),
+    path("stock/<int:pk>/use/", views.material_use, name="material_use"),
 ]

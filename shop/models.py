@@ -3,7 +3,7 @@
 The app covers five areas shown in the mockups:
   * custom orders and their production stages (who holds the garment now),
   * free-size ready-made stock and its sales,
-  * the style library, raw materials and tibebe (woven border) designs,
+  * the design gallery and raw materials (in owner-managed categories),
   * money coming in (deposits, balances, sales),
   * money going out to workers for finished tasks.
 
@@ -200,22 +200,39 @@ class StylePhoto(models.Model):
         return f"Photo of {self.style.code}"
 
 
-class Material(models.Model):
-    class Type(models.TextChoices):
-        FABRIC = "fabric", _("Fabric")
-        THREAD = "thread", _("Thread")
-        BUTTONS = "buttons", _("Buttons")
-        EMBROIDERY = "embroidery", _("Embroidery")
-        LACE = "lace", _("Lace")
-        OTHER = "other", _("Other")
+class MaterialCategory(models.Model):
+    """Groups for raw materials (fabric, thread, buttons…). The owner adds, renames and deletes them."""
 
+    name = models.CharField(_("Name (English)"), max_length=60)
+    name_am = models.CharField(_("Name (Amharic)"), max_length=60, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "material categories"
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def label(self):
+        """The name in the reader's language (Amharic falls back to English if not filled in)."""
+        from django.utils.translation import get_language
+
+        if (get_language() or "").startswith("am") and self.name_am:
+            return self.name_am
+        return self.name
+
+
+class Material(models.Model):
     class Unit(models.TextChoices):
         METERS = "meters", _("Meters")
         SPOOLS = "spools", _("Spools")
         PIECES = "pieces", _("Pieces")
 
     name = models.CharField(_("Material name"), max_length=120)
-    material_type = models.CharField(_("Material type"), max_length=20, choices=Type.choices, default=Type.FABRIC)
+    category = models.ForeignKey(MaterialCategory, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="materials", verbose_name=_("Category"))
     price = models.DecimalField(_("Price per unit (ETB)"), max_digits=10, decimal_places=2)
     quantity = models.DecimalField(_("Quantity"), max_digits=10, decimal_places=2, default=0)
     unit = models.CharField(_("Unit"), max_length=10, choices=Unit.choices, default=Unit.METERS)
@@ -252,30 +269,6 @@ class Material(models.Model):
         if self.status == "low":
             return gettext("Low stock: %(amount)s") % {"amount": self.amount_label}
         return gettext("%(amount)s available") % {"amount": self.amount_label}
-
-
-class Tibebe(models.Model):
-    class Size(models.TextChoices):
-        LARGE = "large", _("Large")
-        MEDIUM = "medium", _("Medium")
-        THIN = "thin", _("Thin")
-
-    code = models.CharField(_("Style code"), max_length=20, unique=True)
-    name = models.CharField(_("Style name"), max_length=120)
-    size = models.CharField(_("Border width"), max_length=10, choices=Size.choices, default=Size.MEDIUM)
-    occasion = models.CharField(_("Occasion"), max_length=60, blank=True, help_text=_("e.g. Wedding, Holiday, Everyday"))
-    material = models.ForeignKey(Material, on_delete=models.SET_NULL, null=True, blank=True, related_name="tibebes",
-                                 verbose_name=_("Material"))
-    photo = models.ImageField(_("Photo"), upload_to="tibebe/", blank=True)
-    description = models.TextField(_("Description"), blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        ordering = ["code"]
-        verbose_name = "tibebe design"
-
-    def __str__(self):
-        return f"{self.code} · {self.name}"
 
 
 # --------------------------------------------------------------------------- orders

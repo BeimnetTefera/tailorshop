@@ -13,8 +13,8 @@ from django.utils import timezone
 
 from shop.demo import DEMO_PREFIX, demo_password, demo_photo
 from shop.models import (
-    Activity, Customer, FreeSizeItem, Material, MaterialUsage, Order, Payment,
-    Sale, StaffProfile, Stage, StageNote, Style, Tibebe, Worker, WorkerTask,
+    Activity, Customer, FreeSizeItem, Material, MaterialCategory, MaterialUsage, Order, Payment,
+    Sale, StaffProfile, Stage, StageNote, Style, Worker, WorkerTask,
 )
 
 D = Decimal
@@ -30,6 +30,17 @@ STYLE_DETAILS = {
     "MF-011": {"color": "White and gold", "fit": "Fitted bodice, full skirt", "length": "Ankle length", "sleeve_length": "Three-quarter"},
 }
 
+# Gallery designs reuse the demo photos (files in shop/demo_photos/).
+STYLE_PHOTOS = {
+    "HK-024": "gold-wedding-gown.jpg",
+    "HK-012": "cross-tibeb-kemis.jpg",
+    "WD-015": "wedding-green-gold.jpg",
+    "MF-006": "cream-tibeb-dress.jpg",
+    "MN-006": "mens-gold-trim-shirt.jpg",
+    "CH-003": "childrens-festive-kemis.jpg",
+    "MF-011": "black-red-cross-kemis.jpg",
+}
+
 
 class Command(BaseCommand):
     help = "Load demo data for the tailor shop (owner selam / selam1234, messenger dawit / dawit1234)."
@@ -41,7 +52,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["reset"]:
             for model in (Activity, Sale, MaterialUsage, Payment, WorkerTask, StageNote, Order,
-                          Customer, Tibebe, Material, FreeSizeItem, Style, Worker):
+                          Customer, Material, MaterialCategory, FreeSizeItem, Style, Worker):
                 model.objects.all().delete()
         elif Style.objects.exists():
             self.stdout.write(self.style.WARNING("Demo data is already loaded. Use --reset to load it again."))
@@ -69,7 +80,6 @@ class Command(BaseCommand):
         workers = self._workers()
         styles = self._styles()
         self._materials(styles)
-        self._tibebe()
         items = self._free_size()
         self._orders(workers, styles)
         self._sales(items)
@@ -109,14 +119,19 @@ class Command(BaseCommand):
         ]
         styles = {}
         for i, (code, name, cat, gender, fabric, desc, sizes, popular) in enumerate(data):
+            photo = DEMO_PREFIX + STYLE_PHOTOS[code]
             styles[code] = Style.objects.create(
                 code=code, name=name, category=cat, gender=gender, fabric=fabric, description=desc,
                 recommended_sizes=sizes, is_popular=popular, created_at=self._ago(90 - i * 8),
-                **STYLE_DETAILS.get(code, {}),
+                photo=photo if demo_photo(photo) else "", **STYLE_DETAILS.get(code, {}),
             )
         return styles
 
     def _materials(self, styles):
+        categories = {key: MaterialCategory.objects.create(name=en, name_am=am) for key, en, am in [
+            ("fabric", "Fabric", "ጨርቅ"), ("thread", "Thread", "ክር"), ("buttons", "Buttons", "ቁልፍ"),
+            ("embroidery", "Embroidery", "ጥልፍ"), ("lace", "Lace", "ዳንቴል"),
+        ]}
         data = [
             ("White Cotton", "fabric", 500, 12, "meters", 5, ["HK-024", "HK-012"]),
             ("Gold Thread", "thread", 600, 8, "spools", 3, ["HK-024"]),
@@ -129,23 +144,10 @@ class Command(BaseCommand):
         ]
         for i, (name, kind, price, qty, unit, low, used) in enumerate(data):
             m = Material.objects.create(
-                name=name, material_type=kind, price=D(price), quantity=D(qty), unit=unit,
+                name=name, category=categories[kind], price=D(price), quantity=D(qty), unit=unit,
                 low_stock_at=D(low), created_at=self._ago(60 - i),
             )
             m.used_for.set([styles[c] for c in used])
-
-    def _tibebe(self):
-        cotton = Material.objects.get(name="White Cotton")
-        data = [
-            ("TB-024", "Soft Cotton Onesie Kemis", "thin", "Everyday"),
-            ("TB-007", "Large Cotton Kemis", "large", "Holiday"),
-            ("TB-012", "White Embroidered Kemis", "medium", "Wedding"),
-            ("TB-013", "Gold Kemis", "large", "Traditional"),
-            ("TB-019", "Festive Holiday Kemis", "medium", "Holiday"),
-            ("TB-021", "Formal Teen Kemis", "thin", "Formal"),
-        ]
-        for code, name, size, occasion in data:
-            Tibebe.objects.create(code=code, name=name, size=size, occasion=occasion, material=cotton)
 
     def _free_size(self):
         hand, both = FreeSizeItem.Made.HANDMADE, FreeSizeItem.Made.BOTH

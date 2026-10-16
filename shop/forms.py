@@ -13,6 +13,7 @@ from .models import (
     Customer,
     FreeSizeItem,
     Material,
+    MaterialCategory,
     Order,
     Payment,
     ReadyMadePhoto,
@@ -21,7 +22,6 @@ from .models import (
     Stage,
     Style,
     StylePhoto,
-    Tibebe,
     Worker,
     next_code,
 )
@@ -162,12 +162,12 @@ class OrderForm(StyledFormMixin, forms.ModelForm):
             "priority": forms.RadioSelect,
             "reference_photo": PHOTO,
         }
-        labels = {"style": _("Select style"), "reference_photo": _("Add reference photo")}
+        labels = {"style": _("Design from the gallery"), "reference_photo": _("Add reference photo")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["style"].queryset = Style.objects.order_by("name")
-        self.fields["style"].empty_label = _("Choose a style (optional)")
+        self.fields["style"].empty_label = _("Choose a design (optional)")
         self.fields["customer_phone"].widget.attrs.update(inputmode="tel", placeholder="09…")
         self.fields["total_price"].widget.attrs.update(inputmode="decimal", min="0")
         self.fields["deposit"].widget.attrs.update(inputmode="decimal", min="0")
@@ -268,37 +268,38 @@ class StyleForm(StyledFormMixin, forms.ModelForm):
 class MaterialForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Material
-        fields = ["name", "material_type", "price", "quantity", "unit", "low_stock_at", "used_for", "photo", "description"]
+        fields = ["name", "category", "price", "quantity", "unit", "low_stock_at", "used_for", "photo", "description"]
         widgets = {
             "used_for": forms.CheckboxSelectMultiple,
             "photo": PHOTO,
             "description": forms.Textarea(attrs={"rows": 3}),
         }
-        labels = {"used_for": _("Used for these styles")}
+        labels = {"used_for": _("Used for these designs")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["name"].widget.attrs["placeholder"] = _("e.g. White cotton")
+        self.fields["category"].empty_label = _("No category")
+        self.fields["category"].label_from_instance = lambda c: c.label
 
 
-class TibebeForm(StyledFormMixin, forms.ModelForm):
+class MaterialCategoryForm(StyledFormMixin, forms.ModelForm):
     class Meta:
-        model = Tibebe
-        fields = ["name", "code", "size", "occasion", "material", "photo", "description"]
-        widgets = {
-            "size": forms.RadioSelect,
-            "photo": PHOTO,
-            "description": forms.Textarea(attrs={"rows": 3}),
-        }
+        model = MaterialCategory
+        fields = ["name", "name_am"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["material"].empty_label = _("Not linked to a material")
-        if not self.instance.pk:
-            self.fields["code"].initial = next_code(Tibebe, "TB")
+        self.fields["name"].widget.attrs["placeholder"] = _("e.g. Beads")
+        self.fields["name_am"].widget.attrs["placeholder"] = _("e.g. ዶቃ")
+        self.fields["name_am"].help_text = _("Optional. Shown to people who use the app in Amharic.")
 
-    def clean_code(self):
-        return self.cleaned_data["code"].strip().upper()
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        taken = MaterialCategory.objects.filter(name__iexact=name).exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise forms.ValidationError(_("There is already a category with that name."))
+        return name
 
 
 class FreeSizeItemForm(StyledFormMixin, forms.ModelForm):

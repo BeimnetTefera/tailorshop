@@ -59,9 +59,14 @@ class StyleAdmin(admin.ModelAdmin):
 
 @admin.register(models.Material)
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ("name", "material_type", "price", "quantity", "unit")
-    list_filter = ("material_type",)
+    list_display = ("name", "category", "price", "quantity", "unit")
+    list_filter = ("category",)
     filter_horizontal = ("used_for",)
+
+
+@admin.register(models.MaterialCategory)
+class MaterialCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "name_am")
 
 
 @admin.register(models.WorkerTask)
@@ -76,7 +81,6 @@ class SaleAdmin(admin.ModelAdmin):
     list_filter = ("status",)
 
 
-admin.site.register(models.Tibebe)
 admin.site.register(models.FreeSizeItem)
 admin.site.register(models.Payment)
 admin.site.register(models.MaterialUsage)

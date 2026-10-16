@@ -15,7 +15,7 @@ msgstr "በ09 ወይም በ07 የሚጀምር ባለ 10 አሃዝ ስልክ ቁ�
 msgid "That day doesn't exist in that month. Pagume has 5 days (6 in a leap year)."
 msgstr "ይህ ቀን በዚህ ወር ውስጥ የለም። ጳጉሜ 5 ቀናት አሏት (በዘመነ ሉቃስ 6)።"
 
-msgid "Choose a style (optional)"
+msgid "Choose a design (optional)"
 msgstr "ዲዛይን ይምረጡ (ካስፈለገ)"
 
 msgid "e.g. Habesha kemis"
@@ -27,8 +27,17 @@ msgstr "ይህን ዲዛይን ይግለጹ"
 msgid "e.g. White cotton"
 msgstr "ለምሳሌ፦ ነጭ ጥጥ"
 
-msgid "Not linked to a material"
-msgstr "ከጥሬ ዕቃ ጋር አልተገናኘም"
+msgid "No category"
+msgstr "ምድብ የለውም"
+
+msgid "e.g. Beads"
+msgstr "ለምሳሌ፦ Beads"
+
+msgid "e.g. ዶቃ"
+msgstr "ለምሳሌ፦ ዶቃ"
+
+msgid "Optional. Shown to people who use the app in Amharic."
+msgstr "ካስፈለገ። መተግበሪያውን በአማርኛ ለሚጠቀሙ ይታያል።"
 
 msgid "Enter a name if you want to save it"
 msgstr "መመዝገብ ከፈለጉ ስም ያስገቡ"
@@ -60,8 +69,8 @@ msgstr "የተከፈለ ቅድሚያ ክፍያ (ብር)"
 msgid "Delivery date"
 msgstr "የሚረከብበት ቀን"
 
-msgid "Select style"
-msgstr "ዲዛይን ይምረጡ"
+msgid "Design from the gallery"
+msgstr "ከማዕከለ-ስዕላቱ ዲዛይን"
 
 msgid "Add reference photo"
 msgstr "የናሙና ፎቶ ያክሉ"
@@ -78,7 +87,7 @@ msgstr "ፎቶዎችን አስወግድ"
 msgid "Tap the photos you want to delete."
 msgstr "ማጥፋት የሚፈልጉትን ፎቶ ይንኩ።"
 
-msgid "Used for these styles"
+msgid "Used for these designs"
 msgstr "ለእነዚህ ዲዛይኖች ይውላል"
 
 msgid "Full name"
@@ -128,6 +137,9 @@ msgstr "የሚረከብበት ቀን ያለፈ ቀን መሆን አይችልም�
 
 msgid "The deposit can't be more than the total price."
 msgstr "ቅድሚያ ክፍያው ከጠቅላላ ዋጋው መብለጥ አይችልም።"
+
+msgid "There is already a category with that name."
+msgstr "በዚህ ስም ሌላ ምድብ አለ።"
 
 msgid "Use only letters, numbers and . @ + - _ (no spaces)."
 msgstr "ፊደላት፣ ቁጥሮች እና . @ + - _ ብቻ ይጠቀሙ (ያለ ክፍተት)።"
@@ -249,11 +261,14 @@ msgstr "የሚመከሩ መጠኖች"
 msgid "Popular style"
 msgstr "ተወዳጅ ዲዛይን"
 
+msgid "Name (English)"
+msgstr "ስም (በእንግሊዝኛ)"
+
+msgid "Name (Amharic)"
+msgstr "ስም (በአማርኛ)"
+
 msgid "Material name"
 msgstr "የዕቃው ስም"
-
-msgid "Material type"
-msgstr "የዕቃው ዓይነት"
 
 msgid "Price per unit (ETB)"
 msgstr "የአንዱ ዋጋ (ብር)"
@@ -269,12 +284,6 @@ msgstr "ክምችቱ እዚህ ሲደርስ አሳውቀኝ"
 
 msgid "Photo"
 msgstr "ፎቶ"
-
-msgid "Border width"
-msgstr "የጥበብ ስፋት"
-
-msgid "Occasion"
-msgstr "ዝግጅት"
 
 msgid "Reference photo"
 msgstr "የናሙና ፎቶ"
@@ -369,21 +378,6 @@ msgstr "ለምሳሌ፦ ረጅም እጅጌ፣ 60 ሴ.ሜ"
 msgid "Comma separated, e.g. Medium, Large"
 msgstr "በኮማ ይለዩ፤ ለምሳሌ፦ መካከለኛ፣ ትልቅ"
 
-msgid "Thread"
-msgstr "ክር"
-
-msgid "Buttons"
-msgstr "ቁልፍ"
-
-msgid "Embroidery"
-msgstr "ጥልፍ"
-
-msgid "Lace"
-msgstr "ዳንቴል"
-
-msgid "Other"
-msgstr "ሌላ"
-
 msgid "Meters"
 msgstr "ሜትር"
 
@@ -398,21 +392,6 @@ msgstr "አልቋል"
 
 msgid "%(amount)s available"
 msgstr "%(amount)s አለ"
-
-msgid "Large"
-msgstr "ሰፊ"
-
-msgid "Medium"
-msgstr "መካከለኛ"
-
-msgid "Thin"
-msgstr "ቀጭን"
-
-msgid "e.g. Wedding, Holiday, Everyday"
-msgstr "ለምሳሌ፦ ሰርግ፣ በዓል፣ የዘወትር"
-
-msgid "Material"
-msgstr "ጥሬ ዕቃ"
 
 msgid "Standard"
 msgstr "መደበኛ"
@@ -574,7 +553,7 @@ msgstr "ለማን"
 msgid "Sizes"
 msgstr "መጠኖች"
 
-msgid "Add style"
+msgid "Add design"
 msgstr "ዲዛይን ጨምር"
 
 msgid "Add material"
@@ -585,12 +564,6 @@ msgstr "ክምችት ተጨምሯል · %(name)s"
 
 msgid "Enter how much stock to add."
 msgstr "ምን ያህል እንደሚጨመር ያስገቡ።"
-
-msgid "Add tibebe style"
-msgstr "የጥበብ ዲዛይን ጨምር"
-
-msgid "Add tibebe"
-msgstr "ጥበብ ጨምር"
 
 msgid "%(greeting)s, %(name)s"
 msgstr "%(greeting)s፣ %(name)s"
@@ -630,6 +603,9 @@ msgstr "የ%(name)s ሥራ እንደተከፈለ ተመዝግቧል።"
 
 msgid "Cotton"
 msgstr "ጥጥ"
+
+msgid "Lace"
+msgstr "ዳንቴል"
 
 msgid "Wool"
 msgstr "ሱፍ"
@@ -703,6 +679,20 @@ msgstr "ለ%(name)s %(amount)s %(unit)s %(material)s ጥቅም ላይ ውሏል"
 msgid "Used %(amount)s %(unit)s of %(material)s"
 msgstr "%(amount)s %(unit)s %(material)s ጥቅም ላይ ውሏል"
 
+msgid "Deleted “%(name)s”. %(n)s material now has no category."
+msgid_plural "Deleted “%(name)s”. %(n)s materials now have no category."
+msgstr[0] "“%(name)s” ተሰርዟል። %(n)s ጥሬ ዕቃ አሁን ምድብ የለውም።"
+msgstr[1] "“%(name)s” ተሰርዟል። %(n)s ጥሬ ዕቃዎች አሁን ምድብ የላቸውም።"
+
+msgid "Deleted “%(name)s”."
+msgstr "“%(name)s” ተሰርዟል።"
+
+msgid "Renamed to “%(name)s”."
+msgstr "ስሙ ወደ “%(name)s” ተቀይሯል።"
+
+msgid "Added “%(name)s”."
+msgstr "“%(name)s” ተጨምሯል።"
+
 msgid "%(name)s can no longer sign in."
 msgstr "%(name)s ከአሁን በኋላ መግባት አይችሉም።"
 
@@ -714,6 +704,9 @@ msgstr "ለ%(name)s %(amount)s %(unit)s ጥቅም ላይ እንደዋለ ተመ�
 
 msgid "Recorded %(amount)s %(unit)s used."
 msgstr "%(amount)s %(unit)s ጥቅም ላይ እንደዋለ ተመዝግቧል።"
+
+msgid "Enter a name."
+msgstr "ስም ያስገቡ።"
 
 msgid "Sign in"
 msgstr "ግባ"
@@ -926,29 +919,67 @@ msgstr "የ%(month)s ሳምንታዊ ገቢ · በጠቅላላ %(total)s"
 msgid "No money recorded in %(month)s yet."
 msgstr "በ%(month)s ገና የተመዘገበ ገንዘብ የለም።"
 
-msgid "Stock"
-msgstr "ክምችት"
+msgid "Edit"
+msgstr "አስተካክል"
 
-msgid "Styles, materials and tibebe designs."
-msgstr "ዲዛይኖች፣ ጥሬ ዕቃዎች እና ጥበቦች።"
+msgid "Add photos"
+msgstr "ፎቶዎች ያክሉ"
+
+msgid "Made to order in the customer's measurements."
+msgstr "በደንበኛው ልኬት በትዕዛዝ ይሰፋል።"
+
+msgid "Use this design"
+msgstr "ይህን ዲዛይን ተጠቀም"
+
+msgid "Materials used"
+msgstr "የዋሉ ጥሬ ዕቃዎች"
+
+msgid "Browse designs"
+msgstr "ዲዛይኖችን ያስሱ"
+
+msgid "Previous"
+msgstr "ቀዳሚ"
+
+msgid "Next"
+msgstr "ቀጣይ"
+
+msgid "%(a)s of %(b)s"
+msgstr "%(a)s ከ%(b)s"
+
+msgid "Photos of %(name)s"
+msgstr "የ%(name)s ፎቶዎች"
+
+msgid "Show photo %(n)s"
+msgstr "ፎቶ %(n)s አሳይ"
+
+msgid "Opens a new order with this design chosen. Used in %(n)s order so far."
+msgid_plural "Opens a new order with this design chosen. Used in %(n)s orders so far."
+msgstr[0] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዝ ውስጥ ውሏል።"
+msgstr[1] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዞች ውስጥ ውሏል።"
+
+msgid "Gallery"
+msgstr "ማዕከለ-ስዕላት"
+
+msgid "Collection"
+msgstr "ስብስብ"
+
+msgid "Designs customers can choose to have made to order."
+msgstr "ደንበኞች በትዕዛዝ ለማሰፋት የሚመርጧቸው ዲዛይኖች።"
 
 msgid "Filter"
 msgstr "አጣራ"
 
-msgid "Search styles"
+msgid "Search designs"
 msgstr "ዲዛይን ፈልግ"
 
-msgid "Style name, code or fabric…"
+msgid "Design name, code or fabric…"
 msgstr "የዲዛይን ስም፣ ኮድ ወይም ጨርቅ…"
 
-msgid "HK Habesha kemis · WD Wedding dress · MN Men's traditional · CH Children's · MF Modern fusion"
-msgstr "HK የሐበሻ ቀሚስ · WD የሰርግ ቀሚስ · MN የወንዶች ባህላዊ · CH የልጆች · MF ዘመናዊ ቅልቅል"
-
-msgid "No styles match"
+msgid "No designs match"
 msgstr "የሚዛመድ ዲዛይን የለም"
 
-msgid "Your style library is empty"
-msgstr "የዲዛይን ስብስብዎ ባዶ ነው"
+msgid "The gallery is empty"
+msgstr "ማዕከለ-ስዕላቱ ባዶ ነው"
 
 msgid "Try fewer filters."
 msgstr "ጥቂት ማጣሪያዎችን ይሞክሩ።"
@@ -956,7 +987,7 @@ msgstr "ጥቂት ማጣሪያዎችን ይሞክሩ።"
 msgid "Add the designs you make so customers can pick from them."
 msgstr "ደንበኞች እንዲመርጡ የሚሠሯቸውን ዲዛይኖች ያክሉ።"
 
-msgid "Filter styles"
+msgid "Filter designs"
 msgstr "ዲዛይኖችን አጣራ"
 
 msgid "Close"
@@ -971,11 +1002,39 @@ msgstr "ውጤቶችን አሳይ"
 msgid "Clear filters"
 msgstr "ማጣሪያዎችን አጽዳ"
 
-msgid "Edit"
-msgstr "አስተካክል"
+msgid "Material categories"
+msgstr "የጥሬ ዕቃ ምድቦች"
 
-msgid "Type"
-msgstr "ዓይነት"
+msgid "The groups your raw materials are sorted into. Add, rename or delete them."
+msgstr "ጥሬ ዕቃዎችዎ የሚደረደሩባቸው ምድቦች። ይጨምሩ፣ ስም ይቀይሩ ወይም ይሰርዙ።"
+
+msgid "Save"
+msgstr "አስቀምጥ"
+
+msgid "Delete category"
+msgstr "ምድቡን ሰርዝ"
+
+msgid "No categories yet. Add the first one below."
+msgstr "ገና ምድብ የለም። የመጀመሪያውን ከታች ያክሉ።"
+
+msgid "Add a category"
+msgstr "ምድብ ጨምር"
+
+msgid "Add category"
+msgstr "ምድብ ጨምር"
+
+msgid "%(n)s material"
+msgid_plural "%(n)s materials"
+msgstr[0] "%(n)s ጥሬ ዕቃ"
+msgstr[1] "%(n)s ጥሬ ዕቃዎች"
+
+msgid "Delete “%(name)s”? %(n)s material will be kept but have no category."
+msgid_plural "Delete “%(name)s”? %(n)s materials will be kept but have no category."
+msgstr[0] "“%(name)s” ይሰረዝ? %(n)s ጥሬ ዕቃ ይቆያል ግን ምድብ አይኖረውም።"
+msgstr[1] "“%(name)s” ይሰረዝ? %(n)s ጥሬ ዕቃዎች ይቆያሉ ግን ምድብ አይኖራቸውም።"
+
+msgid "Delete “%(name)s”?"
+msgstr "“%(name)s” ይሰረዝ?"
 
 msgid "Available"
 msgstr "ያለው"
@@ -998,9 +1057,6 @@ msgstr "ጨምር"
 msgid "General shop use"
 msgstr "ለሱቁ አጠቃላይ ጥቅም"
 
-msgid "Save"
-msgstr "አስቀምጥ"
-
 msgid "%(price)s per %(unit)s"
 msgstr "%(price)s በአንድ %(unit)s"
 
@@ -1010,11 +1066,11 @@ msgstr "ስንት %(unit)s ገባ?"
 msgid "How many %(unit)s?"
 msgstr "ስንት %(unit)s?"
 
-msgid "Raw materials"
-msgstr "ጥሬ ዕቃዎች"
+msgid "Stock"
+msgstr "ክምችት"
 
-msgid "Keep your fabrics and supplies easy to find."
-msgstr "ጨርቆችዎን እና ዕቃዎችዎን በቀላሉ ያግኙ።"
+msgid "Raw materials: fabric, thread, buttons and everything you sew with."
+msgstr "ጥሬ ዕቃዎች፦ ጨርቅ፣ ክር፣ ቁልፍ እና ለስፌት የሚያስፈልግ ሁሉ።"
 
 msgid "Sort"
 msgstr "ደርድር"
@@ -1031,6 +1087,12 @@ msgstr "ጥሬ ዕቃዎች"
 msgid "Low stock"
 msgstr "እያለቀ ያለ"
 
+msgid "Categories"
+msgstr "ምድቦች"
+
+msgid "Add or change"
+msgstr "ጨምር ወይም ቀይር"
+
 msgid "All"
 msgstr "ሁሉም"
 
@@ -1045,62 +1107,6 @@ msgstr "የቀረውን ለመከታተል ጨርቅ፣ ክር እና ቁልፍ 
 
 msgid "Sort by"
 msgstr "በዚህ ደርድር"
-
-msgid "Add photos"
-msgstr "ፎቶዎች ያክሉ"
-
-msgid "Browse styles"
-msgstr "ዲዛይኖችን ያስሱ"
-
-msgid "Previous"
-msgstr "ቀዳሚ"
-
-msgid "Next"
-msgstr "ቀጣይ"
-
-msgid "Materials used"
-msgstr "የዋሉ ጥሬ ዕቃዎች"
-
-msgid "Use this style"
-msgstr "ይህን ዲዛይን ተጠቀም"
-
-msgid "%(a)s of %(b)s"
-msgstr "%(a)s ከ%(b)s"
-
-msgid "Photos of %(name)s"
-msgstr "የ%(name)s ፎቶዎች"
-
-msgid "Show photo %(n)s"
-msgstr "ፎቶ %(n)s አሳይ"
-
-msgid "Opens a new order with this style chosen. Used in %(n)s order so far."
-msgid_plural "Opens a new order with this style chosen. Used in %(n)s orders so far."
-msgstr[0] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዝ ውስጥ ውሏል።"
-msgstr[1] "ይህ ዲዛይን የተመረጠበት አዲስ ትዕዛዝ ይከፍታል። እስካሁን በ%(n)s ትዕዛዞች ውስጥ ውሏል።"
-
-msgid "Tibebe"
-msgstr "ጥበብ"
-
-msgid "Woven border designs you can add to a kemis."
-msgstr "በቀሚስ ላይ የሚጨመሩ የተሸመኑ ጥበቦች።"
-
-msgid "Search tibebe"
-msgstr "ጥበብ ፈልግ"
-
-msgid "Name, code or occasion…"
-msgstr "ስም፣ ኮድ ወይም ዝግጅት…"
-
-msgid "No tibebe designs match"
-msgstr "የሚዛመድ ጥበብ የለም"
-
-msgid "No tibebe designs yet"
-msgstr "ገና ጥበብ የለም"
-
-msgid "Save border patterns so you can show them to customers."
-msgstr "ለደንበኞች ለማሳየት የጥበብ ዓይነቶችን ያስቀምጡ።"
-
-msgid "Use in a new order"
-msgstr "በአዲስ ትዕዛዝ ተጠቀም"
 
 msgid "Details"
 msgstr "ዝርዝሮች"
@@ -1150,8 +1156,8 @@ msgstr "ልኬት"
 msgid "Some details need fixing. They're marked below."
 msgstr "አንዳንድ መረጃዎች መስተካከል አለባቸው። ከታች ምልክት ተደርጎባቸዋል።"
 
-msgid "Browse the style library"
-msgstr "የዲዛይን ስብስቡን ያስሱ"
+msgid "Browse the gallery"
+msgstr "ማዕከለ-ስዕላቱን ያስሱ"
 
 msgid "Measurements"
 msgstr "ልኬቶች"
@@ -1267,6 +1273,9 @@ msgstr "የሚደርሰው %(d)s"
 msgid "Delivered %(d)s"
 msgstr "%(d)s ተረክቧል"
 
+msgid "Ready-made"
+msgstr "ዝግጁ ልብስ"
+
 msgid "Nothing to choose yet."
 msgstr "ገና የሚመረጥ የለም።"
 
@@ -1288,17 +1297,8 @@ msgstr "ሴ.ሜ"
 msgid "Extra photo %(n)s"
 msgstr "ተጨማሪ ፎቶ %(n)s"
 
-msgid "Stock sections"
-msgstr "የክምችት ክፍሎች"
-
-msgid "Clothing styles"
-msgstr "የልብስ ዲዛይኖች"
-
 msgid "Main"
 msgstr "ዋና"
-
-msgid "Ready-made"
-msgstr "ዝግጁ ልብስ"
 
 msgid "Previous week"
 msgstr "ያለፈው ሳምንት"
@@ -1369,9 +1369,6 @@ msgid "%(n)s sold so far."
 msgid_plural "%(n)s sold so far."
 msgstr[0] "እስካሁን %(n)s ተሽጧል።"
 msgstr[1] "እስካሁን %(n)s ተሽጠዋል።"
-
-msgid "Ready-made clothes"
-msgstr "ዝግጁ ልብሶች"
 
 msgid "Finished pieces you sell off the rack."
 msgstr "ተዘጋጅተው የሚሸጡ ልብሶች።"

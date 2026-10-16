@@ -530,6 +530,15 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .tag-box { border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ink); }
 .tag-box:hover { border-color: var(--gold); }
 
+.cat-row { padding: 0; }
+.cat-row summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+.cat-row summary::-webkit-details-marker { display: none; }
+.cat-row summary .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cat-row summary .ic { color: var(--gold); }
+.cat-row[open] { border-color: var(--gold); }
+.cat-row > form { padding: 0 16px; }
+.cat-row > form:last-child { padding-bottom: 12px; }
+
 .team-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
 .team-row a { text-decoration: none; color: inherit; }
 .team-row .ic { color: var(--gold); }

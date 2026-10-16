@@ -15,6 +15,12 @@
   });
   document.querySelectorAll("dialog[data-autoopen]").forEach(function (d) { d.showModal(); });
 
+  // ---- Ask before destructive actions (<form data-confirm="Delete …?">) ----------
+  document.addEventListener("submit", function (e) {
+    var form = e.target.closest("form[data-confirm]");
+    if (form && !window.confirm(form.dataset.confirm)) e.preventDefault();
+  });
+
   // ---- Toasts fade out ---------------------------------------------------------
   document.querySelectorAll(".toast").forEach(function (t) {
     setTimeout(function () { t.classList.add("hide"); }, 3500);

@@ -6,11 +6,11 @@
   <h1></h1>
   {% if is_owner %}<a class="icon-btn" href="{% url 'shop:material_edit' material.pk %}" aria-label="{% translate 'Edit' %}">{% icon "edit" 20 %}</a>{% endif %}
 </header>
-<div class="hero-img">{% if material.photo %}<img src="{{ material.photo.url }}" alt="{{ material.name }}">{% else %}<span>{{ material.get_material_type_display }}</span>{% endif %}</div>
+<div class="hero-img">{% if material.photo %}<img src="{{ material.photo.url }}" alt="{{ material.name }}">{% else %}<span>{% if material.category %}{{ material.category.label }}{% else %}{{ material.name }}{% endif %}</span>{% endif %}</div>
 <h1 class="detail-title">{{ material.name }}</h1>
 <table class="table">
   <tr><td>{% translate "Price" %}</td><td>{% blocktranslate with price=material.price|birr unit=material.get_unit_display|lower %}{{ price }} per {{ unit }}{% endblocktranslate %}</td></tr>
-  <tr><td>{% translate "Type" %}</td><td>{{ material.get_material_type_display }}</td></tr>
+  <tr><td>{% translate "Category" %}</td><td>{% if material.category %}<a href="{% url 'shop:material_list' %}?cat={{ material.category.pk }}">{{ material.category.label }}</a>{% else %}{% translate "No category" %}{% endif %}</td></tr>
   <tr><td>{% translate "Available" %}</td><td class="status-{{ material.status }}">{{ material.availability }}</td></tr>
 </table>
 {% if material.description %}<p class="mt muted">{{ material.description }}</p>{% endif %}

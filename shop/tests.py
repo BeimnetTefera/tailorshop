@@ -17,7 +17,8 @@ override_settings(MEDIA_ROOT=_TEST_MEDIA).enable()
 
 from . import ethiopian
 from .models import (
-    Activity, FreeSizeItem, Material, Order, Payment, Sale, StaffProfile, Stage, StageNote, Style, Worker, WorkerTask,
+    Activity, FreeSizeItem, Material, MaterialCategory, Order, Payment, Sale, StaffProfile, Stage, StageNote, Style,
+    Worker, WorkerTask,
 )
 
 
@@ -126,9 +127,9 @@ class ShopFlowTests(TestCase):
             reverse("shop:worker_payments"), reverse("shop:worker_payments") + "?status=unpaid",
             reverse("shop:clothing_list"), reverse("shop:clothing_list") + "?occasion=wedding&fabric=Lace&quick=recent",
             reverse("shop:style_detail", args=[style.pk]), reverse("shop:style_create"),
-            reverse("shop:material_list") + "?sort=used", reverse("shop:material_detail", args=[material.pk]),
-            reverse("shop:material_create"), reverse("shop:tibebe_list"), reverse("shop:tibebe_create"),
-            reverse("shop:freesize_create"),
+            reverse("shop:material_list") + "?sort=used", reverse("shop:material_list") + "?cat=none",
+            reverse("shop:material_detail", args=[material.pk]), reverse("shop:material_create"),
+            reverse("shop:material_categories"), reverse("shop:freesize_create"),
         ]
         for language in ("en", "am"):
             StaffProfile.objects.filter(user__username="selam").update(language=language)
@@ -338,6 +339,66 @@ class ReadyMadePageTests(TestCase):
         page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
         self.assertContains(page, f"{reverse('shop:sale_create')}?item={item.pk}")
         self.assertNotContains(page, reverse("shop:freesize_edit", args=[item.pk]))
+
+
+class CollectionAndStockTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.client.force_login(self.owner)
+
+    def test_collection_has_ready_made_and_gallery_tabs(self):
+        for url in (reverse("shop:readymade"), reverse("shop:clothing_list")):
+            page = self.client.get(url)
+            self.assertContains(page, "Collection")
+            self.assertContains(page, f'href="{reverse("shop:readymade")}"')
+            self.assertContains(page, f'href="{reverse("shop:clothing_list")}"')
+        style = Style.objects.get(code="CH-003")
+        page = self.client.get(reverse("shop:style_detail", args=[style.pk]))
+        self.assertContains(page, '<h1 class="product-title">Children</h1>', html=False)
+        self.assertContains(page, f"{reverse('shop:order_create')}?style={style.pk}")
+        self.assertEqual(self.client.get(style.photo.url).status_code, 200)
+
+    def test_stock_is_raw_materials_only(self):
+        page = self.client.get(reverse("shop:material_list"))
+        self.assertNotContains(page, "Clothing styles")
+        self.assertNotContains(page, "Tibebe")
+        self.assertContains(page, "Fabric")
+        fabric = MaterialCategory.objects.get(name="Fabric")
+        filtered = self.client.get(reverse("shop:material_list") + f"?cat={fabric.pk}")
+        self.assertEqual({m.name for m in filtered.context["materials"]}, {"White Cotton", "White Chiffon"})
+
+    def test_owner_adds_renames_and_deletes_categories(self):
+        url = reverse("shop:material_categories")
+        self.client.post(url, {"action": "add", "name": "Beads", "name_am": "ዶቃ"})
+        beads = MaterialCategory.objects.get(name="Beads")
+        before = MaterialCategory.objects.count()
+        self.client.post(url, {"action": "add", "name": "beads"})
+        self.assertEqual(MaterialCategory.objects.count(), before)  # names must be unique
+        self.client.post(url, {"action": "rename", "pk": beads.pk, "name": "Glass beads", "name_am": "የመስታወት ዶቃ"})
+        beads.refresh_from_db()
+        self.assertEqual(beads.name, "Glass beads")
+        with translation.override("am"):
+            self.assertEqual(beads.label, "የመስታወት ዶቃ")
+
+        lace = MaterialCategory.objects.get(name="Lace")
+        material = lace.materials.get()
+        self.client.post(url, {"action": "delete", "pk": lace.pk})
+        self.assertFalse(MaterialCategory.objects.filter(pk=lace.pk).exists())
+        material.refresh_from_db()
+        self.assertIsNone(material.category)  # the material is kept
+        self.assertContains(self.client.get(reverse("shop:material_list")), "No category")
+
+    def test_messenger_cannot_manage_categories(self):
+        self.client.force_login(_english(get_user_model().objects.get(username="dawit")))
+        url = reverse("shop:material_categories")
+        self.assertRedirects(self.client.get(url), reverse("shop:dashboard"))
+        self.client.post(url, {"action": "add", "name": "Sneaky"})
+        self.assertFalse(MaterialCategory.objects.filter(name="Sneaky").exists())
+        self.assertNotContains(self.client.get(reverse("shop:material_list")), url)
 
 
 class LanguageTests(TestCase):

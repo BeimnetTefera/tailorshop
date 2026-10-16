@@ -23,6 +23,7 @@ from .demo import DEMO_PREFIX, demo_photo
 from .forms import (
     AddStockForm,
     FreeSizeItemForm,
+    MaterialCategoryForm,
     MaterialForm,
     MessengerCreateForm,
     MessengerEditForm,
@@ -33,7 +34,6 @@ from .forms import (
     SetPasswordForm,
     StageForm,
     StyleForm,
-    TibebeForm,
     TransferForm,
     UseMaterialForm,
     WorkerForm,
@@ -44,6 +44,7 @@ from .models import (
     Category,
     FreeSizeItem,
     Material,
+    MaterialCategory,
     MaterialUsage,
     Order,
     Payment,
@@ -52,7 +53,6 @@ from .models import (
     Stage,
     StageNote,
     Style,
-    Tibebe,
     Worker,
     WorkerTask,
     plain_number,
@@ -826,7 +826,7 @@ def task_mark_paid(request, pk):
     return _redirect_back(request, "shop:worker_payments")
 
 
-# --------------------------------------------------------------------------- stock: clothing styles
+# --------------------------------------------------------------------------- collection: design gallery
 
 # Stored in English in the style's fabric field; labels are translated.
 FABRIC_OPTIONS = ["Cotton", "Lace", "Wool", "Chiffon"]
@@ -858,7 +858,7 @@ def clothing_list(request):
         styles = styles.filter(is_popular=True)
     if "recent" in quick:
         styles = styles.order_by("-created_at")
-    return render(request, "shop/inventory/clothing.html", {
+    return render(request, "shop/gallery/list.html", {
         "styles": styles,
         "q": q,
         "filter_count": len(occasions) + len(genders) + len(fabrics) + len(quick),
@@ -875,12 +875,12 @@ def style_detail(request, pk):
     codes = list(Style.objects.values_list("pk", flat=True))
     index = codes.index(style.pk)
     details = [
-        (_("Category"), style.get_category_display()), (_("For"), style.get_gender_display()),
-        (_("Fabric"), style.fabric), (_("Color"), style.color), (_("Fit"), style.fit),
-        (_("Dress length"), style.length), (_("Sleeve length"), style.sleeve_length),
+        (_("For"), style.get_gender_display()), (_("Fabric"), style.fabric), (_("Color"), style.color),
+        (_("Fit type"), style.fit), (_("Length"), style.length), (_("Sleeve length"), style.sleeve_length),
         (_("Sizes"), ", ".join(style.size_list)),
     ]
-    return render(request, "shop/inventory/style_detail.html", {
+    details = [(label, value) for label, value in details if value]
+    return render(request, "shop/gallery/detail.html", {
         "style": style,
         "gallery": style.gallery(),
         "details": details,
@@ -896,7 +896,7 @@ def style_detail(request, pk):
 @owner_required
 def style_create(request):
     return _simple_form(
-        request, StyleForm, title=_("Add style"), back="shop:clothing_list", submit=_("Add style"),
+        request, StyleForm, title=_("Add design"), back="shop:clothing_list", submit=_("Add design"),
         success=lambda s: reverse("shop:style_detail", args=[s.pk]),
     )
 
@@ -914,14 +914,16 @@ def style_edit(request, pk):
 
 
 def material_list(request):
-    materials = Material.objects.all()
+    materials = Material.objects.select_related("category")
     q = request.GET.get("q", "").strip()
-    kind = request.GET.get("type", "")
+    cat = request.GET.get("cat", "")
     sort = request.GET.get("sort", "recent")
     if q:
         materials = materials.filter(Q(name__icontains=q) | Q(description__icontains=q))
-    if kind in Material.Type.values:
-        materials = materials.filter(material_type=kind)
+    if cat == "none":
+        materials = materials.filter(category__isnull=True)
+    elif cat.isdigit():
+        materials = materials.filter(category_id=int(cat))
     if sort == "used":
         materials = materials.annotate(n=Count("usages")).order_by("-n", "name")
     elif sort == "name":
@@ -933,8 +935,9 @@ def material_list(request):
     everything = Material.objects.all()
     return render(request, "shop/inventory/materials.html", {
         "materials": materials,
-        "q": q, "kind": kind, "sort": sort,
-        "types": Material.Type.choices,
+        "q": q, "cat": cat, "sort": sort,
+        "categories": MaterialCategory.objects.all(),
+        "uncategorized": everything.filter(category__isnull=True).exists(),
         "total": everything.count(),
         "low": everything.filter(quantity__gt=0, quantity__lte=F("low_stock_at")).count(),
         "out": everything.filter(quantity__lte=0).count(),
@@ -1018,41 +1021,35 @@ def material_use(request, pk):
     return redirect("shop:material_detail", pk=pk)
 
 
-# --------------------------------------------------------------------------- stock: tibebe
-
-
-def tibebe_list(request):
-    tibebes = Tibebe.objects.select_related("material")
-    q = request.GET.get("q", "").strip()
-    size = request.GET.get("size", "")
-    sort = request.GET.get("sort", "code")
-    if q:
-        tibebes = tibebes.filter(Q(name__icontains=q) | Q(code__icontains=q) | Q(occasion__icontains=q))
-    if size in Tibebe.Size.values:
-        tibebes = tibebes.filter(size=size)
-    tibebes = tibebes.order_by({"name": "name", "recent": "-created_at"}.get(sort, "code"))
-    return render(request, "shop/inventory/tibebe.html", {
-        "tibebes": tibebes, "q": q, "size": size, "sort": sort, "sizes": Tibebe.Size.choices,
-        "sort_options": [("code", _("Code")), ("name", _("Name")), ("recent", _("Recently added"))],
-    })
-
-
-def tibebe_detail(request, pk):
-    return render(request, "shop/inventory/tibebe_detail.html", {"tibebe": get_object_or_404(Tibebe, pk=pk)})
-
-
 @owner_required
-def tibebe_create(request):
-    return _simple_form(
-        request, TibebeForm, title=_("Add tibebe style"), back="shop:tibebe_list", submit=_("Add tibebe"),
-        success=lambda t: reverse("shop:tibebe_detail", args=[t.pk]),
-    )
-
-
-@owner_required
-def tibebe_edit(request, pk):
-    tibebe = get_object_or_404(Tibebe, pk=pk)
-    return _simple_form(
-        request, TibebeForm, instance=tibebe, title=_("Edit %(name)s") % {"name": tibebe.code}, back="shop:tibebe_list",
-        submit=_("Save changes"), success=lambda t: reverse("shop:tibebe_detail", args=[t.pk]),
-    )
+def material_categories(request):
+    """Add, rename and delete the groups raw materials are sorted into."""
+    form = MaterialCategoryForm()
+    if request.method == "POST":
+        action = request.POST.get("action", "add")
+        category = None
+        if action in ("rename", "delete"):
+            category = get_object_or_404(MaterialCategory, pk=request.POST.get("pk"))
+        if action == "delete":
+            count = category.materials.count()
+            name = category.label
+            category.delete()
+            if count:
+                messages.success(request, ngettext(
+                    "Deleted “%(name)s”. %(n)s material now has no category.",
+                    "Deleted “%(name)s”. %(n)s materials now have no category.", count) % {"name": name, "n": count})
+            else:
+                messages.success(request, _("Deleted “%(name)s”.") % {"name": name})
+            return redirect("shop:material_categories")
+        bound = MaterialCategoryForm(request.POST, instance=category)
+        if bound.is_valid():
+            saved = bound.save()
+            messages.success(request, (_("Renamed to “%(name)s”.") if category else _("Added “%(name)s”."))
+                             % {"name": saved.label})
+            return redirect("shop:material_categories")
+        if category:
+            messages.error(request, bound.errors.get("name", [_("Enter a name.")])[0])
+        else:
+            form = bound
+    categories = MaterialCategory.objects.annotate(n=Count("materials"))
+    return render(request, "shop/inventory/categories.html", {"form": form, "categories": categories})

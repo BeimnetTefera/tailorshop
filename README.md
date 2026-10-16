@@ -20,8 +20,9 @@ browser (iPhone and Android alike) and is backed by Django.
 | New order | `/orders/new/` | Customer, clothing, measurements, delivery date (Ethiopian), payment |
 | Orders | `/orders/` | Search, filters, swipe right = ready, swipe left = edit |
 | Order page | `/tracker/<id>/` | Steps, who has it now, hand over, payment, and an **updates thread** with photos |
-| Ready-made | `/ready-made/` | Off-the-rack stock, today's sales, record a sale (`/sales/new/`), sales history (`/sales/`) |
-| Stock | `/stock/` | Clothing styles, raw materials (add / use stock), tibebe designs |
+| Collection: Ready-made | `/ready-made/` | Off-the-rack pieces with product pages, today's sales, record a sale (`/sales/new/`), sales history (`/sales/`) |
+| Collection: Gallery | `/gallery/` | Designs customers choose for made-to-order; "Use this design" starts an order |
+| Stock | `/stock/` | Raw materials by category (add / use stock); the owner manages categories at `/stock/categories/` |
 | Money *(owner)* | `/money/` | Weekly income for an Ethiopian month, money to collect, worker pay (`/money/workers/`) |
 | Account | `/account/` | Language, sign out; the owner also manages messengers and production workers |
 
@@ -38,7 +39,7 @@ a photo, or both. Hand-overs appear in the same thread.
 | Orders, hand-overs, updates, customer payments | ✓ | ✓ |
 | Record sales, add / use stock | ✓ | ✓ |
 | Money reports, sales totals, worker pay | ✓ | – |
-| Prices, styles, materials, ready-made items, production workers | ✓ | – |
+| Prices, gallery designs, materials and their categories, ready-made items, production workers | ✓ | – |
 | Messenger logins (create, reset password, switch off) | ✓ | – |
 
 Production workers don't log in. A messenger who leaves is switched off (untick

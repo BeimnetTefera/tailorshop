@@ -1,0 +1,44 @@
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Material categories" %}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:material_list' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1>{% translate "Material categories" %}<div class="sub">{% translate "The groups your raw materials are sorted into. Add, rename or delete them." %}</div></h1>
+</header>
+
+<div class="stack-sm">
+{% for c in categories %}
+  <details class="card cat-row">
+    <summary>
+      <span class="grow"><b>{{ c.label }}</b>{% if c.name_am and c.label != c.name %} <span class="faint small">· {{ c.name }}</span>{% elif c.name_am %} <span class="faint small">· {{ c.name_am }}</span>{% endif %}
+        <span class="small muted">{% blocktranslate count n=c.n %}{{ n }} material{% plural %}{{ n }} materials{% endblocktranslate %}</span></span>
+      {% icon "edit" 18 %}
+    </summary>
+    <form method="post" class="stack-sm mt" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="rename"><input type="hidden" name="pk" value="{{ c.pk }}">
+      <div class="grid-2">
+        <div class="field"><label class="label" for="n-{{ c.pk }}">{% translate "Name (English)" %}</label><input class="input" id="n-{{ c.pk }}" name="name" value="{{ c.name }}" maxlength="60" required></div>
+        <div class="field"><label class="label" for="a-{{ c.pk }}">{% translate "Name (Amharic)" %}</label><input class="input" id="a-{{ c.pk }}" name="name_am" value="{{ c.name_am }}" maxlength="60"></div>
+      </div>
+      <button class="btn btn-primary btn-sm">{% translate "Save" %}</button>
+    </form>
+    <form method="post" class="mt" data-confirm="{% if c.n %}{% blocktranslate with name=c.label count n=c.n %}Delete “{{ name }}”? {{ n }} material will be kept but have no category.{% plural %}Delete “{{ name }}”? {{ n }} materials will be kept but have no category.{% endblocktranslate %}{% else %}{% blocktranslate with name=c.label %}Delete “{{ name }}”?{% endblocktranslate %}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ c.pk }}">
+      <button class="btn btn-ghost btn-sm status-out" style="padding-left:0">{% icon "x" 16 %} {% translate "Delete category" %}</button>
+    </form>
+  </details>
+{% empty %}
+  <p class="muted">{% translate "No categories yet. Add the first one below." %}</p>
+{% endfor %}
+</div>
+
+<form method="post" class="fieldset mt-lg" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add">
+  <h2>{% translate "Add a category" %}</h2>
+  {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
+  <button class="btn btn-primary btn-block mt">{% translate "Add category" %}</button>
+</form>
+{% endblock %}

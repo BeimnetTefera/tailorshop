@@ -27,7 +27,7 @@
   <section class="fieldset" id="clothing" data-step>
     <h2>{% translate "Clothing" %}</h2>
     {% include "shop/partials/field.html" with field=form.style %}
-    <a class="btn btn-outline btn-block" style="margin-top:10px" href="{% url 'shop:clothing_list' %}">{% translate "Browse the style library" %}</a>
+    <a class="btn btn-outline btn-block" style="margin-top:10px" href="{% url 'shop:clothing_list' %}">{% translate "Browse the gallery" %}</a>
     <div class="mt">{% include "shop/partials/field.html" with field=form.reference_photo %}</div>
     <div class="mt">{% include "shop/partials/field.html" with field=form.category %}</div>
     <div class="mt">{% include "shop/partials/field.html" with field=form.people_count %}</div>

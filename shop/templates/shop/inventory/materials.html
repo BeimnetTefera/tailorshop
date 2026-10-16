@@ -1,37 +1,41 @@
 {% extends "shop/base.html" %}{% load i18n shop_extras %}
-{% block title %}{% translate "Raw materials" %}{% endblock %}
+{% block title %}{% translate "Stock" %}{% endblock %}
 {% block content %}
 <header class="topbar">
-  <h1>{% translate "Stock" %}<div class="sub">{% translate "Keep your fabrics and supplies easy to find." %}</div></h1>
+  <h1>{% translate "Stock" %}<div class="sub">{% translate "Raw materials: fabric, thread, buttons and everything you sew with." %}</div></h1>
   <button class="icon-btn" data-open="mat-sort" aria-label="{% translate 'Sort' %}">{% icon "sort" 20 %}</button>
 </header>
 
 <form class="search" method="get" role="search">
   {% icon "search" 20 %}<label class="sr-only" for="mat-q">{% translate "Search materials" %}</label>
   <input id="mat-q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Material name…' %}">
-  {% if kind %}<input type="hidden" name="type" value="{{ kind }}">{% endif %}
+  {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}
 </form>
-{% include "shop/partials/inventory_tabs.html" with current="materials" %}
 
-<div class="stats-3 mt">
+<div class="stats-3">
   <div class="stat"><b>{{ total }}</b><span>{% translate "Materials" %}</span></div>
-  <a class="stat" href="?sort=name"><b class="{% if low %}status-low{% endif %}">{{ low }}</b><span>{% translate "Low stock" %}</span></a>
+  <div class="stat"><b class="{% if low %}status-low{% endif %}">{{ low }}</b><span>{% translate "Low stock" %}</span></div>
   <div class="stat"><b class="{% if out %}status-out{% endif %}">{{ out }}</b><span>{% translate "Out of stock" %}</span></div>
 </div>
 
-<nav class="chips-scroll mt" aria-label="{% translate 'Material type' %}">
-  <a class="chip {% if not kind %}active{% endif %}" href="?sort={{ sort }}">{% translate "All" %}</a>
-  {% for v, l in types %}<a class="chip {% if kind == v %}active{% endif %}" href="?type={{ v }}&sort={{ sort }}">{{ l }}</a>{% endfor %}
+<div class="row-between mt">
+  <span class="label">{% translate "Categories" %}</span>
+  {% if is_owner %}<a class="btn-mini" href="{% url 'shop:material_categories' %}">{% icon "edit" 14 %} {% translate "Add or change" %}</a>{% endif %}
+</div>
+<nav class="chips-scroll" style="margin-top:8px" aria-label="{% translate 'Categories' %}">
+  <a class="chip {% if not cat %}active{% endif %}" href="?sort={{ sort }}">{% translate "All" %}</a>
+  {% for c in categories %}<a class="chip {% if cat == c.pk|stringformat:'s' %}active{% endif %}" href="?cat={{ c.pk }}&sort={{ sort }}">{{ c.label }}</a>{% endfor %}
+  {% if uncategorized %}<a class="chip {% if cat == 'none' %}active{% endif %}" href="?cat=none&sort={{ sort }}">{% translate "No category" %}</a>{% endif %}
 </nav>
 
 <div class="tile-grid">
   {% for m in materials %}
     <a class="tile" href="{% url 'shop:material_detail' m.pk %}">
-      {% include "shop/partials/thumb.html" with photo=m.photo alt=m.name code=m.get_material_type_display %}
+      {% if m.category %}{% include "shop/partials/thumb.html" with photo=m.photo alt=m.name code=m.category.label %}{% else %}{% include "shop/partials/thumb.html" with photo=m.photo alt=m.name code=m.name %}{% endif %}
       <div class="tile-body"><small>{% blocktranslate with price=m.price|birr unit=m.get_unit_display|lower %}{{ price }} per {{ unit }}{% endblocktranslate %}</small><strong>{{ m.name }}</strong><span class="status status-{{ m.status }}">{{ m.availability }}</span></div>
     </a>
   {% empty %}
-    <div class="empty" style="grid-column:1/-1"><b>{% if q or kind %}{% translate "No materials match" %}{% else %}{% translate "No materials yet" %}{% endif %}</b><p>{% translate "Add fabric, thread and buttons to keep track of what's left." %}</p></div>
+    <div class="empty" style="grid-column:1/-1"><b>{% if q or cat %}{% translate "No materials match" %}{% else %}{% translate "No materials yet" %}{% endif %}</b><p>{% translate "Add fabric, thread and buttons to keep track of what's left." %}</p></div>
   {% endfor %}
 </div>
 {% if is_owner %}<a class="fab" href="{% url 'shop:material_create' %}" aria-label="{% translate 'Add material' %}">{% icon "plus" 26 %}</a>{% endif %}
@@ -39,7 +43,7 @@
 <dialog class="sheet" id="mat-sort">
   <div class="sheet-body">
     <div class="sheet-head"><h2>{% translate "Sort by" %}</h2><button type="button" class="icon-btn" data-close aria-label="{% translate 'Close' %}">{% icon "x" %}</button></div>
-    <ul class="sort-list">{% for v, l in sort_options %}<li><a class="{% if sort == v %}active{% endif %}" href="?sort={{ v }}{% if kind %}&type={{ kind }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ l }}{% if sort == v %} ✓{% endif %}</a></li>{% endfor %}</ul>
+    <ul class="sort-list">{% for v, l in sort_options %}<li><a class="{% if sort == v %}active{% endif %}" href="?sort={{ v }}{% if cat %}&cat={{ cat }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ l }}{% if sort == v %} ✓{% endif %}</a></li>{% endfor %}</ul>
   </div>
 </dialog>
 {% endblock %}

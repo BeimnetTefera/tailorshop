@@ -94,7 +94,7 @@ class StaffProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.MESSENGER)
     phone = models.CharField(max_length=20, blank=True)
-    language = models.CharField(max_length=5, choices=Language.choices, default=Language.AMHARIC)
+    language = models.CharField(max_length=5, choices=Language.choices, default=Language.ENGLISH)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

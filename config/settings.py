@@ -89,11 +89,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Amharic first; each person can switch to English (saved on their profile).
+# English by default; each person can switch to Amharic (saved on their profile).
 # Translations live in locale/am/LC_MESSAGES/django.po; build the .mo with
 # `python scripts/compile_translations.py` after editing it.
-LANGUAGE_CODE = "am"
-LANGUAGES = [("am", "አማርኛ"), ("en", "English")]
+LANGUAGE_CODE = "en"
+LANGUAGES = [("en", "English"), ("am", "አማርኛ")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 LANGUAGE_COOKIE_NAME = "language"
 LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365

@@ -6,5 +6,6 @@
   <a href="{% url 'shop:material_list' %}" class="{% if nav_section == 'stock' %}active{% endif %}"{% if nav_section == 'stock' %} aria-current="page"{% endif %}>{% icon "box" %}{% translate "Stock" %}</a>
   {% if is_owner %}
   <a href="{% url 'shop:finance' %}" class="{% if nav_section == 'money' %}active{% endif %}"{% if nav_section == 'money' %} aria-current="page"{% endif %}>{% icon "wallet" %}{% translate "Money" %}</a>
+  <a href="{% url 'shop:manage' %}" class="{% if nav_section == 'team' %}active{% endif %}"{% if nav_section == 'team' %} aria-current="page"{% endif %}>{% icon "team" %}{% translate "Team" %}</a>
   {% endif %}
 </nav>

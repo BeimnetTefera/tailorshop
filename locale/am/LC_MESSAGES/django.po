@@ -738,27 +738,6 @@ msgstr "ቋንቋ"
 msgid "Choose the language you read the app in."
 msgstr "መተግበሪያውን የሚያነቡበትን ቋንቋ ይምረጡ።"
 
-msgid "Manage"
-msgstr "አስተዳድር"
-
-msgid "Messengers"
-msgstr "መልእክተኞች"
-
-msgid "Give logins to the people who carry work between steps."
-msgstr "ሥራን ከደረጃ ወደ ደረጃ ለሚያደርሱ ሰዎች መግቢያ ይስጡ።"
-
-msgid "Production workers"
-msgstr "የምርት ሠራተኞች"
-
-msgid "Weavers, cutters, tailors and their pay per task."
-msgstr "ሸማኔዎች፣ ቆራጮች፣ ሰፊዎች እና የሥራ ክፍያቸው።"
-
-msgid "Worker payments"
-msgstr "የሠራተኛ ክፍያዎች"
-
-msgid "Finished tasks and what is still owed."
-msgstr "የተጠናቀቁ ሥራዎች እና ገና የሚከፈለው።"
-
 msgid "Sign out"
 msgstr "ውጣ"
 
@@ -792,6 +771,9 @@ msgstr "ሽያጭ መዝግብ"
 msgid "Add stock"
 msgstr "ክምችት ጨምር"
 
+msgid "Messengers"
+msgstr "መልእክተኞች"
+
 msgid "Find a garment"
 msgstr "ልብስ ፈልግ"
 
@@ -824,9 +806,6 @@ msgstr "የቅርብ ጊዜ እንቅስቃሴ"
 
 msgid "Orders, sales and payments you record will show up here."
 msgstr "የሚመዘግቧቸው ትዕዛዞች፣ ሽያጮች እና ክፍያዎች እዚህ ይታያሉ።"
-
-msgid "Account, messengers and team"
-msgstr "መለያ፣ መልእክተኞች እና ሠራተኞች"
 
 msgid "%(n)s delayed order"
 msgid_plural "%(n)s delayed orders"
@@ -902,8 +881,23 @@ msgstr "ለሠራተኞች የሚከፈል"
 msgid "This month"
 msgstr "ይህ ወር"
 
+msgid "Chart type"
+msgstr "የሰንጠረዥ ዓይነት"
+
+msgid "Bars"
+msgstr "አምዶች"
+
+msgid "Line"
+msgstr "መስመር"
+
 msgid "Weekly income chart"
 msgstr "የሳምንታዊ ገቢ ሰንጠረዥ"
+
+msgid "Week"
+msgstr "ሳምንት"
+
+msgid "Dates"
+msgstr "ቀናት"
 
 msgid "Recent income"
 msgstr "የቅርብ ጊዜ ገቢ"
@@ -915,6 +909,9 @@ msgstr[1] "ከ%(n)s ክፍያዎች እና ሽያጮች · ለዝርዝር ይ�
 
 msgid "Weekly income for %(month)s · %(total)s in total"
 msgstr "የ%(month)s ሳምንታዊ ገቢ · በጠቅላላ %(total)s"
+
+msgid "Weekly income for %(month)s"
+msgstr "የ%(month)s ሳምንታዊ ገቢ"
 
 msgid "No money recorded in %(month)s yet."
 msgstr "በ%(month)s ገና የተመዘገበ ገንዘብ የለም።"
@@ -1107,6 +1104,53 @@ msgstr "የቀረውን ለመከታተል ጨርቅ፣ ክር እና ቁልፍ 
 
 msgid "Sort by"
 msgstr "በዚህ ደርድር"
+
+msgid "Team"
+msgstr "ሠራተኞች"
+
+msgid "Who can sign in, and who makes the garments."
+msgstr "ማን መግባት እንደሚችል፣ እና ልብሶቹን የሚሠሩት።"
+
+msgid "Logins for the people who take orders and carry work between steps."
+msgstr "ትዕዛዝ ለሚቀበሉ እና ሥራን ከደረጃ ወደ ደረጃ ለሚያደርሱ ሰዎች መግቢያ።"
+
+msgid "Production workers"
+msgstr "የምርት ሠራተኞች"
+
+msgid "Weavers, cutters, tailors and their pay per task. They don't sign in."
+msgstr "ሸማኔዎች፣ ቆራጮች፣ ሰፊዎች እና የሥራ ክፍያቸው። አይገቡም።"
+
+msgid "Worker payments"
+msgstr "የሠራተኛ ክፍያዎች"
+
+msgid "Finished tasks and what is still owed."
+msgstr "የተጠናቀቁ ሥራዎች እና ገና የሚከፈለው።"
+
+msgid "Your account"
+msgstr "የእርስዎ መለያ"
+
+msgid "%(n)s can sign in"
+msgid_plural "%(n)s can sign in"
+msgstr[0] "%(n)s መግባት ይችላል"
+msgstr[1] "%(n)s መግባት ይችላሉ"
+
+msgid "%(n)s switched off"
+msgid_plural "%(n)s switched off"
+msgstr[0] "%(n)s ተዘግቷል"
+msgstr[1] "%(n)s ተዘግተዋል"
+
+msgid "%(n)s working"
+msgid_plural "%(n)s working"
+msgstr[0] "%(n)s እየሠራ ነው"
+msgstr[1] "%(n)s እየሠሩ ነው"
+
+msgid "%(n)s has a garment now"
+msgid_plural "%(n)s have a garment now"
+msgstr[0] "%(n)s አሁን ልብስ ይዟል"
+msgstr[1] "%(n)s አሁን ልብስ ይዘዋል"
+
+msgid "%(amount)s still to pay"
+msgstr "ገና %(amount)s ይከፈላል"
 
 msgid "Details"
 msgstr "ዝርዝሮች"

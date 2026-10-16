@@ -227,7 +227,22 @@ def dashboard(request):
 
 
 def account(request):
+    if is_owner(request.user):
+        return redirect("shop:manage")
     return render(request, "shop/account.html")
+
+
+@owner_required
+def manage(request):
+    """The owner's Team tab: messenger logins, production workers and their own account."""
+    messengers = _messengers()
+    return render(request, "shop/manage.html", {
+        "messenger_count": messengers.filter(is_active=True).count(),
+        "messenger_off": messengers.filter(is_active=False).count(),
+        "worker_count": Worker.objects.filter(is_active=True).count(),
+        "busy_workers": WorkerTask.objects.filter(finished_on__isnull=True).values("worker").distinct().count(),
+        "owed": WorkerTask.objects.filter(finished_on__isnull=False, paid_on__isnull=True).aggregate(t=Sum("amount"))["t"] or 0,
+    })
 
 
 def _messengers():
@@ -675,13 +690,8 @@ def _month_from_request(request):
     return year, month
 
 
-@owner_required
-def finance(request):
-    today = _today()
-    year, month = _month_from_request(request)
-    first, last = ethiopian.month_bounds(year, month)
-
-    # Weeks of the Ethiopian month: 1–7, 8–14, 15–21, 22–30. Pagume (5 or 6 days) is one week.
+def _month_weeks(year, month, today):
+    """Weeks of an Ethiopian month: 1–7, 8–14, 15–21, 22–30. Pagume (5 or 6 days) is one week."""
     spans = [(1, ethiopian.month_length(year, month))] if month == 13 else [(1, 7), (8, 14), (15, 21), (22, 30)]
     weeks = []
     for n, (a, b) in enumerate(spans, start=1):
@@ -689,6 +699,48 @@ def finance(request):
         amount, count = _income(start, end)
         weeks.append({"label": _("W%(n)s") % {"n": n}, "start": start, "end": end, "amount": amount,
                       "count": count, "is_future": start > today})
+    return weeks
+
+
+def _line_chart(groups):
+    """Point positions for the line view of the weekly income chart (an SVG, 320×196).
+
+    `groups` is [(month name, weeks), …]: last month and this one, so the line shows
+    a trend even in the first week of a month. Weeks that haven't started are
+    labelled on the axis but not plotted, so the line doesn't dive to zero.
+    """
+    width, height, side, top, bottom = 320, 196, 22, 34, 46
+    base = height - bottom
+    weeks = [w for _name, ws in groups for w in ws]
+    shown = [w for w in weeks if not w["is_future"]]
+    peak = max((w["amount"] for w in shown), default=0) or 1
+    n = len(weeks)
+    for i, w in enumerate(weeks):
+        w["x"] = round(width / 2 if n == 1 else side + i * (width - 2 * side) / (n - 1), 1)
+        w["y"] = round(top + (base - top) * (1 - float(w["amount"]) / float(peak)), 1)
+        w["value_y"] = round(w["y"] - 14, 1)
+    months, dividers = [], []
+    for k, (name, ws) in enumerate(groups):
+        months.append({"name": name, "x": round(sum(w["x"] for w in ws) / len(ws), 1)})
+        if k:
+            dividers.append(round((groups[k - 1][1][-1]["x"] + ws[0]["x"]) / 2, 1))
+    points = " ".join(f"{w['x']},{w['y']}" for w in shown)
+    area = ""
+    if len(shown) > 1:
+        area = f"M{shown[0]['x']},{base} L{points.replace(' ', ' L')} L{shown[-1]['x']},{base} Z"
+    return {"width": width, "height": height, "base": base, "mid": round((base + top) / 2, 1), "top": top,
+            "week_y": base + 18, "month_y": height - 6, "points": points, "area": area,
+            "weeks": weeks, "shown": shown, "months": months, "dividers": dividers}
+
+
+@owner_required
+def finance(request):
+    today = _today()
+    year, month = _month_from_request(request)
+    first, last = ethiopian.month_bounds(year, month)
+    weeks = _month_weeks(year, month, today)
+    prev_year, prev_month = ethiopian.add_months(year, month, -1)
+    previous = _month_weeks(prev_year, prev_month, today)
 
     if first <= today <= last:
         idx = next(i for i, w in enumerate(weeks) if w["start"] <= today <= w["end"])
@@ -707,6 +759,7 @@ def finance(request):
     peak = max((w["amount"] for w in weeks), default=0) or 1
     for w in weeks:
         w["height"] = max(4, int(w["amount"] / peak * 100))
+    line = _line_chart([(ethiopian.month_name(prev_month), previous), (ethiopian.month_name(month), weeks)])
 
     streak, i = 0, idx
     while i > 0 and weeks[i]["amount"] > weeks[i - 1]["amount"]:
@@ -734,7 +787,6 @@ def finance(request):
     owed_workers = WorkerTask.objects.filter(finished_on__isnull=False, paid_on__isnull=True).aggregate(t=Sum("amount"))["t"] or 0
     month_total = sum((w["amount"] for w in weeks), Decimal("0"))
 
-    prev_year, prev_month = ethiopian.add_months(year, month, -1)
     next_year, next_month = ethiopian.add_months(year, month, 1)
     return render(request, "shop/finance/index.html", {
         "month_label": f"{ethiopian.month_name(month)} {year}",
@@ -742,6 +794,7 @@ def finance(request):
         "prev_month": f"{prev_year}-{prev_month}",
         "next_month": f"{next_year}-{next_month}",
         "weeks": weeks,
+        "line": line,
         "selected": selected,
         "selected_label": ethiopian.format_range(selected["start"], selected["end"]),
         "change": change,

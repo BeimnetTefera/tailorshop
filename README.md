@@ -3,7 +3,7 @@
 A mobile-first web app for a habesha-kemis tailoring shop. It runs in any phone or desktop
 browser (iPhone and Android alike) and is backed by Django.
 
-- **Amharic first, English on a switch.** Each person picks their language with the
+- **English by default, Amharic on a switch.** Each person picks their language with the
   አማ · EN button; it is saved on their profile (and in a cookie on the login page).
 - **Ethiopian calendar everywhere.** Dates show as e.g. *ጥቅምት 6, 2019* and are picked
   with Ethiopian day / month / year menus; money reports follow Ethiopian months,
@@ -23,8 +23,9 @@ browser (iPhone and Android alike) and is backed by Django.
 | Collection: Ready-made | `/ready-made/` | Off-the-rack pieces with product pages, today's sales, record a sale (`/sales/new/`), sales history (`/sales/`) |
 | Collection: Gallery | `/gallery/` | Designs customers choose for made-to-order; "Use this design" starts an order |
 | Stock | `/stock/` | Raw materials by category (add / use stock); the owner manages categories at `/stock/categories/` |
-| Money *(owner)* | `/money/` | Weekly income for an Ethiopian month, money to collect, worker pay (`/money/workers/`) |
-| Account | `/account/` | Language, sign out; the owner also manages messengers and production workers |
+| Money *(owner)* | `/money/` | Weekly income for an Ethiopian month as bars or a line (last month + this month), money to collect, worker pay (`/money/workers/`) |
+| Team *(owner)* | `/manage/` | Messenger logins, production workers, worker payments, the owner's language and sign out |
+| Account *(messenger)* | `/account/` | Language and sign out |
 
 How the pieces connect: handing a garment to a production worker (weaver, cutter, tailor…)
 moves the order to that worker's stage and opens a **task** for them. When it moves on

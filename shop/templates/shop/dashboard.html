@@ -87,5 +87,5 @@
   {% endfor %}
 </ul>
 
-<p class="mt-lg"><a class="btn btn-outline btn-block" href="{% url 'shop:account' %}">{% icon "user" 18 %} {% if is_owner %}{% translate "Account, messengers and team" %}{% else %}{% translate "Account" %}{% endif %}</a></p>
+{% if not is_owner %}<p class="mt-lg"><a class="btn btn-outline btn-block" href="{% url 'shop:account' %}">{% icon "user" 18 %} {% translate "Account" %}</a></p>{% endif %}
 {% endblock %}

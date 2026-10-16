@@ -113,7 +113,7 @@ class ShopFlowTests(TestCase):
         order = Order.objects.exclude(stage=Stage.DELIVERED).first()
         style, material = Style.objects.first(), Material.objects.first()
         urls = [
-            reverse("shop:dashboard"), reverse("shop:team"), reverse("shop:account"), reverse("shop:messenger_list"),
+            reverse("shop:dashboard"), reverse("shop:team"), reverse("shop:manage"), reverse("shop:messenger_list"),
             reverse("shop:order_list"), reverse("shop:order_list") + "?tab=past",
             reverse("shop:order_list") + "?due=late&stage=sewing&priority=urgent",
             reverse("shop:order_create"), reverse("shop:order_create") + f"?style={style.pk}",
@@ -406,25 +406,28 @@ class LanguageTests(TestCase):
     def setUpTestData(cls):
         call_command("seed_demo", verbosity=0)
 
-    def test_login_page_is_amharic_first_and_switches(self):
-        self.assertContains(self.client.get(reverse("login")), "እንኳን በደህና ተመለሱ")
-        response = self.client.post(reverse("shop:set_language"), {"language": "en", "next": reverse("login")})
-        self.assertRedirects(response, reverse("login"))
-        self.assertEqual(response.cookies["language"].value, "en")
+    def test_login_page_is_english_first_and_switches(self):
         self.assertContains(self.client.get(reverse("login")), "Welcome back")
+        response = self.client.post(reverse("shop:set_language"), {"language": "am", "next": reverse("login")})
+        self.assertRedirects(response, reverse("login"))
+        self.assertEqual(response.cookies["language"].value, "am")
+        self.assertContains(self.client.get(reverse("login")), "እንኳን በደህና ተመለሱ")
 
     def test_choice_is_saved_on_the_profile(self):
         user = get_user_model().objects.get(username="dawit")
+        self.assertEqual(user.profile.language, "en")
+        self.client.force_login(user)
+        home = self.client.get(reverse("shop:dashboard"))
+        self.assertContains(home, "Collection")
+        self.assertContains(home, ethiopian.MONTHS_EN[ethiopian.today().month - 1])
+        self.client.post(reverse("shop:set_language"), {"language": "am"})
+        user.profile.refresh_from_db()
+        self.assertEqual(user.profile.language, "am")
+        self.client.cookies.clear()
         self.client.force_login(user)
         home = self.client.get(reverse("shop:dashboard"))
         self.assertContains(home, "መነሻ")
         self.assertContains(home, ethiopian.MONTHS_AM[ethiopian.today().month - 1])
-        self.client.post(reverse("shop:set_language"), {"language": "en"})
-        user.profile.refresh_from_db()
-        self.assertEqual(user.profile.language, "en")
-        self.client.cookies.clear()
-        self.client.force_login(user)
-        self.assertContains(self.client.get(reverse("shop:dashboard")), "Ready-made")
 
     def test_activity_feed_is_translated_when_shown(self):
         entry = Activity.objects.get(text__startswith="Sale recorded")
@@ -436,9 +439,9 @@ class LanguageTests(TestCase):
         with translation.override("am"):
             self.assertIn("ስፌት", moved.display)
 
-    def test_unknown_language_falls_back_to_amharic(self):
+    def test_unknown_language_falls_back_to_english(self):
         self.client.cookies["language"] = "fr"
-        self.assertContains(self.client.get(reverse("login")), 'lang="am"')
+        self.assertContains(self.client.get(reverse("login")), 'lang="en"')
 
 
 class RoleTests(TestCase):
@@ -487,7 +490,7 @@ class RoleTests(TestCase):
         self.assertRedirects(response, reverse("shop:messenger_list"))
         meron = get_user_model().objects.get(username="meron")
         self.assertEqual(meron.profile.phone, "0912000111")
-        self.assertEqual(meron.profile.language, "am")
+        self.assertEqual(meron.profile.language, "en")
         self.assertFalse(meron.is_staff)
 
         other = self.client_class()
@@ -517,6 +520,46 @@ class RoleTests(TestCase):
         response = self.client.post(reverse("shop:messenger_list"), {"name": "X", "username": "dawit", "password": "123"})
         self.assertContains(response, "ይህ የተጠቃሚ ስም ተይዟል።")
         self.assertContains(response, "በጣም አጭር ነው")
+
+    def test_owner_has_a_team_tab_for_accounts(self):
+        self.client.force_login(self.owner)
+        home = self.client.get(reverse("shop:dashboard"))
+        self.assertContains(home, f'href="{reverse("shop:manage")}"')
+        self.assertRedirects(self.client.get(reverse("shop:account")), reverse("shop:manage"))
+        page = self.client.get(reverse("shop:manage"))
+        self.assertContains(page, reverse("shop:messenger_list"))
+        self.assertContains(page, reverse("shop:team"))
+        self.assertContains(page, "1 can sign in")
+        self.assertContains(page, "Sign out")
+        self.assertContains(self.client.get(reverse("shop:messenger_list")), f'href="{reverse("shop:manage")}"')
+
+    def test_messenger_has_no_team_tab(self):
+        self.client.force_login(self.messenger)
+        home = self.client.get(reverse("shop:dashboard"))
+        self.assertNotContains(home, reverse("shop:manage"))
+        self.assertContains(home, reverse("shop:account"))
+        self.assertRedirects(self.client.get(reverse("shop:manage")), reverse("shop:dashboard"))
+        self.assertEqual(self.client.get(reverse("shop:account")).status_code, 200)
+
+    def test_money_chart_offers_bars_and_line(self):
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse("shop:finance"))
+        self.assertContains(page, 'data-chart="bar"')
+        self.assertContains(page, 'data-chart="line"')
+        self.assertContains(page, 'data-chart-type="line"')
+        line = page.context["line"]
+        # The line covers last month and this month, so it shows a trend even in week 1.
+        self.assertEqual([m["name"] for m in line["months"]],
+                         [ethiopian.month_name(ethiopian.add_months(*ethiopian.today()[:2], -1)[1]),
+                          ethiopian.month_name(ethiopian.today().month)])
+        self.assertGreater(len(line["weeks"]), len(page.context["weeks"]))
+        shown = [w for w in line["weeks"] if not w["is_future"]]
+        self.assertGreaterEqual(len(shown), 5)
+        self.assertEqual(len(line["points"].split()), len(shown))
+        for w in shown:  # every plotted week sits inside the chart, the biggest one at the top
+            self.assertTrue(line["top"] <= w["y"] <= line["base"])
+        self.assertEqual(min(w["y"] for w in shown), line["top"])
+        self.assertContains(page, "<caption>")  # table view for screen readers
 
     def test_owner_cannot_be_edited_as_a_messenger(self):
         self.client.force_login(self.owner)

@@ -21,6 +21,7 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("language/", views.set_language, name="set_language"),
     path("account/", views.account, name="account"),
+    path("manage/", views.manage, name="manage"),
     path("messengers/", views.messenger_list, name="messenger_list"),
     path("messengers/<int:pk>/", views.messenger_edit, name="messenger_edit"),
     path("team/", views.team, name="team"),

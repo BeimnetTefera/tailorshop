@@ -17,9 +17,10 @@ _RULES = [
     ("income", "money"),
     ("worker_payments", "money"),
     ("task_", "money"),
-    ("team", "home"),
-    ("worker_", "home"),
-    ("messenger_", "home"),
+    ("manage", "team"),
+    ("team", "team"),
+    ("worker_", "team"),
+    ("messenger_", "team"),
     ("account", "home"),
 ]
 

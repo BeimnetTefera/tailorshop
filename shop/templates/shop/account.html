@@ -13,22 +13,6 @@
   </div>
 </section>
 
-{% if is_owner %}
-<div class="section-head"><h2>{% translate "Manage" %}</h2></div>
-<a class="team-row" href="{% url 'shop:messenger_list' %}">
-  <div><b>{% translate "Messengers" %}</b><div class="muted small">{% translate "Give logins to the people who carry work between steps." %}</div></div>
-  {% icon "chev-right" 18 %}
-</a>
-<a class="team-row" href="{% url 'shop:team' %}">
-  <div><b>{% translate "Production workers" %}</b><div class="muted small">{% translate "Weavers, cutters, tailors and their pay per task." %}</div></div>
-  {% icon "chev-right" 18 %}
-</a>
-<a class="team-row" href="{% url 'shop:worker_payments' %}">
-  <div><b>{% translate "Worker payments" %}</b><div class="muted small">{% translate "Finished tasks and what is still owed." %}</div></div>
-  {% icon "chev-right" 18 %}
-</a>
-{% endif %}
-
 <form method="post" action="{% url 'logout' %}" class="mt-lg">
   {% csrf_token %}
   <button class="btn btn-outline btn-block">{% icon "logout" 18 %} {% translate "Sign out" %}</button>

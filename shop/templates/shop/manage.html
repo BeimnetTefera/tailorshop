@@ -1,0 +1,56 @@
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{% translate "Team" %}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <h1>{% translate "Team" %}<div class="sub">{% translate "Who can sign in, and who makes the garments." %}</div></h1>
+</header>
+
+<div class="stack">
+  <a class="card card-link manage-card" href="{% url 'shop:messenger_list' %}">
+    <span class="ring">{% icon "user" %}</span>
+    <span class="grow">
+      <b>{% translate "Messengers" %}</b>
+      <span class="small muted">{% translate "Logins for the people who take orders and carry work between steps." %}</span>
+      <span class="small gold">{% blocktranslate count n=messenger_count %}{{ n }} can sign in{% plural %}{{ n }} can sign in{% endblocktranslate %}{% if messenger_off %} · <span class="faint">{% blocktranslate count n=messenger_off %}{{ n }} switched off{% plural %}{{ n }} switched off{% endblocktranslate %}</span>{% endif %}</span>
+    </span>
+    {% icon "chev-right" 18 %}
+  </a>
+
+  <a class="card card-link manage-card" href="{% url 'shop:team' %}">
+    <span class="ring">{% icon "team" %}</span>
+    <span class="grow">
+      <b>{% translate "Production workers" %}</b>
+      <span class="small muted">{% translate "Weavers, cutters, tailors and their pay per task. They don't sign in." %}</span>
+      <span class="small gold">{% blocktranslate count n=worker_count %}{{ n }} working{% plural %}{{ n }} working{% endblocktranslate %} · {% blocktranslate count n=busy_workers %}{{ n }} has a garment now{% plural %}{{ n }} have a garment now{% endblocktranslate %}</span>
+    </span>
+    {% icon "chev-right" 18 %}
+  </a>
+
+  <a class="card card-link manage-card" href="{% url 'shop:worker_payments' %}">
+    <span class="ring">{% icon "wallet" %}</span>
+    <span class="grow">
+      <b>{% translate "Worker payments" %}</b>
+      <span class="small muted">{% translate "Finished tasks and what is still owed." %}</span>
+      {% if owed %}<span class="small gold">{% blocktranslate with amount=owed|birr %}{{ amount }} still to pay{% endblocktranslate %}</span>{% endif %}
+    </span>
+    {% icon "chev-right" 18 %}
+  </a>
+</div>
+
+<div class="section-head"><h2>{% translate "Your account" %}</h2></div>
+<section class="card">
+  <div class="row-between">
+    <div><b>{{ user.first_name|default:user.username }}</b><div class="small muted">{% blocktranslate with username=user.username %}Signed in as {{ username }}{% endblocktranslate %} · {% translate "Owner" %}</div></div>
+  </div>
+  <hr class="divider">
+  <div class="row-between">
+    <div><b>{% translate "Language" %}</b><div class="small muted">{% translate "Choose the language you read the app in." %}</div></div>
+    {% include "shop/partials/lang_toggle.html" %}
+  </div>
+</section>
+
+<form method="post" action="{% url 'logout' %}" class="mt">
+  {% csrf_token %}
+  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} {% translate "Sign out" %}</button>
+</form>
+{% endblock %}

@@ -40,6 +40,7 @@ urlpatterns = [
 
     path("ready-made/", views.readymade, name="readymade"),
     path("ready-made/new/", views.freesize_create, name="freesize_create"),
+    path("ready-made/<int:pk>/", views.readymade_detail, name="readymade_detail"),
     path("ready-made/<int:pk>/edit/", views.freesize_edit, name="freesize_edit"),
     path("sales/", views.sales_history, name="sales_history"),
     path("sales/new/", views.sale_create, name="sale_create"),

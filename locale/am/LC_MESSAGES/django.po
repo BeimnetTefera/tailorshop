@@ -303,6 +303,9 @@ msgstr "ጠቅላላ ዋጋ (ብር)"
 msgid "Code"
 msgstr "ኮድ"
 
+msgid "Clothing type"
+msgstr "የልብስ ዓይነት"
+
 msgid "Price (ETB)"
 msgstr "ዋጋ (ብር)"
 
@@ -311,6 +314,18 @@ msgstr "በክምችት ያለ"
 
 msgid "Warn me at or below"
 msgstr "እዚህ ሲደርስ አሳውቀኝ"
+
+msgid "Pattern type"
+msgstr "የጥለት ዓይነት"
+
+msgid "Length"
+msgstr "ርዝመት"
+
+msgid "Fit type"
+msgstr "አቆራረጥ"
+
+msgid "Made"
+msgstr "አሠራር"
 
 msgid "Owner"
 msgstr "ባለቤት"
@@ -424,6 +439,36 @@ msgid "%(n)s day left"
 msgid_plural "%(n)s days left"
 msgstr[0] "%(n)s ቀን ቀረው"
 msgstr[1] "%(n)s ቀናት ቀረው"
+
+msgid "Handmade"
+msgstr "በእጅ የተሠራ"
+
+msgid "Machine-made"
+msgstr "በማሽን የተሠራ"
+
+msgid "Hand and machine"
+msgstr "በእጅ እና በማሽን"
+
+msgid "A short name to tell pieces apart, e.g. White kemis"
+msgstr "ልብሶቹን ለመለየት አጭር ስም፤ ለምሳሌ፦ ነጭ ቀሚስ"
+
+msgid "e.g. Tibeb border, Plain weave, K1R P1R"
+msgstr "ለምሳሌ፦ ጥበብ ያለው ጠርዝ፣ ሜዳ ሽመና፣ K1R P1R"
+
+msgid "e.g. 18 cm"
+msgstr "ለምሳሌ፦ 18 ሴ.ሜ"
+
+msgid "e.g. 100 cm"
+msgstr "ለምሳሌ፦ 100 ሴ.ሜ"
+
+msgid "e.g. 66 cm"
+msgstr "ለምሳሌ፦ 66 ሴ.ሜ"
+
+msgid "e.g. Slim fit, Loose"
+msgstr "ለምሳሌ፦ ጥብቅ፣ ሰፊ"
+
+msgid "e.g. Cotton, Highly stretchy"
+msgstr "ለምሳሌ፦ ጥጥ፣ በጣም የሚለጠጥ"
 
 msgid "Paid"
 msgstr "ተከፍሏል"
@@ -1305,6 +1350,26 @@ msgid_plural "%(n)s tasks are still in progress."
 msgstr[0] "%(n)s ሥራ ገና በሂደት ላይ ነው።"
 msgstr[1] "%(n)s ሥራዎች ገና በሂደት ላይ ናቸው።"
 
+msgid "Sold out"
+msgstr "ተሽጦ አልቋል"
+
+msgid "Add the pattern, lengths, fabric and color so customers see the details."
+msgstr "ደንበኞች ዝርዝሩን እንዲያዩ ጥለቱን፣ ርዝመቶቹን፣ ጨርቁን እና ቀለሙን ያክሉ።"
+
+msgid "Sell"
+msgstr "ሽጥ"
+
+msgid "Restock"
+msgstr "ክምችት ሙላ"
+
+msgid "Browse ready-made clothes"
+msgstr "ዝግጁ ልብሶችን ያስሱ"
+
+msgid "%(n)s sold so far."
+msgid_plural "%(n)s sold so far."
+msgstr[0] "እስካሁን %(n)s ተሽጧል።"
+msgstr[1] "እስካሁን %(n)s ተሽጠዋል።"
+
 msgid "Ready-made clothes"
 msgstr "ዝግጁ ልብሶች"
 
@@ -1329,23 +1394,11 @@ msgstr "ገና ያልተከፈለ"
 msgid "On the rack"
 msgstr "በመደርደሪያ ላይ"
 
-msgid "Sold out"
-msgstr "ተሽጦ አልቋል"
-
-msgid "Sell"
-msgstr "ሽጥ"
-
-msgid "Restock"
-msgstr "ክምችት ሙላ"
-
 msgid "No ready-made items yet"
 msgstr "ገና ዝግጁ ልብስ የለም"
 
 msgid "Add ready-made pieces to sell them and track what's left."
 msgstr "ለመሸጥ እና የቀረውን ለመከታተል ዝግጁ ልብሶችን ያክሉ።"
-
-msgid "%(price)s each"
-msgstr "እያንዳንዱ %(price)s"
 
 msgid "A ready-made piece sold off the rack."
 msgstr "ከመደርደሪያ የተሸጠ ዝግጁ ልብስ።"

@@ -15,6 +15,7 @@ from .models import (
     Material,
     Order,
     Payment,
+    ReadyMadePhoto,
     Sale,
     StaffProfile,
     Stage,
@@ -301,18 +302,49 @@ class TibebeForm(StyledFormMixin, forms.ModelForm):
 
 
 class FreeSizeItemForm(StyledFormMixin, forms.ModelForm):
+    more_photos = MultiplePhotoField(
+        label=_("More photos"), help_text=_("Back, side and close-up shots. You can pick several at once."),
+    )
+    remove_photos = forms.ModelMultipleChoiceField(
+        ReadyMadePhoto.objects.none(), required=False, widget=PhotoChoices,
+        label=_("Remove photos"), help_text=_("Tap the photos you want to delete."),
+    )
+
     class Meta:
         model = FreeSizeItem
-        fields = ["code", "name", "price", "quantity", "low_stock_at", "photo"]
-        widgets = {"photo": PHOTO}
+        fields = ["category", "name", "code", "price", "quantity", "low_stock_at", "photo",
+                  "pattern_type", "sleeve_length", "length", "waist", "fit", "fabric", "color", "made", "description"]
+        widgets = {
+            "category": forms.RadioSelect,
+            "made": forms.RadioSelect,
+            "photo": PHOTO,
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["made"].choices = [c for c in self.fields["made"].choices if c[0]]
+        self.order_fields(["category", "name", "code", "photo", "more_photos", "remove_photos"])
+        if self.instance.pk and self.instance.photos.exists():
+            self.fields["remove_photos"].queryset = self.instance.photos.all()
+            self.fields["remove_photos"].label_from_instance = lambda p: p.image.url
+        else:
+            del self.fields["remove_photos"]
         if not self.instance.pk:
             self.fields["code"].initial = next_code(FreeSizeItem, "FS")
 
     def clean_code(self):
         return self.cleaned_data["code"].strip().upper()
+
+    def save(self, commit=True):
+        item = super().save(commit=commit)
+        if commit:
+            for image in self.cleaned_data.get("more_photos", []):
+                ReadyMadePhoto.objects.create(item=item, image=image)
+            for photo in self.cleaned_data.get("remove_photos", []):
+                photo.image.delete(save=False)
+                photo.delete()
+        return item
 
 
 class WorkerForm(StyledFormMixin, forms.ModelForm):

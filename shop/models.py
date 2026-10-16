@@ -504,12 +504,30 @@ class MaterialUsage(models.Model):
 
 
 class FreeSizeItem(models.Model):
+    """A ready-made piece sold off the rack. Its page is titled with the type of clothing."""
+
+    class Made(models.TextChoices):
+        HANDMADE = "handmade", _("Handmade")
+        MACHINE = "machine", _("Machine-made")
+        BOTH = "both", _("Hand and machine")
+
     code = models.CharField(_("Code"), max_length=20, unique=True)
-    name = models.CharField(_("Name"), max_length=120)
+    category = models.CharField(_("Clothing type"), max_length=20, choices=Category.choices, default=Category.HABESHA)
+    name = models.CharField(_("Name"), max_length=120, help_text=_("A short name to tell pieces apart, e.g. White kemis"))
     price = models.DecimalField(_("Price (ETB)"), max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(_("In stock"), default=0)
     low_stock_at = models.PositiveIntegerField(_("Warn me at or below"), default=3)
-    photo = models.ImageField(_("Photo"), upload_to="free-size/", blank=True)
+    photo = models.ImageField(_("Main photo"), upload_to="free-size/", blank=True)
+    pattern_type = models.CharField(_("Pattern type"), max_length=60, blank=True,
+                                    help_text=_("e.g. Tibeb border, Plain weave, K1R P1R"))
+    sleeve_length = models.CharField(_("Sleeve length"), max_length=40, blank=True, help_text=_("e.g. 18 cm"))
+    length = models.CharField(_("Length"), max_length=40, blank=True, help_text=_("e.g. 100 cm"))
+    waist = models.CharField(_("Waist"), max_length=40, blank=True, help_text=_("e.g. 66 cm"))
+    fit = models.CharField(_("Fit type"), max_length=60, blank=True, help_text=_("e.g. Slim fit, Loose"))
+    fabric = models.CharField(_("Fabric"), max_length=60, blank=True, help_text=_("e.g. Cotton, Highly stretchy"))
+    color = models.CharField(_("Color"), max_length=60, blank=True, help_text=_("e.g. White and gold"))
+    made = models.CharField(_("Made"), max_length=10, choices=Made.choices, blank=True)
+    description = models.TextField(_("Description"), blank=True)
 
     class Meta:
         ordering = ["code"]
@@ -521,6 +539,35 @@ class FreeSizeItem(models.Model):
     @property
     def is_low(self):
         return self.quantity <= self.low_stock_at
+
+    def gallery(self):
+        """Main photo first, then the extra angles in the order they were added."""
+        images = [self.photo] if self.photo else []
+        return images + [p.image for p in self.photos.all()]
+
+    def details(self):
+        """The filled-in specs, in the order the product page shows them."""
+        rows = [
+            (_("Pattern type"), self.pattern_type), (_("Sleeve length"), self.sleeve_length),
+            (_("Length"), self.length), (_("Waist"), self.waist),
+            (_("Fit type"), self.fit), (_("Fabric"), self.fabric),
+            (_("Color"), self.color), (_("Made"), self.get_made_display() if self.made else ""),
+        ]
+        return [(label, value) for label, value in rows if value]
+
+
+class ReadyMadePhoto(models.Model):
+    """Extra photos of a ready-made piece (back, side, worn, detail)."""
+
+    item = models.ForeignKey(FreeSizeItem, on_delete=models.CASCADE, related_name="photos")
+    image = models.ImageField(upload_to="free-size/more/")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+
+    def __str__(self):
+        return f"Photo of {self.item.code}"
 
 
 class Sale(models.Model):

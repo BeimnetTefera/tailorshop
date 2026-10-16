@@ -1,0 +1,66 @@
+{% extends "shop/base.html" %}{% load i18n shop_extras %}
+{% block title %}{{ item.get_category_display }} · {{ item.code }}{% endblock %}
+{% block app_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:readymade' %}" class="icon-btn" aria-label="{% translate 'Back' %}">{% icon "back" %}</a>
+  <h1><span class="small faint" style="font-family:var(--font);font-weight:400">{% blocktranslate with a=position b=total %}{{ a }} of {{ b }}{% endblocktranslate %}</span></h1>
+  {% if is_owner %}<a class="icon-btn" href="{% url 'shop:freesize_edit' item.pk %}" aria-label="{% translate 'Edit' %}">{% icon "edit" 20 %}</a>{% endif %}
+</header>
+
+<div class="product" data-style-page>
+  <section class="product-gallery{% if gallery|length > 1 %} has-thumbs{% endif %}" aria-label="{% blocktranslate with name=item.get_category_display %}Photos of {{ name }}{% endblocktranslate %}" data-gallery>
+    {% if gallery|length > 1 %}
+    <div class="product-thumbs">
+      {% for img in gallery %}
+        <button type="button" class="gallery-thumb{% if forloop.first %} is-active{% endif %}" data-gallery-thumb="{{ img.url }}" aria-label="{% blocktranslate with n=forloop.counter %}Show photo {{ n }}{% endblocktranslate %}"{% if forloop.first %} aria-current="true"{% endif %}>
+          <img src="{{ img.url }}" alt="" loading="lazy">
+        </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="product-main">
+      {% if gallery %}
+        <img src="{{ gallery.0.url }}" alt="{{ item.get_category_display }}, photo 1 of {{ gallery|length }}" data-gallery-main>
+        {% if gallery|length > 1 %}<span class="gallery-count" data-gallery-count>1 / {{ gallery|length }}</span>{% endif %}
+      {% elif is_owner %}
+        <a class="gallery-empty" href="{% url 'shop:freesize_edit' item.pk %}">{% icon "camera" 28 %}<span>{{ item.code }}</span><small>{% translate "Add photos" %}</small></a>
+      {% else %}
+        <span class="gallery-empty">{% icon "camera" 28 %}<span>{{ item.code }}</span></span>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="product-info">
+    <p class="eyebrow"><span class="diamond"></span>{{ item.code }} · {{ item.name }}</p>
+    <h1 class="product-title">{{ item.get_category_display }}</h1>
+
+    <div class="product-buy">
+      <span class="price">{{ item.price|birr }}</span>
+      <span class="pill {% if item.quantity == 0 %}pill-danger{% elif item.is_low %}pill-warn{% else %}pill-ok{% endif %}">{% if item.quantity == 0 %}{% translate "Sold out" %}{% else %}{% blocktranslate with n=item.quantity %}{{ n }} left{% endblocktranslate %}{% endif %}</span>
+    </div>
+
+    {% with details=item.details %}
+    {% if details %}
+    <dl class="product-specs">
+      {% for label, value in details %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+    </dl>
+    {% elif is_owner %}
+    <p class="help mt">{% translate "Add the pattern, lengths, fabric and color so customers see the details." %}</p>
+    {% endif %}
+    {% endwith %}
+    {% if item.description %}<p class="mt muted">{{ item.description }}</p>{% endif %}
+
+    <div class="btn-row mt-lg">
+      {% if item.quantity %}<a class="btn btn-primary" href="{% url 'shop:sale_create' %}?item={{ item.pk }}">{% icon "receipt" 18 %} {% translate "Sell" %}</a>{% endif %}
+      {% if is_owner %}<a class="btn btn-outline" href="{% url 'shop:freesize_edit' item.pk %}">{% if item.quantity %}{% translate "Edit" %}{% else %}{% translate "Restock" %}{% endif %}</a>{% endif %}
+    </div>
+    {% if sold %}<p class="small faint mt">{% blocktranslate count n=sold %}{{ n }} sold so far.{% plural %}{{ n }} sold so far.{% endblocktranslate %}</p>{% endif %}
+  </div>
+</div>
+
+<nav class="product-pager" aria-label="{% translate 'Browse ready-made clothes' %}">
+  {% if prev_pk %}<a href="{% url 'shop:readymade_detail' prev_pk %}" data-pager="prev" rel="prev">{% include "shop/partials/pager_arrow.html" with left=1 %}{% translate "Previous" %}</a>{% else %}<span class="is-disabled" aria-disabled="true">{% include "shop/partials/pager_arrow.html" with left=1 %}{% translate "Previous" %}</span>{% endif %}
+  {% if next_pk %}<a href="{% url 'shop:readymade_detail' next_pk %}" data-pager="next" rel="next">{% translate "Next" %}{% include "shop/partials/pager_arrow.html" %}</a>{% else %}<span class="is-disabled" aria-disabled="true">{% translate "Next" %}{% include "shop/partials/pager_arrow.html" %}</span>{% endif %}
+</nav>
+{% endblock %}

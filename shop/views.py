@@ -548,6 +548,22 @@ def readymade(request):
     })
 
 
+def readymade_detail(request, pk):
+    item = get_object_or_404(FreeSizeItem.objects.prefetch_related("photos"), pk=pk)
+    # Previous / next follow the rack's order (by code).
+    codes = list(FreeSizeItem.objects.values_list("pk", flat=True))
+    index = codes.index(item.pk)
+    return render(request, "shop/readymade/detail.html", {
+        "item": item,
+        "gallery": item.gallery(),
+        "prev_pk": codes[index - 1] if index > 0 else None,
+        "next_pk": codes[index + 1] if index + 1 < len(codes) else None,
+        "position": index + 1,
+        "total": len(codes),
+        "sold": item.sales.aggregate(n=Sum("quantity"))["n"] or 0,
+    })
+
+
 def sale_create(request):
     items = FreeSizeItem.objects.order_by("code")
     if request.method == "POST":
@@ -623,7 +639,7 @@ def sales_history(request):
 def freesize_create(request):
     return _simple_form(
         request, FreeSizeItemForm, title=_("Add ready-made item"), back="shop:readymade",
-        submit=_("Add item"), success=lambda o: "shop:readymade",
+        submit=_("Add item"), success=lambda o: reverse("shop:readymade_detail", args=[o.pk]),
         intro=_("Ready-made clothes you sell off the rack."),
     )
 
@@ -633,7 +649,7 @@ def freesize_edit(request, pk):
     item = get_object_or_404(FreeSizeItem, pk=pk)
     return _simple_form(
         request, FreeSizeItemForm, instance=item, title=_("Edit %(name)s") % {"name": item.code}, back="shop:readymade",
-        submit=_("Save changes"), success=lambda o: "shop:readymade",
+        submit=_("Save changes"), success=lambda o: reverse("shop:readymade_detail", args=[o.pk]),
     )
 
 

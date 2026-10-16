@@ -270,6 +270,61 @@ class UpdateThreadTests(TempMediaMixin, TestCase):
         self.assertContains(page, "Take 2 spools of Gold Thread")
 
 
+class ReadyMadePageTests(TempMediaMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.use_temp_media()
+        self.owner = _english(get_user_model().objects.get(username="selam"))
+        self.client.force_login(self.owner)
+
+    def test_title_is_the_type_of_clothing(self):
+        item = FreeSizeItem.objects.get(code="FS-031")
+        page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
+        self.assertContains(page, '<h1 class="product-title">Wedding</h1>', html=False)
+        self.assertContains(page, "Gold embroidery")
+        self.assertContains(page, "Handmade")
+        StaffProfile.objects.filter(user=self.owner).update(language="am")
+        page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
+        self.assertContains(page, '<h1 class="product-title">ሰርግ</h1>', html=False)
+        self.assertContains(page, "በእጅ የተሠራ")
+
+    def test_previous_and_next_walk_the_rack(self):
+        items = list(FreeSizeItem.objects.all())
+        page = self.client.get(reverse("shop:readymade_detail", args=[items[1].pk]))
+        self.assertContains(page, reverse("shop:readymade_detail", args=[items[0].pk]))
+        self.assertContains(page, reverse("shop:readymade_detail", args=[items[2].pk]))
+        first = self.client.get(reverse("shop:readymade_detail", args=[items[0].pk]))
+        self.assertNotContains(first, 'data-pager="prev"')
+        rack = self.client.get(reverse("shop:readymade"))
+        for item in items:
+            self.assertContains(rack, reverse("shop:readymade_detail", args=[item.pk]))
+
+    def test_owner_adds_photos_and_details(self):
+        response = self.client.post(reverse("shop:freesize_create"), {
+            "category": "habesha", "name": "Green tibeb kemis", "code": "FS-050", "price": "3200",
+            "quantity": "3", "low_stock_at": "1", "pattern_type": "K1R, P1R", "length": "100 cm",
+            "made": "handmade", "photo": _png("front.png"),
+            "more_photos": [_png("side.png", "blue"), _png("back.png", "green")],
+        })
+        item = FreeSizeItem.objects.get(code="FS-050")
+        self.assertRedirects(response, reverse("shop:readymade_detail", args=[item.pk]))
+        self.assertEqual(len(item.gallery()), 3)
+        page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
+        self.assertContains(page, "data-gallery-thumb", count=3)
+        self.assertContains(page, "K1R, P1R")
+        self.assertNotContains(page, "Waist")  # empty details are left out
+
+    def test_messenger_can_sell_but_not_edit(self):
+        self.client.force_login(_english(get_user_model().objects.get(username="dawit")))
+        item = FreeSizeItem.objects.get(code="FS-024")
+        page = self.client.get(reverse("shop:readymade_detail", args=[item.pk]))
+        self.assertContains(page, f"{reverse('shop:sale_create')}?item={item.pk}")
+        self.assertNotContains(page, reverse("shop:freesize_edit", args=[item.pk]))
+
+
 class LanguageTests(TestCase):
     @classmethod
     def setUpTestData(cls):

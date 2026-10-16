@@ -143,12 +143,25 @@ class Command(BaseCommand):
             Tibebe.objects.create(code=code, name=name, size=size, occasion=occasion, material=cotton)
 
     def _free_size(self):
+        hand, machine, both = FreeSizeItem.Made.HANDMADE, FreeSizeItem.Made.MACHINE, FreeSizeItem.Made.BOTH
         data = [
-            ("FS-024", "White kemis", 2500, 2), ("FS-031", "Gold kemis", 1800, 1),
-            ("FS-027", "Gold kemis (short)", 1800, 6), ("FS-035", "Black shawl", 1200, 9),
-            ("FS-040", "Children's kemis", 1500, 5),
+            ("FS-024", "White kemis", "habesha", 2500, 2,
+             dict(pattern_type="Tibeb border", sleeve_length="58 cm", length="140 cm", waist="70 cm",
+                  fit="Flowing", fabric="Hand-woven cotton", color="White and gold", made=hand)),
+            ("FS-027", "Gold kemis (short)", "modern", 1800, 6,
+             dict(pattern_type="Tibeb bands", sleeve_length="18 cm", length="100 cm", waist="66 cm",
+                  fit="Slim fit", fabric="Chiffon", color="Gold on ivory", made=both)),
+            ("FS-031", "Gold kemis", "wedding", 1800, 1,
+             dict(pattern_type="Gold embroidery", sleeve_length="60 cm", length="145 cm", waist="68 cm",
+                  fit="Fitted bodice", fabric="Cotton", color="White and gold", made=hand)),
+            ("FS-035", "Black shawl", "formal", 1200, 9,
+             dict(pattern_type="Plain weave", length="180 cm", fabric="Cotton", color="Black and silver", made=machine)),
+            ("FS-040", "Children's kemis", "children", 1500, 5,
+             dict(pattern_type="Tibeb border", sleeve_length="Short sleeve", length="80 cm", fit="Loose",
+                  fabric="Cotton", color="White and green", made=both)),
         ]
-        return [FreeSizeItem.objects.create(code=c, name=n, price=D(p), quantity=q) for c, n, p, q in data]
+        return [FreeSizeItem.objects.create(code=c, name=n, category=cat, price=D(p), quantity=q, **extra)
+                for c, n, cat, p, q, extra in data]
 
     def _order(self, name, phone, style, *, people=1, created_ago=10, due_in=10, stage=Stage.SEWING,
                worker=None, total=8000, deposit=3000, urgent=False, delivered_ago=None):

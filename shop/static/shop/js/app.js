@@ -128,29 +128,12 @@
     });
   }
 
-  // ---- Money chart: bars or line (remembered on this phone), hover tooltips ----
-  var chartViews = document.querySelectorAll("[data-chart]");
-  var chartButtons = document.querySelectorAll("[data-chart-type]");
-  if (chartViews.length && chartButtons.length) {
-    var showChart = function (type) {
-      chartViews.forEach(function (view) { view.hidden = view.dataset.chart !== type; });
-      chartButtons.forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.chartType === type ? "true" : "false"); });
-    };
-    var savedChart = null;
-    try { savedChart = localStorage.getItem("moneyChart"); } catch (err) {}
-    showChart(savedChart === "line" ? "line" : "bar");
-    chartButtons.forEach(function (b) {
-      b.addEventListener("click", function () {
-        showChart(b.dataset.chartType);
-        try { localStorage.setItem("moneyChart", b.dataset.chartType); } catch (err) {}
-      });
-    });
-  }
+  // ---- Money chart: hover / focus tooltips on the bars -------------------------
   document.querySelectorAll("[data-chart-wrap]").forEach(function (wrap) {
     var tip = wrap.querySelector(".chart-tip");
     if (!tip) return;
     var show = function (el) {
-      var mark = el.querySelector(".dot, i") || el;
+      var mark = el.querySelector("i") || el;
       var r = mark.getBoundingClientRect(), w = wrap.getBoundingClientRect();
       tip.textContent = el.dataset.tip;
       tip.style.left = (r.left + r.width / 2 - w.left) + "px";

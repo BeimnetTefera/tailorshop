@@ -23,7 +23,7 @@ browser (iPhone and Android alike) and is backed by Django.
 | Collection: Ready-made | `/ready-made/` | Off-the-rack pieces with product pages, today's sales, record a sale (`/sales/new/`), sales history (`/sales/`) |
 | Collection: Gallery | `/gallery/` | Designs customers choose for made-to-order; "Use this design" starts an order |
 | Stock | `/stock/` | Raw materials by category (add / use stock); the owner manages categories at `/stock/categories/` |
-| Money *(owner)* | `/money/` | Weekly income for an Ethiopian month as bars or a line (last month + this month), money to collect, worker pay (`/money/workers/`) |
+| Money *(owner)* | `/money/` | Weekly income bars for an Ethiopian month, money to collect, worker pay (`/money/workers/`) |
 | Team *(owner)* | `/manage/` | Messenger logins, production workers, worker payments, the owner's language and sign out |
 | Account *(messenger)* | `/account/` | Language and sign out |
 

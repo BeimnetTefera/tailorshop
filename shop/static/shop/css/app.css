@@ -29,6 +29,8 @@
 }
 
 * { box-sizing: border-box; }
+/* `hidden` must win over classes that set display (.field, .btn…), or hidden parts still show. */
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--bg);
@@ -413,18 +415,13 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .gold-card .big { font-family: var(--display); font-size: 34px; font-weight: 600; color: var(--gold); margin: 6px 0; line-height: 1.15; }
 /* weekly income chart: one series in gold (--chart passes the palette checks on the
    card surface); the selected week is brighter and the only one with a printed value */
-.chart-switch { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--sunken); }
-.seg button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; }
-.seg button[aria-pressed="true"] { background: var(--gold); color: var(--on-gold); font-weight: 600; }
 .chart-wrap { position: relative; --chart: #B88A38; }
 .chart-tip {
   position: absolute; transform: translate(-50%, calc(-100% - 8px)); z-index: 3; pointer-events: none; white-space: nowrap;
   background: var(--raised); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 8px; padding: 5px 9px; font-size: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, .45);
 }
-.bars, .linechart { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 14px 12px; }
-.bars[hidden], .linechart[hidden] { display: none; }
+.bars { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 14px 12px; }
 .bars-inner { display: flex; align-items: flex-end; justify-content: space-around; gap: 12px; height: 180px; border-bottom: 1px solid var(--line-strong); }
 .bar { flex: 1; max-width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; text-decoration: none; color: var(--muted); position: relative; }
 .bar i { display: block; width: 100%; background: var(--chart); border-radius: 4px 4px 0 0; }
@@ -434,21 +431,6 @@ dialog.sheet::backdrop { background: rgba(10, 6, 12, .7); }
 .bar small { position: absolute; bottom: -22px; font-size: 12px; }
 .bars { padding-bottom: 34px; }
 .bar .tag { font-size: 12px; font-weight: 600; color: var(--ink); min-height: 16px; white-space: nowrap; }
-.linechart { padding: 10px 6px 4px; }
-.linechart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.linechart .grid { stroke: var(--line); stroke-width: 1; }
-.linechart .axis { stroke: var(--line-strong); stroke-width: 1; }
-.linechart .area { fill: var(--chart); opacity: .14; }
-.linechart .trace { fill: none; stroke: var(--chart); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.linechart .hit { fill: transparent; }
-.linechart .dot { fill: var(--chart); stroke: var(--surface); stroke-width: 2; }
-.linechart .dot.is-selected { fill: var(--gold); }
-.linechart a:focus-visible .dot, .linechart a:hover .dot { stroke: var(--ink); }
-.linechart .value { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--font); }
-.linechart .label { fill: var(--muted); font-size: 12px; font-family: var(--font); }
-.linechart .label.is-selected { fill: var(--ink); font-weight: 600; }
-.linechart .month { fill: var(--faint); font-size: 11px; font-family: var(--font); letter-spacing: .04em; }
-.linechart .divider { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; }
 .trend { display: flex; gap: 10px; align-items: flex-start; background: var(--gold-soft); border-radius: 12px; padding: 12px 14px; margin-top: 10px; font-size: 13px; }
 .trend .diamond { margin-top: 6px; }
 .income-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }

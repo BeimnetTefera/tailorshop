@@ -561,24 +561,13 @@ class RoleTests(TestCase):
         self.assertRedirects(self.client.get(reverse("shop:manage")), reverse("shop:dashboard"))
         self.assertEqual(self.client.get(reverse("shop:account")).status_code, 200)
 
-    def test_money_chart_offers_bars_and_line(self):
+    def test_money_chart_is_bars_only(self):
         self.client.force_login(self.owner)
         page = self.client.get(reverse("shop:finance"))
-        self.assertContains(page, 'data-chart="bar"')
-        self.assertContains(page, 'data-chart="line"')
-        self.assertContains(page, 'data-chart-type="line"')
-        line = page.context["line"]
-        # The line covers last month and this month, so it shows a trend even in week 1.
-        self.assertEqual([m["name"] for m in line["months"]],
-                         [ethiopian.month_name(ethiopian.add_months(*ethiopian.today()[:2], -1)[1]),
-                          ethiopian.month_name(ethiopian.today().month)])
-        self.assertGreater(len(line["weeks"]), len(page.context["weeks"]))
-        shown = [w for w in line["weeks"] if not w["is_future"]]
-        self.assertGreaterEqual(len(shown), 5)
-        self.assertEqual(len(line["points"].split()), len(shown))
-        for w in shown:  # every plotted week sits inside the chart, the biggest one at the top
-            self.assertTrue(line["top"] <= w["y"] <= line["base"])
-        self.assertEqual(min(w["y"] for w in shown), line["top"])
+        self.assertContains(page, 'class="bars"')
+        self.assertNotContains(page, "linechart")
+        self.assertNotContains(page, "data-chart-type")
+        self.assertContains(page, "data-tip=")  # hover / focus shows each week's amount
         self.assertContains(page, "<caption>")  # table view for screen readers
 
     def test_owner_cannot_be_edited_as_a_messenger(self):

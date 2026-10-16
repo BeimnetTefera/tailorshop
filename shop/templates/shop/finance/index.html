@@ -30,15 +30,8 @@
 </div>
 
 <div class="section-head"><div><h2>{% translate "This month" %}</h2><div class="sub">{% blocktranslate with month=month_label total=month_total|birr %}Weekly income for {{ month }} · {{ total }} in total{% endblocktranslate %}</div></div></div>
-<div class="chart-switch">
-  <div class="seg" role="group" aria-label="{% translate 'Chart type' %}">
-    <button type="button" data-chart-type="bar" aria-pressed="true">{% icon "chart-bar" 16 %} {% translate "Bars" %}</button>
-    <button type="button" data-chart-type="line" aria-pressed="false">{% icon "chart-line" 16 %} {% translate "Line" %}</button>
-  </div>
-</div>
-
 <div class="chart-wrap" data-chart-wrap>
-  <section class="bars" data-chart="bar" aria-label="{% translate 'Weekly income chart' %}">
+  <section class="bars" aria-label="{% translate 'Weekly income chart' %}">
     <div class="bars-inner">
       {% for w in weeks %}
         <a class="bar{% if w.is_selected %} is-selected{% endif %}{% if w.is_future %} is-future{% endif %}" href="{% url 'shop:income_detail' %}?start={{ w.start|date:'Y-m-d' }}&end={{ w.end|date:'Y-m-d' }}"
@@ -49,26 +42,6 @@
         </a>
       {% endfor %}
     </div>
-  </section>
-
-  <section class="linechart" data-chart="line" aria-label="{% translate 'Weekly income chart' %}" hidden>
-    <svg viewBox="0 0 {{ line.width }} {{ line.height }}" role="img" aria-label="{% translate 'Weekly income chart' %}">
-      <line class="grid" x1="12" x2="{{ line.width|add:'-12' }}" y1="{{ line.top }}" y2="{{ line.top }}"></line>
-      <line class="grid" x1="12" x2="{{ line.width|add:'-12' }}" y1="{{ line.mid }}" y2="{{ line.mid }}"></line>
-      <line class="axis" x1="12" x2="{{ line.width|add:'-12' }}" y1="{{ line.base }}" y2="{{ line.base }}"></line>
-      {% for x in line.dividers %}<line class="divider" x1="{{ x }}" x2="{{ x }}" y1="{{ line.top }}" y2="{{ line.month_y }}"></line>{% endfor %}
-      {% if line.area %}<path class="area" d="{{ line.area }}"></path>{% endif %}
-      {% if line.shown|length > 1 %}<polyline class="trace" points="{{ line.points }}"></polyline>{% endif %}
-      {% for w in line.shown %}
-        <a href="{% url 'shop:income_detail' %}?start={{ w.start|date:'Y-m-d' }}&end={{ w.end|date:'Y-m-d' }}" aria-label="{{ w.label }}: {{ w.amount|birr }}" data-tip="{{ w.label }} · {{ w.start|ethrange:w.end }} · {{ w.amount|birr }}">
-          <circle class="hit" cx="{{ w.x }}" cy="{{ w.y }}" r="18"></circle>
-          <circle class="dot{% if w.is_selected %} is-selected{% endif %}" cx="{{ w.x }}" cy="{{ w.y }}" r="{% if w.is_selected %}6{% else %}4{% endif %}"></circle>
-        </a>
-        {% if w.is_selected %}<text class="value" x="{{ w.x }}" y="{{ w.value_y }}" text-anchor="middle">{{ w.amount|etb }}</text>{% endif %}
-      {% endfor %}
-      {% for w in line.weeks %}<text class="label{% if w.is_selected %} is-selected{% endif %}" x="{{ w.x }}" y="{{ line.week_y }}" text-anchor="middle">{{ w.label }}</text>{% endfor %}
-      {% for m in line.months %}<text class="month" x="{{ m.x }}" y="{{ line.month_y }}" text-anchor="middle">{{ m.name }}</text>{% endfor %}
-    </svg>
   </section>
   <span class="chart-tip" role="status" hidden></span>
 </div>

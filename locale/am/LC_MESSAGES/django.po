@@ -913,15 +913,6 @@ msgstr "ለሠራተኞች የሚከፈል"
 msgid "This month"
 msgstr "ይህ ወር"
 
-msgid "Chart type"
-msgstr "የሰንጠረዥ ዓይነት"
-
-msgid "Bars"
-msgstr "አምዶች"
-
-msgid "Line"
-msgstr "መስመር"
-
 msgid "Weekly income chart"
 msgstr "የሳምንታዊ ገቢ ሰንጠረዥ"
 

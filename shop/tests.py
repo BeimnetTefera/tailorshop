@@ -127,6 +127,104 @@ class ShopFlowTests(TestCase):
         self.assertEqual(response["Location"], reverse("shop:worker_payments"))
 
 
+class RoleTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo", verbosity=0)
+
+    def setUp(self):
+        self.owner = get_user_model().objects.get(username="selam")
+        self.messenger = get_user_model().objects.get(username="dawit")
+
+    def test_messenger_cannot_open_owner_pages(self):
+        self.client.force_login(self.messenger)
+        task = WorkerTask.objects.filter(finished_on__isnull=False, paid_on__isnull=True).first()
+        for url in [reverse("shop:finance"), reverse("shop:income_detail"), reverse("shop:worker_payments"),
+                    reverse("shop:team"), reverse("shop:messenger_list"), reverse("shop:style_create"),
+                    reverse("shop:material_create"), reverse("shop:freesize_create")]:
+            with self.subTest(url=url):
+                self.assertRedirects(self.client.get(url), reverse("shop:dashboard"))
+        self.client.post(reverse("shop:task_mark_paid", args=[task.pk]))
+        task.refresh_from_db()
+        self.assertIsNone(task.paid_on)
+
+    def test_messenger_does_the_daily_work(self):
+        self.client.force_login(self.messenger)
+        for url in [reverse("shop:dashboard"), reverse("shop:order_list"), reverse("shop:order_create"),
+                    reverse("shop:sale_create"), reverse("shop:sales_history"), reverse("shop:material_list"),
+                    reverse("shop:account")]:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 200)
+        home = self.client.get(reverse("shop:dashboard"))
+        self.assertNotContains(home, reverse("shop:finance"))
+        self.assertNotContains(self.client.get(reverse("shop:sales_history")), "ETB received")
+        material = Material.objects.get(name="White Thread")
+        self.client.post(reverse("shop:material_add_stock", args=[material.pk]), {"quantity": "5"})
+        material.refresh_from_db()
+        self.assertEqual(material.quantity, Decimal("45"))
+
+    def test_owner_creates_then_switches_off_a_messenger(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse("shop:messenger_list"), {
+            "name": "Meron Haile", "phone": "0912 000 111", "username": "Meron", "password": "kemis-2019-ok",
+        })
+        self.assertRedirects(response, reverse("shop:messenger_list"))
+        meron = get_user_model().objects.get(username="meron")
+        self.assertEqual(meron.profile.phone, "0912000111")
+        self.assertFalse(meron.is_staff)
+
+        other = self.client_class()
+        self.assertTrue(other.login(username="meron", password="kemis-2019-ok"))
+        self.assertEqual(other.get(reverse("shop:dashboard")).status_code, 200)
+
+        self.client.post(reverse("shop:messenger_edit", args=[meron.pk]), {"name": "Meron Haile", "phone": ""})
+        meron.refresh_from_db()
+        self.assertFalse(meron.is_active)
+        # Already signed in on a phone? The next page sends them back to the login screen.
+        self.assertIn(reverse("login"), other.get(reverse("shop:dashboard"))["Location"])
+        self.assertFalse(self.client_class().login(username="meron", password="kemis-2019-ok"))
+
+    def test_owner_resets_a_password(self):
+        self.client.force_login(self.owner)
+        self.client.post(reverse("shop:messenger_edit", args=[self.messenger.pk]), {"password": "new-pass-2019"})
+        self.assertTrue(self.client_class().login(username="dawit", password="new-pass-2019"))
+
+    def test_weak_password_and_taken_username_are_rejected(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse("shop:messenger_list"), {
+            "name": "X", "username": "dawit", "password": "123",
+        })
+        self.assertContains(response, "already taken")
+        self.assertContains(response, "too short")
+
+    def test_owner_cannot_be_edited_as_a_messenger(self):
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.get(reverse("shop:messenger_edit", args=[self.owner.pk])).status_code, 404)
+
+
+class MediaTests(TestCase):
+    def setUp(self):
+        import shutil
+        import tempfile
+
+        media = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
+        override = self.settings(MEDIA_ROOT=media)
+        override.enable()
+        self.addCleanup(override.disable)
+        from django.core.files.storage import default_storage
+        self.name = default_storage.save("styles/test.png", _png())
+
+    def test_photos_need_a_login(self):
+        url = reverse("media_file", args=[self.name])
+        self.assertIn(reverse("login"), self.client.get(url)["Location"])
+        self.client.force_login(get_user_model().objects.create_user("m", password="x"))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(self.client.get(reverse("media_file", args=["styles/missing.png"])).status_code, 404)
+
+
 def _png(name="photo.png", color="red"):
     from io import BytesIO
 

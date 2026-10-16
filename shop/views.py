@@ -1,10 +1,14 @@
 import calendar
+import mimetypes
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Count, F, Q, Sum
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -15,10 +19,13 @@ from .forms import (
     AddStockForm,
     FreeSizeItemForm,
     MaterialForm,
+    MessengerCreateForm,
+    MessengerEditForm,
     NoteForm,
     OrderForm,
     PaymentForm,
     SaleForm,
+    SetPasswordForm,
     StageForm,
     StyleForm,
     TibebeForm,
@@ -36,6 +43,7 @@ from .models import (
     Order,
     Payment,
     Sale,
+    StaffProfile,
     Stage,
     StageNote,
     Style,
@@ -44,6 +52,7 @@ from .models import (
     WorkerTask,
     plain_number,
 )
+from .roles import owner_required
 from .templatetags.shop_extras import format_etb
 
 # --------------------------------------------------------------------------- helpers
@@ -173,6 +182,74 @@ def dashboard(request):
     })
 
 
+def media_file(request, path):
+    """Uploaded photos, for signed-in users only (from disk or Supabase Storage)."""
+    if not default_storage.exists(path):
+        raise Http404
+    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    response = FileResponse(default_storage.open(path), content_type=content_type)
+    response["Cache-Control"] = "private, max-age=86400"
+    return response
+
+
+# --------------------------------------------------------------------------- accounts
+
+
+def account(request):
+    return render(request, "shop/account.html")
+
+
+def _messengers():
+    return (get_user_model().objects.filter(profile__role=StaffProfile.Role.MESSENGER, is_superuser=False)
+            .select_related("profile"))
+
+
+@owner_required
+def messenger_list(request):
+    if request.method == "POST":
+        form = MessengerCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Activity.log(f"Messenger account added · {user.first_name}")
+            messages.success(request, f"{user.first_name} can now sign in as “{user.username}”.")
+            return redirect("shop:messenger_list")
+    else:
+        form = MessengerCreateForm()
+    users = _messengers().order_by("-is_active", "first_name")
+    return render(request, "shop/messengers.html", {"form": form, "messengers": users})
+
+
+@owner_required
+def messenger_edit(request, pk):
+    user = get_object_or_404(_messengers(), pk=pk)
+    form = MessengerEditForm(initial={"name": user.first_name, "phone": user.profile.phone, "is_active": user.is_active})
+    password_form = SetPasswordForm(user)
+    if request.method == "POST" and "password" in request.POST:
+        password_form = SetPasswordForm(user, request.POST)
+        if password_form.is_valid():
+            user.set_password(password_form.cleaned_data["password"])
+            user.save(update_fields=["password"])
+            messages.success(request, f"New password saved for {user.first_name}. Give it to them in person.")
+            return redirect("shop:messenger_list")
+    elif request.method == "POST":
+        form = MessengerEditForm(request.POST)
+        if form.is_valid():
+            was_active = user.is_active
+            user.first_name = form.cleaned_data["name"].strip()
+            user.is_active = form.cleaned_data["is_active"]
+            user.save(update_fields=["first_name", "is_active"])
+            user.profile.phone = form.cleaned_data["phone"]
+            user.profile.save(update_fields=["phone"])
+            if was_active and not user.is_active:
+                Activity.log(f"Messenger account switched off · {user.first_name}")
+                messages.success(request, f"{user.first_name} can no longer sign in.")
+            else:
+                messages.success(request, f"Saved {user.first_name}.")
+            return redirect("shop:messenger_list")
+    return render(request, "shop/messenger_edit.html", {"person": user, "form": form, "password_form": password_form})
+
+
+@owner_required
 def team(request):
     if request.method == "POST":
         form = WorkerForm(request.POST)
@@ -188,6 +265,7 @@ def team(request):
     return render(request, "shop/team.html", {"form": form, "workers": workers})
 
 
+@owner_required
 def worker_edit(request, pk):
     worker = get_object_or_404(Worker, pk=pk)
     return _simple_form(
@@ -475,6 +553,7 @@ def freesize_list(request):
     return render(request, "shop/inventory/freesize.html", {"items": FreeSizeItem.objects.order_by("quantity", "code")})
 
 
+@owner_required
 def freesize_create(request):
     return _simple_form(
         request, FreeSizeItemForm, title="Add free-size item", back="shop:freesize_list",
@@ -483,6 +562,7 @@ def freesize_create(request):
     )
 
 
+@owner_required
 def freesize_edit(request, pk):
     item = get_object_or_404(FreeSizeItem, pk=pk)
     return _simple_form(
@@ -494,6 +574,7 @@ def freesize_edit(request, pk):
 # --------------------------------------------------------------------------- finance
 
 
+@owner_required
 def finance(request):
     today = _today()
     try:
@@ -577,6 +658,7 @@ def finance(request):
     })
 
 
+@owner_required
 def income_detail(request):
     try:
         start = date.fromisoformat(request.GET.get("start", ""))
@@ -608,6 +690,7 @@ def income_detail(request):
 # --------------------------------------------------------------------------- worker payments
 
 
+@owner_required
 def worker_payments(request):
     week = _week(request)
     tasks = (WorkerTask.objects.select_related("worker", "order__customer", "order__style")
@@ -633,6 +716,7 @@ def worker_payments(request):
     })
 
 
+@owner_required
 @require_POST
 def task_mark_paid(request, pk):
     task = get_object_or_404(WorkerTask.objects.select_related("worker"), pk=pk)
@@ -708,6 +792,7 @@ def style_detail(request, pk):
     })
 
 
+@owner_required
 def style_create(request):
     return _simple_form(
         request, StyleForm, title="Add style", back="shop:clothing_list", submit="Add style",
@@ -715,6 +800,7 @@ def style_create(request):
     )
 
 
+@owner_required
 def style_edit(request, pk):
     style = get_object_or_404(Style, pk=pk)
     return _simple_form(
@@ -765,6 +851,7 @@ def material_detail(request, pk):
     })
 
 
+@owner_required
 def material_create(request):
     return _simple_form(
         request, MaterialForm, title="Add material", back="shop:material_list", submit="Add material",
@@ -772,6 +859,7 @@ def material_create(request):
     )
 
 
+@owner_required
 def material_edit(request, pk):
     material = get_object_or_404(Material, pk=pk)
     return _simple_form(
@@ -839,6 +927,7 @@ def tibebe_detail(request, pk):
     return render(request, "shop/inventory/tibebe_detail.html", {"tibebe": get_object_or_404(Tibebe, pk=pk)})
 
 
+@owner_required
 def tibebe_create(request):
     return _simple_form(
         request, TibebeForm, title="Add tibebe style", back="shop:tibebe_list", submit="Add tibebe",
@@ -846,6 +935,7 @@ def tibebe_create(request):
     )
 
 
+@owner_required
 def tibebe_edit(request, pk):
     tibebe = get_object_or_404(Tibebe, pk=pk)
     return _simple_form(

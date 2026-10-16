@@ -1,0 +1,25 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Messengers{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:account' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>Messengers<div class="sub">They take orders, record money and stock, and carry garments between steps.</div></h1>
+</header>
+
+{% for m in messengers %}
+<a class="team-row" href="{% url 'shop:messenger_edit' m.pk %}">
+  <div><b>{{ m.first_name|default:m.username }}</b>{% if not m.is_active %} <span class="muted small">(can't sign in)</span>{% endif %}
+    <div class="muted small">Username: {{ m.username }}{% if m.profile.phone %} · {{ m.profile.phone }}{% endif %}</div></div>
+  {% icon "chev-right" 18 %}
+</a>
+{% empty %}
+<p class="muted">No messengers yet. Add the first one below and give them their username and password.</p>
+{% endfor %}
+
+<form method="post" class="fieldset mt-lg" novalidate>
+  {% csrf_token %}
+  <h2>Add a messenger</h2>
+  {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
+  <button class="btn btn-primary btn-block mt">Create login</button>
+</form>
+{% endblock %}

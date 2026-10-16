@@ -1,0 +1,26 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}Account{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:dashboard' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>{{ user.first_name|default:user.username }}<div class="sub">Signed in as {{ user.username }} · {% if is_owner %}Owner{% else %}Messenger{% endif %}</div></h1>
+  {% include "shop/partials/theme_toggle.html" %}
+</header>
+
+{% if is_owner %}
+<div class="section-head"><h2>Manage</h2></div>
+<a class="team-row" href="{% url 'shop:messenger_list' %}">
+  <div><b>Messengers</b><div class="muted small">Give logins to the people who carry work between steps.</div></div>
+  {% icon "chev-right" 18 %}
+</a>
+<a class="team-row" href="{% url 'shop:team' %}">
+  <div><b>Production workers</b><div class="muted small">Weavers, cutters, tailors and their pay per task.</div></div>
+  {% icon "chev-right" 18 %}
+</a>
+{% endif %}
+
+<form method="post" action="{% url 'logout' %}" class="mt-lg">
+  {% csrf_token %}
+  <button class="btn btn-outline btn-block">{% icon "logout" 18 %} Sign out</button>
+</form>
+{% endblock %}

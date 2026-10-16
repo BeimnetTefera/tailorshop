@@ -2,6 +2,7 @@ import json
 import re
 
 from django import forms
+from django.contrib.auth import get_user_model, password_validation
 from django.utils import timezone
 
 from .models import (
@@ -12,6 +13,7 @@ from .models import (
     Order,
     Payment,
     Sale,
+    StaffProfile,
     Stage,
     Style,
     StylePhoto,
@@ -248,6 +250,80 @@ class WorkerForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Worker
         fields = ["name", "role", "phone", "rate_per_task", "is_active"]
+
+
+def _check_password(password, user=None):
+    try:
+        password_validation.validate_password(password, user)
+    except forms.ValidationError as error:
+        raise forms.ValidationError(error.messages)
+    return password
+
+
+class MessengerCreateForm(StyledFormMixin, forms.Form):
+    name = forms.CharField(label="Full name", max_length=150)
+    phone = forms.CharField(label="Phone number", max_length=20, required=False, help_text="E.g. 0911013758")
+    username = forms.CharField(
+        label="Username", max_length=150,
+        help_text="What they type to sign in. Letters and numbers, no spaces.",
+    )
+    password = forms.CharField(
+        label="Password", max_length=128,
+        help_text="At least 8 characters. Write it down and give it to them.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["phone"].widget.attrs.update(inputmode="tel", placeholder="09…")
+        self.fields["username"].widget.attrs.update(autocapitalize="none", autocomplete="off")
+        self.fields["password"].widget.attrs.update(autocomplete="new-password")
+
+    def clean_phone(self):
+        phone = normalize_phone(self.cleaned_data["phone"])
+        if phone and not PHONE_RE.match(phone):
+            raise forms.ValidationError("Enter a 10-digit phone number starting with 09 or 07.")
+        return phone
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip().lower()
+        if not re.fullmatch(r"[\w.@+-]+", username):
+            raise forms.ValidationError("Use only letters, numbers and . @ + - _ (no spaces).")
+        if get_user_model().objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("That username is already taken.")
+        return username
+
+    def clean_password(self):
+        return _check_password(self.cleaned_data["password"])
+
+    def save(self):
+        user = get_user_model().objects.create_user(
+            self.cleaned_data["username"], password=self.cleaned_data["password"],
+            first_name=self.cleaned_data["name"].strip(),
+        )
+        StaffProfile.objects.create(user=user, role=StaffProfile.Role.MESSENGER, phone=self.cleaned_data["phone"])
+        return user
+
+
+class MessengerEditForm(StyledFormMixin, forms.Form):
+    name = forms.CharField(label="Full name", max_length=150)
+    phone = forms.CharField(label="Phone number", max_length=20, required=False)
+    is_active = forms.BooleanField(
+        label="Can sign in", required=False,
+        help_text="Untick when they leave. Their past work stays in the records.",
+    )
+    clean_phone = MessengerCreateForm.clean_phone
+
+
+class SetPasswordForm(StyledFormMixin, forms.Form):
+    password = forms.CharField(label="New password", max_length=128, help_text="At least 8 characters.")
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.fields["password"].widget.attrs.update(autocomplete="new-password")
+
+    def clean_password(self):
+        return _check_password(self.cleaned_data["password"], self.user)
 
 
 class SaleForm(StyledFormMixin, forms.ModelForm):

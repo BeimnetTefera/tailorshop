@@ -509,6 +509,7 @@ dialog.sheet::backdrop { background: rgba(0, 0, 0, .35); }
 
 .team-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .team-row a { text-decoration: none; }
+a.team-row { text-decoration: none; color: inherit; gap: 12px; }
 
 /* ---------- toasts */
 .toasts { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); width: min(480px, calc(100% - 24px)); z-index: 50; display: grid; gap: 8px; }

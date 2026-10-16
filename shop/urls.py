@@ -6,6 +6,9 @@ app_name = "shop"
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
+    path("account/", views.account, name="account"),
+    path("messengers/", views.messenger_list, name="messenger_list"),
+    path("messengers/<int:pk>/", views.messenger_edit, name="messenger_edit"),
     path("team/", views.team, name="team"),
     path("team/<int:pk>/edit/", views.worker_edit, name="worker_edit"),
 

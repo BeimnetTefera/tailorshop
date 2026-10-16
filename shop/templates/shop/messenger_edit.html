@@ -1,0 +1,23 @@
+{% extends "shop/base.html" %}{% load shop_extras %}
+{% block title %}{{ person.first_name|default:person.username }}{% endblock %}
+{% block content %}
+<header class="topbar">
+  <a href="{% url 'shop:messenger_list' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <h1>{{ person.first_name|default:person.username }}<div class="sub">Signs in as “{{ person.username }}”</div></h1>
+</header>
+
+<form method="post" class="fieldset" novalidate>
+  {% csrf_token %}
+  <h2>Details</h2>
+  {% for field in form %}{% include "shop/partials/field.html" %}{% endfor %}
+  <button class="btn btn-primary btn-block mt">Save</button>
+</form>
+
+<form method="post" class="fieldset mt-lg" novalidate>
+  {% csrf_token %}
+  <h2>Reset password</h2>
+  <p class="muted small">Use this if they forget it. Tell them the new one in person.</p>
+  {% for field in password_form %}{% include "shop/partials/field.html" %}{% endfor %}
+  <button class="btn btn-outline btn-block mt">Set new password</button>
+</form>
+{% endblock %}

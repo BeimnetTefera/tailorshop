@@ -2,7 +2,7 @@
 {% block title %}Sales history{% endblock %}
 {% block content %}
 <header class="topbar">
-  <a href="{% url 'shop:finance' %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
+  <a href="{% if is_owner %}{% url 'shop:finance' %}{% else %}{% url 'shop:dashboard' %}{% endif %}" class="icon-btn" aria-label="Back">{% icon "back" %}</a>
   <h1>Sales history<div class="sub">Your recorded free-size sales.</div></h1>
   <a class="btn btn-primary btn-sm" href="{% url 'shop:sale_create' %}">{% icon "plus" 16 %} Record sale</a>
 </header>
@@ -13,7 +13,7 @@
 <div class="stats-3">
   <div class="stat"><b>{{ today_count }}</b><span>Sales</span></div>
   <div class="stat"><b>{{ today_items }}</b><span>Items sold</span></div>
-  <div class="stat"><b>{{ today_received|etb }}</b><span>ETB received</span></div>
+  {% if is_owner %}<div class="stat"><b>{{ today_received|etb }}</b><span>ETB received</span></div>{% endif %}
 </div>
 
 <form method="get" class="mt" role="search">
@@ -21,7 +21,7 @@
   <label class="label" for="sales-q">Search sales</label>
   <div class="search" style="margin-top:6px">{% icon "search" %}<input id="sales-q" type="search" name="q" value="{{ q }}" placeholder="Style code, clothing or customer…"></div>
   <div class="row-between">
-    <div><b style="font-weight:500;font-size:17px">Recorded sales</b><div class="small">{{ week_total|etb }} ETB received this week</div></div>
+    <div><b style="font-weight:500;font-size:17px">Recorded sales</b>{% if is_owner %}<div class="small">{{ week_total|etb }} ETB received this week</div>{% endif %}</div>
     <div class="row">
       <select name="sort" class="input" style="width:auto;padding:6px 34px 6px 12px" onchange="this.form.submit()" aria-label="Sort">
         <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>

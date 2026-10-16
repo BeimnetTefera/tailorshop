@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from shop.models import (
     Activity, Customer, FreeSizeItem, Material, MaterialUsage, Order, Payment,
-    Sale, Stage, StageNote, Style, Tibebe, Worker, WorkerTask,
+    Sale, StaffProfile, Stage, StageNote, Style, Tibebe, Worker, WorkerTask,
 )
 
 D = Decimal
@@ -32,7 +32,7 @@ STYLE_DETAILS = {
 
 
 class Command(BaseCommand):
-    help = "Load demo data for the tailor shop (owner login: selam / selam1234)."
+    help = "Load demo data for the tailor shop (owner selam / selam1234, messenger dawit / dawit1234)."
 
     def add_arguments(self, parser):
         parser.add_argument("--reset", action="store_true", help="Delete existing shop data first.")
@@ -53,7 +53,11 @@ class Command(BaseCommand):
 
         User = get_user_model()
         if not User.objects.filter(username="selam").exists():
-            User.objects.create_superuser("selam", "selam@example.com", "selam1234", first_name="Selam")
+            owner = User.objects.create_superuser("selam", "selam@example.com", "selam1234", first_name="Selam")
+            StaffProfile.objects.create(user=owner, role=StaffProfile.Role.OWNER)
+        if not User.objects.filter(username="dawit").exists():
+            messenger = User.objects.create_user("dawit", password="dawit1234", first_name="Dawit")
+            StaffProfile.objects.create(user=messenger, role=StaffProfile.Role.MESSENGER, phone="0918223344")
 
         workers = self._workers()
         styles = self._styles()
@@ -63,7 +67,7 @@ class Command(BaseCommand):
         self._orders(workers, styles)
         self._sales(items)
         self._activity()
-        self.stdout.write(self.style.SUCCESS("Demo data loaded. Sign in as selam / selam1234."))
+        self.stdout.write(self.style.SUCCESS("Demo data loaded. Sign in as selam / selam1234 (owner) or dawit / dawit1234 (messenger)."))
 
     # ------------------------------------------------------------------ helpers
     def _ago(self, days, hour=10, minute=0):

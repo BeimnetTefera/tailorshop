@@ -9,6 +9,7 @@ The app covers five areas shown in the mockups:
 """
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -75,7 +76,30 @@ def plain_number(value):
 # --------------------------------------------------------------------------- people
 
 
+class StaffProfile(models.Model):
+    """App login details. The owner creates messenger accounts and switches them off when they leave."""
+
+    class Role(models.TextChoices):
+        OWNER = "owner", "Owner"
+        MESSENGER = "messenger", "Messenger"
+
+    class Language(models.TextChoices):
+        AMHARIC = "am", "አማርኛ"
+        ENGLISH = "en", "English"
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.MESSENGER)
+    phone = models.CharField(max_length=20, blank=True)
+    language = models.CharField(max_length=5, choices=Language.choices, default=Language.AMHARIC)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.user.get_username()} ({self.get_role_display()})"
+
+
 class Worker(models.Model):
+    """Production workers (weaver, cutter, tailor…). They don't log in; messengers bring them the work."""
+
     class Role(models.TextChoices):
         # Values match Stage values so a transfer moves the order to that stage.
         CUTTING = "cutting", "Cutter"

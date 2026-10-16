@@ -3,6 +3,10 @@
   <a href="{% url 'shop:dashboard' %}" class="{% if nav_section == 'home' %}active{% endif %}">{% icon "home" %}Home</a>
   <a href="{% url 'shop:order_list' %}" class="{% if nav_section == 'orders' %}active{% endif %}">{% icon "orders" %}Orders</a>
   <a href="{% url 'shop:clothing_list' %}" class="{% if nav_section == 'inventory' %}active{% endif %}">{% icon "hanger" %}Inventory</a>
+  {% if is_owner %}
   <a href="{% url 'shop:finance' %}" class="{% if nav_section == 'finance' %}active{% endif %}">{% icon "wallet" %}Finance</a>
   <a href="{% url 'shop:worker_payments' %}" class="{% if nav_section == 'payments' %}active{% endif %}">{% icon "card" %}Payments</a>
+  {% else %}
+  <a href="{% url 'shop:sales_history' %}" class="{% if nav_section == 'finance' %}active{% endif %}">{% icon "clipboard" %}Sales</a>
+  {% endif %}
 </nav>

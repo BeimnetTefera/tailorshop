@@ -3,19 +3,25 @@ import os
 import tempfile
 from pathlib import Path
 
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Public demo on Vercel (set by api/index.py). Only /tmp is writable there and it is
-# wiped whenever an instance restarts, so the database lives in /tmp and is re-seeded.
-DEMO_MODE = os.environ.get("DEMO_MODE") == "1"
+# Running on Vercel (set by Vercel itself, and by api/index.py). Only /tmp is writable there.
+ON_VERCEL = os.environ.get("VERCEL") == "1" or os.environ.get("ON_VERCEL") == "1"
+# Supabase (or any PostgreSQL) connection string. Without it the app uses SQLite.
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+# Public demo: on Vercel without a real database. The SQLite file lives in /tmp, is
+# wiped whenever an instance restarts, and is re-seeded with demo data.
+DEMO_MODE = ON_VERCEL and not DATABASE_URL
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
-DEBUG = os.environ.get("DJANGO_DEBUG", "0" if DEMO_MODE else "1") == "1"
+DEBUG = os.environ.get("DJANGO_DEBUG", "0" if ON_VERCEL else "1") == "1"
 ALLOWED_HOSTS = os.environ.get(
-    "DJANGO_ALLOWED_HOSTS", ".vercel.app" if DEMO_MODE else "localhost,127.0.0.1"
+    "DJANGO_ALLOWED_HOSTS", ".vercel.app" if ON_VERCEL else "localhost,127.0.0.1"
 ).split(",")
 CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get(
-    "DJANGO_CSRF_TRUSTED_ORIGINS", "https://*.vercel.app" if DEMO_MODE else ""
+    "DJANGO_CSRF_TRUSTED_ORIGINS", "https://*.vercel.app" if ON_VERCEL else ""
 ).split(",") if o]
 
 INSTALLED_APPS = [
@@ -54,6 +60,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "shop.context_processors.navigation",
                 "shop.context_processors.demo",
+                "shop.context_processors.roles",
             ],
         },
     },
@@ -61,12 +68,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DATABASE_URL:
+    # Serverless functions open a fresh connection per request; use Supabase's pooler
+    # (port 6543, transaction mode), which doesn't support server-side cursors.
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0, ssl_require=True)}
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -82,8 +95,28 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Photos are always served through the app (shop.views.media_file) so only signed-in
+# users can see them, whether they live on disk or in Supabase Storage.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Supabase Storage through its S3-compatible API: Storage > Settings > S3 connection.
+STORAGE_BUCKET = os.environ.get("STORAGE_BUCKET", "")
+if STORAGE_BUCKET:
+    STORAGES = {
+        "default": {
+            "BACKEND": "shop.storage.PrivateS3Storage",
+            "OPTIONS": {
+                "bucket_name": STORAGE_BUCKET,
+                "endpoint_url": os.environ.get("STORAGE_ENDPOINT_URL", ""),
+                "region_name": os.environ.get("STORAGE_REGION", ""),
+                "access_key": os.environ.get("STORAGE_ACCESS_KEY_ID", ""),
+                "secret_key": os.environ.get("STORAGE_SECRET_ACCESS_KEY", ""),
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "shop:dashboard"
@@ -91,14 +124,16 @@ LOGOUT_REDIRECT_URL = "login"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-if DEMO_MODE:
-    DATABASES["default"]["NAME"] = Path(tempfile.gettempdir()) / "tailorshop-demo.sqlite3"
-    MEDIA_ROOT = Path(tempfile.gettempdir()) / "tailorshop-media"
-    # Instances don't share /tmp, so keep logins in a signed cookie instead of the database.
-    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+if ON_VERCEL:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
     # WhiteNoise serves /static/ straight from the app folders (no collectstatic step).
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
     WHITENOISE_USE_FINDERS = True
     STATIC_ROOT = None
+
+if DEMO_MODE:
+    DATABASES["default"]["NAME"] = Path(tempfile.gettempdir()) / "tailorshop-demo.sqlite3"
+    MEDIA_ROOT = Path(tempfile.gettempdir()) / "tailorshop-media"
+    # Instances don't share /tmp, so keep logins in a signed cookie instead of the database.
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

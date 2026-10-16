@@ -3,6 +3,12 @@ from django.contrib import admin
 from . import models
 
 
+@admin.register(models.StaffProfile)
+class StaffProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "role", "phone", "language")
+    list_filter = ("role",)
+
+
 class PaymentInline(admin.TabularInline):
     model = models.Payment
     extra = 0

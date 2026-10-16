@@ -7,7 +7,7 @@
   </div>
   <div class="row">
     {% include "shop/partials/theme_toggle.html" %}
-    <a href="{% url 'shop:team' %}" class="icon-btn" aria-label="Team and account">{% icon "team" %}</a>
+    <a href="{% url 'shop:account' %}" class="icon-btn" aria-label="{% if is_owner %}Account, messengers and team{% else %}Account{% endif %}">{% icon "team" %}</a>
     <a href="{% url 'shop:order_list' %}?due=late" class="icon-btn" aria-label="{{ delayed_count }} delayed orders">{% icon "bell" %}{% if delayed_count %}<span class="dot">{{ delayed_count }}</span>{% endif %}</a>
   </div>
 </header>

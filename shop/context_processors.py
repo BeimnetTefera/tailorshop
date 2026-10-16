@@ -1,3 +1,7 @@
+from django.conf import settings
+
+from .roles import is_owner
+
 # Maps URL names to the bottom-nav tab that should be highlighted.
 _RULES = [
     ("dashboard", "home"),
@@ -15,12 +19,17 @@ _RULES = [
     ("task_", "payments"),
     ("team", "home"),
     ("worker_", "home"),
+    ("messenger_", "home"),
+    ("account", "home"),
 ]
 
 
 def demo(request):
-    from django.conf import settings
     return {"demo_mode": settings.DEMO_MODE}
+
+
+def roles(request):
+    return {"is_owner": is_owner(request.user)}
 
 
 def navigation(request):

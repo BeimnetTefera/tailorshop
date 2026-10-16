@@ -1,4 +1,5 @@
 import atexit
+import re
 import shutil
 import tempfile
 from datetime import date, timedelta
@@ -242,15 +243,27 @@ class ShopFlowTests(TestCase):
         response = self.client.post(reverse("shop:task_mark_paid", args=[task.pk]), {"next": "https://evil.example", **_pin(self.owner)})
         self.assertEqual(response["Location"], reverse("shop:worker_payments"))
 
-    def test_urgent_orders_stand_out_in_the_list(self):
+    def test_urgent_due_today_and_late_orders_stand_out_in_the_list(self):
         page = self.client.get(reverse("shop:order_list"))
         html = page.content.decode()
-        urgent = Order.objects.filter(priority=Order.Priority.URGENT).exclude(stage=Stage.DELIVERED)
-        self.assertTrue(urgent.exists())
-        self.assertEqual(html.count("order-card swipe-card urgent"), urgent.count())
-        self.assertEqual(html.count("pill pill-urgent"), urgent.count())
-        normal = Order.objects.filter(priority=Order.Priority.STANDARD).exclude(stage=Stage.DELIVERED).first()
-        self.assertRegex(html, rf'order-card swipe-card"[^>]*data-left="{reverse("shop:order_edit", args=[normal.pk])}"')
+        active = list(Order.objects.exclude(stage=Stage.DELIVERED))
+        flagged = [o for o in active if o.needs_attention]
+        urgent = [o for o in active if o.priority == Order.Priority.URGENT]
+        due_today = [o for o in flagged if o.priority != Order.Priority.URGENT]
+        self.assertTrue(urgent and due_today)  # the demo has both kinds
+        self.assertEqual(html.count("order-card swipe-card urgent"), len(flagged))
+        self.assertEqual(html.count("pill pill-urgent"), len(urgent))  # the badge is only for orders marked urgent
+
+        def card_class(order):
+            edit = reverse("shop:order_edit", args=[order.pk])
+            return re.search(rf'class="(order-card swipe-card[^"]*)"[^>]*data-left="{edit}"', html).group(1)
+
+        sara = Order.objects.get(customer__name="Sara Kebede", stage=Stage.CUTTING)  # due today, not marked urgent
+        self.assertIn("urgent", card_class(sara))
+        relaxed = next(o for o in active if not o.needs_attention)  # far-off due date, or ready for pickup
+        self.assertNotIn("urgent", card_class(relaxed))
+        ready = Order.objects.get(customer__name="Yordanos Fikre", stage=Stage.READY)
+        self.assertFalse(ready.needs_attention)
 
     def test_finance_follows_ethiopian_months(self):
         response = self.client.get(reverse("shop:finance") + "?month=2019-2")

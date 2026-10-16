@@ -265,7 +265,8 @@ textarea.input { min-height: 88px; resize: vertical; }
 .filter-note { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 
 .order-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; touch-action: pan-y; transition: transform .2s ease; }
-/* Urgent orders stand out from the list: thicker red border, a soft glow and a faint red tint. */
+/* Orders that need attention (marked urgent, or due today / late) stand out from the list:
+   thicker red border, a soft glow and a faint red tint. Only marked-urgent ones get the badge. */
 .order-card.urgent, .result-link.urgent {
   border: 2px solid var(--danger);
   background: var(--surface);

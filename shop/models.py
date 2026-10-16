@@ -360,6 +360,13 @@ class Order(models.Model):
         return self.stage not in (Stage.READY, Stage.DELIVERED) and self.days_left < 0
 
     @property
+    def needs_attention(self):
+        """Highlighted in lists: marked urgent, or still being made and due today or late."""
+        if self.priority == self.Priority.URGENT and self.stage != Stage.DELIVERED:
+            return True
+        return self.stage not in (Stage.READY, Stage.DELIVERED) and self.days_left <= 0
+
+    @property
     def status_label(self):
         return gettext("Delayed") if self.is_delayed else self.get_stage_display()
 

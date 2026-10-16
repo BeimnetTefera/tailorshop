@@ -25,7 +25,7 @@
   <div class="stack">
   {% for o in orders %}
     <article>
-      <div class="order-card swipe-card{% if o.priority == 'urgent' %} urgent{% endif %}"{% if o.priority == 'urgent' %} aria-label="{% translate 'Urgent order' %}" role="group"{% endif %} data-left="{% url 'shop:order_edit' o.pk %}" data-right="ready-{{ o.pk }}">
+      <div class="order-card swipe-card{% if o.needs_attention %} urgent{% endif %}"{% if o.priority == 'urgent' %} aria-label="{% translate 'Urgent order' %}" role="group"{% endif %} data-left="{% url 'shop:order_edit' o.pk %}" data-right="ready-{{ o.pk }}">
         <a href="{% url 'shop:tracker_detail' o.pk %}">
           <div class="row-between">
             <div><div class="name-row"><h3>{{ o.customer.name }}</h3>{% if o.priority == "urgent" %}<span class="pill pill-urgent">{% icon "alert" 13 %} {% translate "Urgent" %}</span>{% endif %}</div>{% if o.people_count > 1 %}<small>{% blocktranslate with n=o.people_count %}for {{ n }} people{% endblocktranslate %}</small>{% endif %}</div>

@@ -23,7 +23,7 @@
   {% if q and not order %}
     <div class="stack-sm mt">
       {% for r in results %}
-        <a class="result-link{% if r.priority == 'urgent' %} urgent{% endif %}" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b>{% if r.priority == "urgent" %} <span class="pill pill-urgent">{% icon "alert" 13 %} {% translate "Urgent" %}</span>{% endif %}<br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small gold">{{ r.status_label }}</span></a>
+        <a class="result-link{% if r.needs_attention %} urgent{% endif %}" href="{% url 'shop:tracker_detail' r.pk %}"><span><b>{{ r.customer.name }}</b>{% if r.priority == "urgent" %} <span class="pill pill-urgent">{% icon "alert" 13 %} {% translate "Urgent" %}</span>{% endif %}<br><span class="small muted">{{ r.title }} · {{ r.code }}</span></span><span class="small gold">{{ r.status_label }}</span></a>
       {% empty %}
         <div class="empty"><b>{% blocktranslate %}No active order matches “{{ q }}”{% endblocktranslate %}</b><p>{% translate "Delivered orders are on the Delivered tab of the orders list." %}</p></div>
       {% endfor %}

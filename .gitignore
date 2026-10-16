@@ -4,3 +4,6 @@ db.sqlite3
 media/
 staticfiles/
 .venv/
+
+.vercel
+.vercel/

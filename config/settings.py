@@ -75,9 +75,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 if DATABASE_URL:
-    # Serverless functions open a fresh connection per request; use Supabase's pooler
-    # (port 6543, transaction mode), which doesn't support server-side cursors.
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0,
+    # Use the provider's pooler (Supabase port 6543 / Neon "-pooler" host, transaction
+    # mode), which doesn't support server-side cursors. A warm serverless instance keeps
+    # its connection for a minute, so most clicks skip the TLS handshake to the database;
+    # the health check replaces a connection that went stale while the instance slept.
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=60, conn_health_checks=True,
                                                   ssl_require=DATABASE_URL.startswith("postgres"))}
     DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
@@ -151,6 +153,8 @@ if ON_VERCEL:
     # WhiteNoise serves /static/ straight from the app folders (no collectstatic step).
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
     WHITENOISE_USE_FINDERS = True
+    # Our CSS / JS links carry ?v=<content hash> ({% asset %}), so phones may keep them a month.
+    WHITENOISE_MAX_AGE = 60 * 60 * 24 * 30
     STATIC_ROOT = None
 
 if DEMO_MODE:

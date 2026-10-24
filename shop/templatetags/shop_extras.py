@@ -1,7 +1,12 @@
+import hashlib
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 
 from django import template
+from django.conf import settings
+from django.contrib.staticfiles import finders
+from django.templatetags.static import static
 from django.utils import timezone, translation
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -21,6 +26,23 @@ def format_etb(value):
     if number == number.to_integral_value():
         return f"{number:,.0f}"
     return f"{number:,.2f}"
+
+
+@lru_cache(maxsize=None)
+def _file_version(path):
+    found = finders.find(path)
+    if not found:
+        return ""
+    with open(found, "rb") as f:
+        return hashlib.md5(f.read(), usedforsecurity=False).hexdigest()[:10]
+
+
+@register.simple_tag
+def asset(path):
+    """A static URL with ?v=<content hash>, so phones can cache it for a long time and
+    still get the new file the moment it changes."""
+    version = _file_version.__wrapped__(path) if settings.DEBUG else _file_version(path)
+    return f"{static(path)}?v={version}" if version else static(path)
 
 
 @register.filter

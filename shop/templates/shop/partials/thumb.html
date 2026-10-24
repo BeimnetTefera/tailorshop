@@ -1,1 +1,1 @@
-<div class="tile-img">{% if photo %}<img src="{{ photo.url }}" alt="{{ alt }}" loading="lazy">{% else %}<span class="ph">{{ code }}</span>{% endif %}</div>
+<div class="tile-img">{% if photo %}<img src="{{ photo.url }}" alt="{{ alt }}" loading="lazy" decoding="async">{% else %}<span class="ph">{{ code }}</span>{% endif %}</div>

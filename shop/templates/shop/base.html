@@ -1,16 +1,23 @@
-{% load static i18n %}{% get_current_language as LANG %}<!doctype html>
+{% load i18n shop_extras %}{% get_current_language as LANG %}<!doctype html>
 <html lang="{{ LANG }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F6F4EE">
+  <meta name="theme-color" content="#EFF4F1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>{% block title %}{% translate "Home" %}{% endblock %} · {% translate "Tailor shop" %}</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{% asset 'shop/css/app.css' %}">
+  {# Fonts load without holding the page back: text shows at once in the phone's own font and switches when Jost arrives. #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&family=Noto+Serif+Ethiopic:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/css/app.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+  {# Chrome starts loading a page the moment a finger lands on its link, so it opens almost instantly. #}
+  <script type="speculationrules">
+  {"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": "/media/*"}}, {"not": {"href_matches": "/admin/*"}}, {"not": {"href_matches": "/accounts/*"}}]}, "eagerness": "conservative"}]}
+  </script>
 </head>
 <body>
   {% if messages %}
@@ -23,6 +30,6 @@
   </main>
   {% block nav %}{% include "shop/partials/nav.html" %}{% endblock %}
   {% if user.is_authenticated %}{% include "shop/partials/account_sheet.html" %}{% include "shop/partials/pin_sheet.html" %}{% endif %}
-  <script src="{% static 'shop/js/app.js' %}" defer></script>
+  <script src="{% asset 'shop/js/app.js' %}" defer></script>
 </body>
 </html>

@@ -81,7 +81,7 @@
 <section class="card mt">
   <h2>{% translate "Measurements (cm)" %}</h2>
   <div class="measure-grid">{% for label, value in order.measurements %}<div><span class="muted">{{ label }}</span><b>{{ value }}</b></div>{% endfor %}</div>
-  {% if order.reference_photo %}<a class="bubble-photo mt" href="{{ order.reference_photo.url }}"><img src="{{ order.reference_photo.url }}" alt="{% translate 'Reference photo' %}"></a>{% endif %}
+  {% if order.reference_photo %}<a class="bubble-photo mt" href="{{ order.reference_photo.url }}"><img src="{{ order.reference_photo.url }}" alt="{% translate 'Reference photo' %}" loading="lazy" decoding="async"></a>{% endif %}
 </section>
 {% endif %}
 
@@ -101,7 +101,7 @@
             <time datetime="{{ n.created_at|date:'c' }}">{{ n.created_at|friendly }}</time>
           </div>
           {% if n.text %}<p>{{ n.text }}</p>{% endif %}
-          {% if n.photo %}<a class="bubble-photo" href="{{ n.photo.url }}"><img src="{{ n.photo.url }}" alt="{% translate 'Photo added to this update' %}" loading="lazy"></a>{% endif %}
+          {% if n.photo %}<a class="bubble-photo" href="{{ n.photo.url }}"><img src="{{ n.photo.url }}" alt="{% translate 'Photo added to this update' %}" loading="lazy" decoding="async"></a>{% endif %}
         </article>
       {% endwith %}{% endif %}
     {% empty %}
